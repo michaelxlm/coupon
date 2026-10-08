@@ -1,0 +1,28 @@
+# 静态站统一部署（push-to-deploy），由 39.107 上 self-hosted runner 执行
+# runner 用自身 /root/.ssh/id_rsa 登录 60.205.214.88，无需在仓库存密钥
+# 采用 shell:bash + Linux 原生 tar/ssh（路径在 /root/.ssh）
+name: Deploy coupon.zangeng.com
+
+on:
+  push:
+    branches: [main]
+  # 允许从管理端（GitHub API workflow_dispatch）手动触发部署，无需重新 push
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, x64, static-deploy]
+    steps:
+      - name: Configure SSH for GitHub checkout
+        shell: bash
+        run: |
+          # 用 runner 本地 /root/.ssh 私钥走 SSH 拉代码，规避 HTTPS(443) 超时
+          # 用 --system + 绝对路径：runner 环境 $HOME 未设置，--global 会报错且 checkout 读不到
+          git config --system url."git@github.com:".insteadOf "https://github.com/"
+          mkdir -p /root/.ssh && chmod 700 /root/.ssh
+          ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /root/.ssh/known_hosts 2>/dev/null
+      - uses: actions/checkout@v4
+      - name: Sync to /www/wwwroot/coupon.zangeng.com
+        shell: bash
+        run: |
+          tar cf - --exclude=.git --exclude=.github --exclude=.user.ini --exclude=.workbuddy . | ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=accept-new root@60.205.214.88 "mkdir -p /www/wwwroot/coupon.zangeng.com ; cd /www/wwwroot/coupon.zangeng.com ; tar xmf -"

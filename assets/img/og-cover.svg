@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff5f5"/>
+      <stop offset="1" stop-color="#ffe9ea"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="80" y="200" width="120" height="120" rx="24" fill="#e4393c"/>
+  <text x="140" y="288" font-family="-apple-system,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif" font-size="68" font-weight="800" fill="#fff" text-anchor="middle">券</text>
+  <text x="250" y="262" font-family="-apple-system,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif" font-size="58" font-weight="800" fill="#1a1a1a">小满券仓</text>
+  <text x="250" y="330" font-family="-apple-system,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif" font-size="34" fill="#5a6478">京东优惠券 · 限时领券中心</text>
+  <text x="250" y="400" font-family="-apple-system,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif" font-size="30" fill="#8a93a6">先领券，再下单，更省</text>
+</svg>

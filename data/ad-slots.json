@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "updated": "2026-10-12",
+  "source": "本地兜底广告位；远程 OSS 同步 JSON 优先，本文件仅作远程不可用时的兜底。优惠券内容由后端接口实时拉取，不进广告位。",
+  "settings": {
+    "enabled": true,
+    "maxPerSlot": 3,
+    "carouselMax": 6,
+    "rotateInterval": 4000
+  },
+  "slots": []
+}

@@ -1,0 +1,151 @@
+/* ==========================================================================
+   小满券仓（coupon.zangeng.com）· 优惠券展示专用样式
+   复用 tokens.css / main.css 的设计令牌；本文件只放优惠券页独有组件。
+   ========================================================================== */
+
+:root {
+  /* 京东红，仅用于券面价格与「券」徽标，避免污染全站品牌色 */
+  --coupon-red: #e4393c;
+  --coupon-red-soft: rgba(228, 57, 60, 0.1);
+}
+
+/* ---------------------------------- 工具栏（榜单切换 + 搜索） ---------------------------------- */
+.cp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.cp-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.cp-tab {
+  border: 0;
+  background: transparent;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: background .15s ease, color .15s ease;
+}
+.cp-tab:hover { color: var(--text); }
+.cp-tab.is-active { background: var(--accent); color: #fff; }
+.cp-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.cp-search { display: flex; gap: 8px; }
+.cp-search input {
+  width: 260px;
+  max-width: 60vw;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9375rem;
+}
+.cp-search input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.cp-search button {
+  height: 42px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.cp-search button:hover { background: var(--accent-strong); }
+
+/* ---------------------------------- 优惠券网格 ---------------------------------- */
+.cp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 18px;
+}
+.cp-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: var(--text);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.cp-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: var(--border-strong);
+}
+.cp-card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+.cp-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  padding: 12px 12px 0;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.cp-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 12px 14px;
+}
+.cp-off {
+  color: var(--coupon-red);
+  font-weight: 800;
+  font-size: 1.0625rem;
+}
+.cp-final {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+.cp-final::before { content: "到手 "; color: var(--text-soft); }
+
+/* ---------------------------------- 状态 / 加载更多 ---------------------------------- */
+.cp-state {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+.cp-more-wrap { text-align: center; margin-top: 28px; }
+.cp-more-wrap .btn[hidden] { display: none; }
+
+.cp-note {
+  margin-top: 14px;
+  color: var(--text-soft);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 720px) {
+  .cp-toolbar { flex-direction: column; align-items: stretch; }
+  .cp-search { width: 100%; }
+  .cp-search input { flex: 1; max-width: none; width: auto; }
+  .cp-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+}

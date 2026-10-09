@@ -22,6 +22,14 @@ jobs:
           mkdir -p /root/.ssh && chmod 700 /root/.ssh
           ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /root/.ssh/known_hosts 2>/dev/null
       - uses: actions/checkout@v4
+      - name: Setup Node (for prerender)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Pre-render coupons (SEO / 百度可索引)
+        shell: bash
+        # fail-soft：build.js 内部已捕获所有异常并 exit 0，取不到券/上游不可达时保持原 HTML，绝不阻断部署
+        run: node scripts/build.js
       - name: Sync to /www/wwwroot/coupon.zangeng.com
         shell: bash
         run: |

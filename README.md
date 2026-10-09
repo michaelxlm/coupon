@@ -1,15 +1,30 @@
+---
+title: 小满券仓（coupon.zangeng.com）
+owner: Michaelxlm
+updated: 2026-10-09
+scope: coupon（coupon.zangeng.com · 京东优惠券聚合静态站）
+status: 有效
+tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点]
+---
+
 # 小满券仓（coupon.zangeng.com）
 
-> 文档治理：本文件是 coupon 唯一项目介绍；跨项目规范与集中文档见 `main-api/app/docs/`。
+> 文档治理：本文件是 coupon 唯一项目介绍；跨项目规范与集中文档见 `main-api/app/docs/`；
+> 统一视图见 `main-api/app/docs/knowledge-base/projects/coupon/README.md`（2026-10-09 纳入知识库）。
 
 从 `zangeng.com` 剥离出来的**独立优惠券站**，域名 `coupon.zangeng.com`，专门展示京东优惠券数据。
 优惠券数据实时来自中台 `main-api`（`/api/v1/front/coupon/jd/*`），与其他静态站（zangeng / color-tool / visitor / aiWeb / notes / history）**同一套零依赖静态站框架**：手写 HTML + 共享设计令牌 + push-to-deploy。
 
 ## 数据来源
 
-- 精选（每日随机）：`GET /api/v1/front/coupon/jd/random?limit=10&mainUrl=coupon.zangeng.com`
+- 精选（手选池）：`GET /api/v1/front/coupon/jd/random?limit=10&mainUrl=coupon.zangeng.com`
+  由原「全库随机」改为**纯手选池**：只展示管理端「优惠券商品」页导入的京东手选券（`isHandpick='1'`）；
+  当 `main-api` 的 `config.taobaoTbk.enable=true` 时，京东手选与淘宝有效券**混合同一榜**（按 `createTime` 倒序截断）。淘宝审核通过后仅切此开关即面客，无需改代码。
 - 榜单（日 / 周 / 月）：`GET /api/v1/front/coupon/jd/rank?period=week|month|day&limit=20&mainUrl=coupon.zangeng.com`
+  日榜已改为**真时间窗排序**（近 24h 按券面额降序），与精选不再同源。
 - 搜索 / 分页：`GET /api/v1/front/coupon/jd/paging?search=关键词&page=1&pageSize=20&mainUrl=coupon.zangeng.com`
+
+> 前台接口经后端字段白名单裁剪（`title/pict_url/item_url/price/couponDiscount/couponQuota/clickURL/couponUrl/tao_id`），不再下发 `data/佣金/内部状态位` 等敏感字段。
 
 `coupon-page.js` 在每次请求里带上 `mainUrl=coupon.zangeng.com`，经 `main-api` 的 `sourceGuard` 中间件按 `projects.url` 放行。
 **务必先在 main-api 侧登记该来源**（见下方「上线 checklist」），否则接口返回空数据（响应头 `X-Source-Guard: BLOCKED`）。
@@ -29,6 +44,9 @@ coupon/
 │   ├── js/app.js       站点交互（主题三态 / 移动菜单）
 │   ├── js/coupon-page.js 领券中心交互（精选 / 榜单 / 搜索 / 分页加载更多）
 │   └── img/            favicon.svg + og-cover.svg
+├── scripts/
+│   ├── build.js        构建期预渲染券网格 + schema.org JSON-LD（部署前由 CI 执行，fail-soft）
+│   └── cache-bust.js   统一刷新本地 CSS/JS 的 ?v= 与 body data-build 版本号（零依赖）
 ├── data/ad-slots.json  自营广告位兜底（远程 OSS 同步 JSON 优先）
 ├── deploy/nginx.conf   部署配置（server_name 与证书路径按域名填）
 ├── robots.txt / sitemap.xml
@@ -47,10 +65,10 @@ python -m http.server 8080
 
 ## 构建与缓存规范
 
-纯静态托管，HTML 直接加载源文件，**无构建步骤**。Nginx 对 `/assets/**` 设 30 天长缓存，故改了 CSS/JS 后必须刷新缓存指纹：
+站体仍为纯静态托管（HTML 直加源文件），但新增一个**部署前的可选预渲染步骤**（为让券内容可被百度等弱 JS 搜索引擎索引）：
 
-1. 改了 `assets/css/*.css` / `assets/js/*.js` 后，把各 HTML 里对应本地引用的 `?v=` 统一改成新版本号（格式 `?v=YYYY.MM.DD`，**站内所有引用用同一个 token**，当前 `2026.10.12`）。
-2. 外部 OSS 脚本不打版本号（`https://antucao.oss-cn-beijing.aliyuncs.com/js/ad-slots.js`），脚本自动跳过。
+1. **预渲染（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后、`sync` 前执行 `node scripts/build.js`，拉一次后端「精选 + 周榜」写入 `index.html` 的 `#cpGrid`（`PRERENDER:GRID` 标记包裹，幂等替换）并生成 `ItemList/Product/Offer` JSON-LD。脚本 fail-soft：上游不可达 / 未取到券时保持原 HTML，绝不阻断部署。运行时 `coupon-page.js` 会清空重绘（渐进增强，禁 JS 仍可读到券）。
+2. **缓存指纹**：Nginx 对 `/assets/**` 设 30 天长缓存，改了 `assets/css/*.css` / `assets/js/*.js` 后跑 `node scripts/cache-bust.js <版本号>`（形如 `2026.10.13`），一次性刷新全站本地 CSS/JS 的 `?v=` 与 `<body data-build>` 统一个 token（外部 OSS 脚本自动跳过）。当前 token：`2026.10.13`。
 
 ## 上线 checklist（缺一不可）
 

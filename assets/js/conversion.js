@@ -163,28 +163,43 @@
   }
 
   /** 案例卡片曝光：进入视口 ≥50% 且停留 1s，每卡每会话只报一次 */
+  var caseIO = null;          // IntersectionObserver 句柄（供动态新增节点补观察）
+  var caseSeen = {};          // 已上报的 data-case id（每会话一次）
+  var caseTimers = {};
+
+  function scanCaseNodes() {
+    if (!caseIO) return;
+    var nodes = doc.querySelectorAll('[data-case]');
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].__cvObserved) continue;
+      nodes[i].__cvObserved = 1;
+      caseIO.observe(nodes[i]);
+    }
+  }
+
   function bindCaseView() {
     if (!global.IntersectionObserver) return;
-    var seen = {};
-    var timers = {};
-    var io = new global.IntersectionObserver(function (entries) {
+    caseIO = new global.IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         var id = entry.target.getAttribute('data-case') || '';
-        if (!id || seen[id]) return;
+        if (!id || caseSeen[id]) return;
         if (entry.isIntersecting) {
-          timers[id] = global.setTimeout(function () {
-            seen[id] = 1;
+          caseTimers[id] = global.setTimeout(function () {
+            caseSeen[id] = 1;
             track('case_view', { case: id });
           }, 1000);
-        } else if (timers[id]) {
-          global.clearTimeout(timers[id]);
-          timers[id] = null;
+        } else if (caseTimers[id]) {
+          global.clearTimeout(caseTimers[id]);
+          caseTimers[id] = null;
         }
       });
     }, { threshold: 0.5 });
+    scanCaseNodes();
+  }
 
-    var nodes = doc.querySelectorAll('[data-case]');
-    for (var i = 0; i < nodes.length; i++) io.observe(nodes[i]);
+  /** 供业务代码（如 coupon-page.js 动态渲染券卡后）补观察新插入的 [data-case] 节点 */
+  function reobserve() {
+    scanCaseNodes();
   }
 
   function boot() {
@@ -209,5 +224,6 @@
     track: track,
     attrs: attrs,
     count: localCount,
+    reobserve: reobserve,
   };
 })(window);

@@ -16,7 +16,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 18px;
 }
 .cp-tabs {
   display: inline-flex;
@@ -147,13 +147,13 @@
 
 /* ---------------------------------- 状态 / 加载更多 ---------------------------------- */
 .cp-state {
-  padding: 40px 0;
+  padding: 24px 0;
   text-align: center;
   color: var(--text-muted);
   font-size: 0.9375rem;
 }
 .cp-state .cp-retry { margin-top: 14px; }
-.cp-more-wrap { text-align: center; margin-top: 28px; }
+.cp-more-wrap { text-align: center; margin-top: 18px; }
 .cp-more-wrap .btn[hidden] { display: none; }
 
 .cp-note {

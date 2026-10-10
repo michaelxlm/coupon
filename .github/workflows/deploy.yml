@@ -30,6 +30,10 @@ jobs:
         shell: bash
         # fail-soft：build.js 内部已捕获所有异常并 exit 0，取不到券/上游不可达时保持原 HTML，绝不阻断部署
         run: node scripts/build.js
+      # 内容哈希指纹：为静态资源生成 <name>.<hash>.<ext> 并改写 HTML/CSS 引用（配合服务器 immutable 长缓存）。须排在 build.js 之后
+      - name: Content hash fingerprint
+        shell: bash
+        run: node scripts/fingerprint.js
       - name: Sync to /www/wwwroot/coupon.zangeng.com
         shell: bash
         run: |

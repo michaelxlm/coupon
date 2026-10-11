@@ -25,6 +25,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const P = require('./shared-partials'); // WO-85 阶段二：header/footer/ad-slot 委托跨站单一源
 
 const API_BASE = process.env.COUPON_API_BASE || 'https://api.xuyiheng.com';
 const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
@@ -37,6 +38,46 @@ const GRID_START = '<!-- PRERENDER:GRID:START -->';
 const GRID_END = '<!-- PRERENDER:GRID:END -->';
 const JSONLD_START = '<!-- PRERENDER:JSONLD:START -->';
 const JSONLD_END = '<!-- PRERENDER:JSONLD:END -->';
+
+// 站点静态 chrome（header/footer 数据源）：委托 shared-partials 渲染，不再内联字面量
+const COUPON_SITE = {
+  site_name: '小满券仓',
+  logo_text: '券',
+  slogan: '京东优惠券，先领券再下单更省',
+  icp: '京ICP备18062653号-8',
+  icp_url: 'https://beian.miit.gov.cn/',
+  nav: [
+    { label: '领券中心', url: '/' },
+    { label: '全部好物', url: '/browse.html' },
+    { label: '榜单', url: '/rank.html' },
+    { label: '品类', url: '/category.html' },
+    { label: '攻略', url: '/guide.html' },
+    { label: '小满手记', url: 'https://zangeng.com/', external: true },
+  ],
+  footer_nav: [
+    { title: '站点', links: [
+      { label: '领券中心', url: '/' },
+      { label: '全部好物', url: '/browse.html' },
+      { label: '榜单', url: '/rank.html' },
+      { label: '品类', url: '/category.html' },
+      { label: '领券攻略', url: '/guide.html' },
+      { label: '凑单计算器', url: '/calculator.html' },
+      { label: '大促日历', url: '/holidays.html' },
+      { label: '我的收藏', url: '/favorites.html' },
+      { label: '关于与免责', url: '/about.html' },
+      { label: '小满手记', url: 'https://zangeng.com/', external: true },
+    ] },
+    { title: '更多站点', links: [
+      { label: '建站向导 · xuliming.com', url: 'https://xuliming.com/', external: true },
+      { label: '配色工具 · 2002cs.com', url: 'https://2002cs.com/', external: true },
+      { label: '开发者工具箱 · fangkelianmeng.com', url: 'https://fangkelianmeng.com/', external: true },
+      { label: '实测手记 · 585.ink', url: 'https://585.ink/', external: true },
+      { label: '历史知识库 · 20101115.com', url: 'https://20101115.com/', external: true },
+    ] },
+  ],
+  contact: { email: 'xlm8826@gmail.com', feedback_url: 'https://antucao.com' },
+};
+const COUPON_PAGE = { nav: '/category.html' }; // 品类落地页恒高亮「品类」
 
 function esc(s) {
   return String(s == null ? '' : s)
@@ -218,28 +259,10 @@ function catPageShell(cat, list) {
   <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="/" aria-label="小满券仓 首页">
-        <span class="brand-mark">券</span>
-        <span class="brand-text">小满券仓</span>
-      </a>
-      <nav class="nav" id="primaryNav" aria-label="主导航">
-        <a class="nav-link" href="/">领券中心</a>
-        <a class="nav-link" href="/browse.html">全部好物</a>
-        <a class="nav-link" href="/rank.html">榜单</a>
-        <a class="nav-link is-active" href="/category.html" aria-current="page">品类</a>
-        <a class="nav-link" href="/guide.html">攻略</a>
-        <a class="nav-link" href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></nav>
-      <div class="header-actions">
-        <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深色 / 浅色">🌙</button>
-        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="展开菜单" aria-expanded="false">☰</button>
-      </div>
-    </div>
-  </header>
+  ${P.renderHeader(COUPON_SITE, COUPON_PAGE, {}, { navAriaCurrent: true })}
 
   <main id="main">
-    <section class="section-sm"><div class="container"><div class="ad-slot" data-ad-slot="carousel"></div></div></section>
+    ${P.renderAdSlotSection('carousel')}
 
     <section class="section hero">
       <div class="container">
@@ -252,7 +275,7 @@ function catPageShell(cat, list) {
       </div>
     </section>
 
-    <section class="section-sm"><div class="container"><div class="ad-slot" data-ad-slot="inline"></div></div></section>
+    ${P.renderAdSlotSection('inline')}
 
     <section class="section">
       <div class="container">
@@ -299,50 +322,7 @@ ${grid}
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <a class="brand" href="/"><span class="brand-mark">券</span><span class="brand-text">小满券仓</span></a>
-          <p>京东优惠券，先领券再下单更省</p>
-        </div>
-
-        <div class="footer-col">
-          <h4>站点</h4>
-          <ul>
-            <li><a href="/">领券中心</a></li>
-            <li><a href="/browse.html">全部好物</a></li>
-            <li><a href="/rank.html">榜单</a></li>
-            <li><a href="/category.html">品类</a></li>
-            <li><a href="/guide.html">领券攻略</a></li>
-            <li><a href="/calculator.html">凑单计算器</a></li>
-            <li><a href="/holidays.html">大促日历</a></li>
-            <li><a href="/favorites.html">我的收藏</a></li>
-            <li><a href="/about.html">关于与免责</a></li>
-            <li><a href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></li></ul>
-        </div>
-
-        <div class="footer-col">
-          <h4>更多站点</h4>
-          <ul><li><a href="https://xuliming.com/" target="_blank" rel="noopener">建站向导 · xuliming.com</a></li>
-            <li><a href="https://2002cs.com/" target="_blank" rel="noopener">配色工具 · 2002cs.com</a></li>
-            <li><a href="https://fangkelianmeng.com/" target="_blank" rel="noopener">开发者工具箱 · fangkelianmeng.com</a></li>
-            <li><a href="https://585.ink/" target="_blank" rel="noopener">实测手记 · 585.ink</a></li>
-            <li><a href="https://20101115.com/" target="_blank" rel="noopener">历史知识库 · 20101115.com</a></li></ul>
-        </div>
-
-        <div class="footer-col">
-          <h4>联系</h4>
-          <ul><li><a href="mailto:xlm8826@gmail.com">xlm8826@gmail.com</a></li><li><a href="https://antucao.com" target="_blank" rel="noopener">反馈 / 其他 → antucao.com</a></li></ul>
-        </div>
-      </div>
-      <div class="container"><div class="ad-slot" data-ad-slot="footer"></div></div>
-      <div class="container footer-bottom">
-        <span>© 2026 小满券仓</span>
-        <div class="footer-links"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">京ICP备18062653号-8</a></div>
-      </div>
-    </div>
-  </footer>
+  ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
 
   <script src="/assets/js/tracker.js?v=${TOKEN}"></script>
   <script src="/assets/js/conversion.js?v=${TOKEN}"></script>

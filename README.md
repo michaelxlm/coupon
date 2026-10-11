@@ -12,6 +12,8 @@ tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, �
 > 文档治理：本文件是 coupon 唯一项目介绍；跨项目规范与集中文档见 `main-api/app/docs/`；
 > 统一视图见 `main-api/app/docs/knowledge-base/projects/coupon/README.md`（2026-10-09 纳入知识库）。
 
+> **新功能落点自查（开发前默认动作 · [05 · Part 6 五](../main-api/app/docs/knowledge-base/05-项目优化建议.md#五功能归属与迁移总览)）**：动手前先跑 `node ../main-api/scripts/feature-placement.js "<功能描述>"` 评估该功能应落哪站 + 各端合规门控；跨站能力单一源见 [`main-api/shared/capabilities.json`](../main-api/shared/capabilities.json)。
+
 从 `zangeng.com` 剥离出来的**独立优惠券站**，域名 `coupon.zangeng.com`，专门展示京东优惠券数据。
 优惠券数据实时来自中台 `main-api`（`/api/v1/front/coupon/jd/*`），与其他静态站（zangeng / color-tool / visitor / aiWeb / notes / history）**同一套零依赖静态站框架**：手写 HTML + 共享设计令牌 + push-to-deploy。
 

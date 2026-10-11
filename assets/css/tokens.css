@@ -34,6 +34,32 @@
   /* 字体 */
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+
+  /* 断点（响应式统一，与 main-tool design-tokens.scss 对齐；媒体查询请引用本组，勿再写魔法数字） */
+  --breakpoint-xs: 480px;   /* 超小屏（小屏手机） */
+  --breakpoint-sm: 768px;   /* 手机 / 平板分界 */
+  --breakpoint-md: 1024px;  /* 桌面起点 */
+  --breakpoint-lg: 1280px;  /* 宽屏 */
+  --breakpoint-xl: 1440px;  /* 超大屏 */
+
+  /* 层叠（z-index 台阶化，杜绝各站魔法数字；对齐 main-tool 的 Bootstrap 式台阶） */
+  --z-header: 100;          /* 固定页头 */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+
+  /* 字阶（字号节奏，与 --font 家族分离；对齐 main-tool $font-size-* 尺度） */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
 }
 
 [data-theme="dark"] {

@@ -8,6 +8,7 @@
    曝光埋点：券卡带 data-case，由 conversion.js 观察视口产出「曝光→点击」归因。
    防 CLS：卡片图带 width/height，配合 coupon.css 的 aspect-ratio 占位。
    排序：对已加载集合按 券面额 / 到手价 客户端重排（不改后端分页语义）。
+   本地功能：券卡收藏星标（store.js）+ 骨架屏加载态 + 到手价区间前端筛选（browse/category）。
    ========================================================================== */
 (function (global) {
   'use strict';
@@ -25,9 +26,9 @@
   var mode = body.getAttribute('data-mode') || 'browse';
   var kw = body.getAttribute('data-kw') || '';
 
-  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', list: [] };
+  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', list: [] };
 
-  var grid, statusEl, moreBtn, tabs, sortSelect;
+  var grid, statusEl, moreBtn, tabs, sortSelect, priceSelect;
   var loadActions = {};
   var memCache = {};
   var viewToken = 0;
@@ -138,14 +139,50 @@
     return a;
   }
 
+  // 到手价区间前端筛选（性能小件）：仅对已加载集合过滤，不改后端分页语义
+  function matchPrice(c) {
+    if (!state.price) return true;
+    var p = Number(c.price) || 0;
+    if (state.price === 'lt50') return p > 0 && p < 50;
+    if (state.price === 'p50_100') return p >= 50 && p < 100;
+    if (state.price === 'p100_300') return p >= 100 && p < 300;
+    if (state.price === 'gt300') return p >= 300;
+    return true;
+  }
+
+  // 收藏星标（store.js 提供）：运行时卡与预渲染卡同一套交互
+  function attachStar(cardEl, c) {
+    if (!global.CouponStore) return;
+    var link = safeUrl(c.clickURL) || safeUrl(c.couponUrl) || safeUrl(c.item_url);
+    var cid = String(c.tao_id || c._id || '') || link;
+    if (!cid) return;
+    global.CouponStore.attachStar(cardEl, {
+      id: cid, t: c.title || '', img: safeUrl(c.pict_url), url: link || '',
+      price: Number(c.price) || 0, quota: Number(c.couponQuota) || 0, off: Number(c.couponDiscount) || 0,
+    });
+  }
+
+  // 骨架屏：重置加载时先占位，避免空白跳变
+  function showSkeleton(n) {
+    grid.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+      var s = el('div', 'cp-skeleton');
+      s.setAttribute('aria-hidden', 'true');
+      s.appendChild(el('div', 'cp-sk-img'));
+      s.appendChild(el('div', 'cp-sk-line'));
+      s.appendChild(el('div', 'cp-sk-line is-short'));
+      grid.appendChild(s);
+    }
+  }
+
   function render(list, append) {
     if (!append) grid.innerHTML = '';
     if (!list.length) {
-      if (!append) { showStatus('暂无优惠券，换个关键词或稍后再试。'); }
+      if (!append) { showStatus(state.price && state.list.length ? '已加载的券里没有符合该价格区间的，试试更大区间或加载更多。' : '暂无优惠券，换个关键词或稍后再试。'); }
       return;
     }
     hideStatus();
-    list.forEach(function (c) { grid.appendChild(buildCard(c)); });
+    list.forEach(function (c) { var card = buildCard(c); grid.appendChild(card); attachStar(card, c); });
     if (global.Conv && global.Conv.reobserve) global.Conv.reobserve();
   }
 
@@ -172,11 +209,11 @@
     if (old) old.parentNode && old.parentNode.removeChild(old);
   }
 
-  function setLoading(on) {
+  function setLoading(on, quiet) {
     state.loading = on;
     if (moreBtn) moreBtn.disabled = on;
     statusEl.setAttribute('aria-busy', on ? 'true' : 'false');
-    if (on) showStatus('加载中…');
+    if (on && !quiet) showStatus('加载中…');
   }
 
   // rank：日 / 周 / 月榜单
@@ -184,7 +221,8 @@
     var token = ++viewToken;
     state.period = period;
     if (moreBtn) moreBtn.hidden = true;
-    setLoading(true);
+    showSkeleton(8);
+    setLoading(true, true);
     var action = loadActions.rank = function () { loadRank(period); };
     var url = buildUrl('/rank', [ [ 'period', period ], [ 'limit', RANK_LIMIT ] ]);
     request(url, function (err, d) {
@@ -192,15 +230,15 @@
       setLoading(false);
       if (err) { showStatus('加载失败，请稍后重试。', action); return; }
       state.list = pickList(d);
-      render(sortList(state.list), false);
+      render(sortList(state.list.filter(matchPrice)), false);
     }, { cache: true });
   }
 
   // browse / category：分页 + 加载更多
   function loadPaging(reset) {
     var token = reset ? ++viewToken : viewToken;
-    if (reset) { state.page = 1; state.list = []; grid.innerHTML = ''; }
-    setLoading(true);
+    if (reset) { state.page = 1; state.list = []; showSkeleton(8); setLoading(true, true); }
+    else setLoading(true);
     var action = loadActions.paging = function () { loadPaging(reset); };
     var params = [ [ 'page', state.page ], [ 'pageSize', PAGE_SIZE ] ];
     if (mode === 'category' && kw) params.unshift([ 'search', kw ]);
@@ -211,7 +249,7 @@
       if (err) { showStatus('加载失败，请稍后重试。', action); return; }
       var list = pickList(d);
       state.list = state.list.concat(list);
-      render(reset ? sortList(state.list) : list, !reset);
+      render(reset ? sortList(state.list.filter(matchPrice)) : list.filter(matchPrice), !reset);
       var count = Number(d && d.count) || 0;
       state.hasMore = state.page * PAGE_SIZE < count;
       if (moreBtn) moreBtn.hidden = !(state.hasMore && list.length);
@@ -233,13 +271,20 @@
 
   function init() {
     grid = $('listGrid'); statusEl = $('listState'); moreBtn = $('listMore');
-    tabs = $('rankTabs'); sortSelect = $('listSort');
+    tabs = $('rankTabs'); sortSelect = $('listSort'); priceSelect = $('listPrice');
     if (!grid || !statusEl) return;
 
     if (sortSelect) {
       sortSelect.addEventListener('change', function () {
         state.sort = sortSelect.value;
-        if (state.list.length) render(sortList(state.list), false);
+        if (state.list.length) render(sortList(state.list.filter(matchPrice)), false);
+      });
+    }
+
+    if (priceSelect) {
+      priceSelect.addEventListener('change', function () {
+        state.price = priceSelect.value;
+        if (state.list.length) render(sortList(state.list.filter(matchPrice)), false);
       });
     }
 

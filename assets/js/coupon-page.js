@@ -8,6 +8,7 @@
    曝光埋点（C2）：券卡带 data-case，由 conversion.js 观察视口产出「曝光→点击」归因。
    防 CLS（C4）：卡片图带 width/height，配合 coupon.css 的 aspect-ratio 占位。
    排序透出（C8）：对已加载结果按 券面额 / 到手价 做客户端排序（低成本，不改后端分页语义）。
+   本地功能：券卡收藏星标 + 骨架屏加载态；?s=关键词 直达搜索；搜索历史由 store.js 落 localStorage。
    ========================================================================== */
 (function (global) {
   'use strict';
@@ -153,7 +154,7 @@
       return;
     }
     hideStatus();
-    list.forEach(function (c) { grid.appendChild(buildCard(c)); });
+    list.forEach(function (c) { var card = buildCard(c); grid.appendChild(card); attachStar(card, c); });
     // 动态新增的券卡带 data-case，通知归因层补观察（否则首屏 boot 时的 observer 覆盖不到）
     if (global.Conv && global.Conv.reobserve) global.Conv.reobserve();
   }
@@ -183,11 +184,36 @@
     if (old) old.parentNode && old.parentNode.removeChild(old);
   }
 
-  function setLoading(on) {
+  // 收藏星标（store.js 提供）：包 .cp-cell + 按钮，运行时卡与预渲染卡同一套交互
+  function attachStar(cardEl, c) {
+    if (!global.CouponStore) return;
+    var link = safeUrl(c.clickURL) || safeUrl(c.couponUrl) || safeUrl(c.item_url);
+    var cid = String(c.tao_id || c._id || '') || link;
+    if (!cid) return;
+    global.CouponStore.attachStar(cardEl, {
+      id: cid, t: c.title || '', img: safeUrl(c.pict_url), url: link || '',
+      price: Number(c.price) || 0, quota: Number(c.couponQuota) || 0, off: Number(c.couponDiscount) || 0,
+    });
+  }
+
+  // 骨架屏（性能小件）：重置加载时先占位，避免空白跳变（防 CLS 延伸）
+  function showSkeleton(n) {
+    grid.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+      var s = el('div', 'cp-skeleton');
+      s.setAttribute('aria-hidden', 'true');
+      s.appendChild(el('div', 'cp-sk-img'));
+      s.appendChild(el('div', 'cp-sk-line'));
+      s.appendChild(el('div', 'cp-sk-line is-short'));
+      grid.appendChild(s);
+    }
+  }
+
+  function setLoading(on, quiet) {
     state.loading = on;
     moreBtn.disabled = on;
     statusEl.setAttribute('aria-busy', on ? 'true' : 'false');
-    if (on) showStatus('加载中…');
+    if (on && !quiet) showStatus('加载中…');
   }
 
   // 精选：纯手选池（后端 /random 已改为手选 + 京东/淘宝混合）
@@ -195,7 +221,8 @@
     var token = ++viewToken;
     state.mode = 'featured';
     moreBtn.hidden = true;
-    setLoading(true);
+    showSkeleton(8);
+    setLoading(true, true);
     var action = loadActions.featured = function () { loadFeatured(); };
     var url = buildUrl('/random', [ [ 'limit', 10 ] ]);
     request(url, function (err, d) {
@@ -213,7 +240,8 @@
     state.mode = 'rank';
     state.period = period;
     moreBtn.hidden = true;
-    setLoading(true);
+    showSkeleton(8);
+    setLoading(true, true);
     var action = loadActions.rank = function () { loadRank(period); };
     var url = buildUrl('/rank', [ [ 'period', period ], [ 'limit', 20 ] ]);
     request(url, function (err, d) {
@@ -229,8 +257,8 @@
   function loadSearch(reset) {
     var token = reset ? ++viewToken : viewToken;
     state.mode = 'search';
-    if (reset) { state.page = 1; state.list = []; grid.innerHTML = ''; }
-    setLoading(true);
+    if (reset) { state.page = 1; state.list = []; showSkeleton(8); setLoading(true, true); }
+    else setLoading(true);
     var action = loadActions.search = function () { loadSearch(reset); };
     var url = buildUrl('/paging', [ [ 'search', state.search ], [ 'page', state.page ], [ 'pageSize', PAGE_SIZE ] ]);
     request(url, function (err, d) {
@@ -298,7 +326,9 @@
       state.search = (searchInput.value || '').trim();
       setActiveTab('');
       if (!state.search) { loadFeatured(); return; }
+      if (global.CouponStore) global.CouponStore.pushSearch(state.search);
       loadSearch(true);
+      renderHistory();
     });
 
     moreBtn.addEventListener('click', function () {
@@ -307,7 +337,50 @@
       loadSearch(false);
     });
 
-    loadFeatured();
+    // URL 直达搜索：/?s=关键词（首页热门词 chip 的落地方式，零后端）
+    var preKw = '';
+    if (global.URLSearchParams) {
+      try { preKw = (new URLSearchParams(global.location.search).get('s') || '').trim(); } catch (e) { /* 忽略 */ }
+    }
+    if (preKw) {
+      state.search = preKw;
+      if (searchInput) searchInput.value = preKw;
+      setActiveTab('');
+      loadSearch(true);
+    } else {
+      loadFeatured();
+    }
+
+    renderHistory();
+  }
+
+  // 搜索历史 chip 行（store.js 落本地）：点击回填输入框并重新搜索
+  function renderHistory() {
+    var box = $('cpHistory');
+    if (!box || !global.CouponStore) return;
+    var arr = global.CouponStore.searches();
+    box.innerHTML = '';
+    if (!arr.length) { box.hidden = true; return; }
+    box.hidden = false;
+    box.appendChild(el('span', 'cp-his-label', '最近搜索'));
+    arr.slice(0, 8).forEach(function (kw) {
+      var b = el('button', 'cp-his-chip', kw);
+      b.type = 'button';
+      b.addEventListener('click', function () {
+        searchInput.value = kw;
+        if (searchForm.requestSubmit) searchForm.requestSubmit();
+        else searchForm.dispatchEvent(new Event('submit', { cancelable: true }));
+      });
+      box.appendChild(b);
+    });
+    var clear = el('button', 'cp-his-clear', '清空');
+    clear.type = 'button';
+    clear.setAttribute('aria-label', '清空搜索历史');
+    clear.addEventListener('click', function () {
+      global.CouponStore.clearSearches();
+      renderHistory();
+    });
+    box.appendChild(clear);
   }
 
   if (global.document.readyState === 'loading') {

@@ -79,6 +79,18 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://coupon.zangeng.com/calculator.html</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://coupon.zangeng.com/holidays.html</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://coupon.zangeng.com/about.html</loc>
     <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>

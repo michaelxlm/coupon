@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的收藏 · 最近看过 | 小满券仓</title>
+  <meta name="description" content="小满券仓我的收藏与最近看过：收藏心仪的京东优惠券，回看最近点开的好物，数据只保存在本机浏览器。">
+  <meta name="robots" content="noindex,follow">
+  <link rel="icon" href="/assets/img/favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="小满券仓">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="我的收藏 · 最近看过 | 小满券仓">
+  <meta property="og:description" content="收藏心仪的京东优惠券，回看最近点开的好物，数据只保存在本机浏览器。">
+  <link rel="stylesheet" href="/assets/css/tokens.css?v=2026.10.16">
+  <link rel="stylesheet" href="/assets/css/main.css?v=2026.10.16" />
+  <link rel="stylesheet" href="/assets/css/coupon.css?v=2026.10.16" />
+</head>
+<body data-page="favorites" data-theme-default="light" data-build="2026.10.16">
+  <a class="skip-link" href="#main">跳到主内容</a>
+  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="小满券仓 首页">
+        <span class="brand-mark">券</span>
+        <span class="brand-text">小满券仓</span>
+      </a>
+      <nav class="nav" id="primaryNav" aria-label="主导航">
+        <a class="nav-link" href="/">领券中心</a>
+        <a class="nav-link" href="/browse.html">全部好物</a>
+        <a class="nav-link" href="/rank.html">榜单</a>
+        <a class="nav-link" href="/category.html">品类</a>
+        <a class="nav-link" href="/guide.html">攻略</a>
+        <a class="nav-link" href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深色 / 浅色">🌙</button>
+        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="展开菜单" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section-sm"><div class="container"><div class="ad-slot" data-ad-slot="carousel"></div></div></section>
+
+    <section class="section hero">
+      <div class="container">
+        <span class="eyebrow">本地收藏</span>
+        <h1>我的收藏与最近看过</h1>
+        <p class="hero-sub">在任意券卡右上角点 ☆ 即可收藏；点开过的券会自动进入「最近看过」。全部数据只保存在你的浏览器本地（localStorage），不上传服务器，换设备或清除浏览器数据后会丢失。</p>
+      </div>
+    </section>
+
+    <section class="section-sm"><div class="container"><div class="ad-slot" data-ad-slot="inline"></div></div></section>
+
+    <section class="section">
+      <div class="container">
+        <div class="cp-fav-bar">
+          <div class="section-head left" style="margin:0;"><h2>我的收藏</h2></div>
+          <div>
+            <span class="cp-fav-count" id="favCount"></span>
+            <button class="btn btn-ghost" id="favClear" type="button" hidden>清空收藏</button>
+          </div>
+        </div>
+        <div id="favEmpty" class="cp-empty" hidden>
+          还没有收藏任何券。<br>去领券中心逛逛，看到合适的点右上角 ☆ 收藏。
+          <div><a class="btn" href="/browse.html">去逛逛全部好物</a></div>
+        </div>
+        <div id="favGrid" class="cp-grid" role="list"></div>
+      </div>
+    </section>
+
+    <section class="section section-soft">
+      <div class="container">
+        <div class="cp-fav-bar">
+          <div class="section-head left" style="margin:0;"><h2>最近看过</h2></div>
+          <div>
+            <span class="cp-fav-count" id="recentCount"></span>
+            <button class="btn btn-ghost" id="recentClear" type="button" hidden>清空历史</button>
+          </div>
+        </div>
+        <div id="recentEmpty" class="cp-empty" hidden>
+          还没有看过券。点开任意优惠券跳转到京东时会自动记录在这里（最多 24 条）。
+        </div>
+        <div id="recentGrid" class="cp-grid" role="list"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <p class="cp-note">收藏与浏览记录仅存于本机浏览器，本站无法读取或找回；清空浏览器数据会同时清除。券的价格与优惠以京东活动页为准，过期收藏仅供参考。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="/"><span class="brand-mark">券</span><span class="brand-text">小满券仓</span></a>
+          <p>京东优惠券，先领券再下单更省</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>站点</h4>
+          <ul>
+            <li><a href="/">领券中心</a></li>
+            <li><a href="/browse.html">全部好物</a></li>
+            <li><a href="/rank.html">榜单</a></li>
+            <li><a href="/category.html">品类</a></li>
+            <li><a href="/guide.html">领券攻略</a></li>
+            <li><a href="/calculator.html">凑单计算器</a></li>
+            <li><a href="/holidays.html">大促日历</a></li>
+            <li><a href="/favorites.html">我的收藏</a></li>
+            <li><a href="/about.html">关于与免责</a></li>
+            <li><a href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></li></ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>更多站点</h4>
+          <ul><li><a href="https://xuliming.com/" target="_blank" rel="noopener">建站向导 · xuliming.com</a></li>
+            <li><a href="https://2002cs.com/" target="_blank" rel="noopener">配色工具 · 2002cs.com</a></li>
+            <li><a href="https://fangkelianmeng.com/" target="_blank" rel="noopener">开发者工具箱 · fangkelianmeng.com</a></li>
+            <li><a href="https://585.ink/" target="_blank" rel="noopener">实测手记 · 585.ink</a></li>
+            <li><a href="https://20101115.com/" target="_blank" rel="noopener">历史知识库 · 20101115.com</a></li></ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>联系</h4>
+          <ul><li><a href="mailto:xlm8826@gmail.com">xlm8826@gmail.com</a></li><li><a href="https://antucao.com" target="_blank" rel="noopener">反馈 / 其他 → antucao.com</a></li></ul>
+        </div>
+      </div>
+      <div class="container"><div class="ad-slot" data-ad-slot="footer"></div></div>
+      <div class="container footer-bottom">
+        <span>© 2026 小满券仓</span>
+        <div class="footer-links"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">京ICP备18062653号-8</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/assets/js/tracker.js?v=2026.10.16"></script>
+  <script src="/assets/js/conversion.js?v=2026.10.16"></script>
+  <script src="/assets/js/app.js?v=2026.10.16"></script>
+  <script src="/assets/js/store.js?v=2026.10.16"></script>
+  <script src="/assets/js/favorites.js?v=2026.10.16"></script>
+  <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
+  <script src="https://antucao.oss-cn-beijing.aliyuncs.com/js/ad-slots.js" defer></script>
+</body>
+</html>

@@ -210,12 +210,38 @@
     });
   }
 
+  /* ------------------------------ 回到顶部 ------------------------------ */
+  // 滚动超过一屏后右下角浮现；纯 DOM 派生，无需页面预埋容器
+  function initBackTop() {
+    var btn = doc.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cp-back-top';
+    btn.hidden = true;
+    btn.setAttribute('aria-label', '回到顶部');
+    btn.textContent = '↑';
+    doc.body.appendChild(btn);
+    btn.addEventListener('click', function () {
+      try { global.scrollTo({ top: 0, behavior: 'smooth' }); }
+      catch (e) { doc.documentElement.scrollTop = 0; }
+    });
+    var ticking = false;
+    global.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      global.setTimeout(function () {
+        ticking = false;
+        btn.hidden = (global.scrollY || doc.documentElement.scrollTop || 0) < 600;
+      }, 100);
+    }, { passive: true });
+  }
+
   /* --------------------------------- 启动 --------------------------------- */
   function boot() {
     initTheme();
     initNav();
     initCopy();
     initForm();
+    initBackTop();
   }
 
   if (doc.readyState === 'loading') {

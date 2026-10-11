@@ -31,7 +31,7 @@ const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
 const SITE_URL = (process.env.COUPON_SITE_URL || 'https://coupon.zangeng.com').replace(/\/+$/, '');
 const ROOT = path.resolve(__dirname, '..');
 const CAT_DIR = path.join(ROOT, 'cat');
-const TOKEN = '2026.10.15';
+const TOKEN = '2026.10.16';
 
 const GRID_START = '<!-- PRERENDER:GRID:START -->';
 const GRID_END = '<!-- PRERENDER:GRID:END -->';
@@ -264,6 +264,16 @@ function catPageShell(cat, list) {
         <div class="cp-toolbar">
           <span class="muted">关键词：${esc(cat.kw)}</span>
           <label class="cp-sort">
+            <span class="cp-sort-label">价格</span>
+            <select id="listPrice" aria-label="到手价筛选">
+              <option value="">全部价格</option>
+              <option value="lt50">50 元以下</option>
+              <option value="p50_100">50-100 元</option>
+              <option value="p100_300">100-300 元</option>
+              <option value="gt300">300 元以上</option>
+            </select>
+          </label>
+          <label class="cp-sort">
             <span class="cp-sort-label">排序</span>
             <select id="listSort" aria-label="列表排序">
               <option value="">默认</option>
@@ -305,6 +315,9 @@ ${grid}
             <li><a href="/rank.html">榜单</a></li>
             <li><a href="/category.html">品类</a></li>
             <li><a href="/guide.html">领券攻略</a></li>
+            <li><a href="/calculator.html">凑单计算器</a></li>
+            <li><a href="/holidays.html">大促日历</a></li>
+            <li><a href="/favorites.html">我的收藏</a></li>
             <li><a href="/about.html">关于与免责</a></li>
             <li><a href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></li></ul>
         </div>
@@ -334,6 +347,7 @@ ${grid}
   <script src="/assets/js/tracker.js?v=${TOKEN}"></script>
   <script src="/assets/js/conversion.js?v=${TOKEN}"></script>
   <script src="/assets/js/app.js?v=${TOKEN}"></script>
+  <script src="/assets/js/store.js?v=${TOKEN}"></script>
   <script src="/assets/js/list-page.js?v=${TOKEN}"></script>
   <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
   <script src="https://antucao.oss-cn-beijing.aliyuncs.com/js/ad-slots.js" defer></script>
@@ -358,6 +372,8 @@ function writeSitemap(slugs) {
   ];
   for (const s of slugs) urls.push(['/cat/' + s + '.html', '0.7', 'daily']);
   urls.push(['/guide.html', '0.6', 'monthly']);
+  urls.push(['/calculator.html', '0.6', 'monthly']);
+  urls.push(['/holidays.html', '0.6', 'monthly']);
   urls.push(['/about.html', '0.5', 'monthly']);
   const body = urls.map(u =>
 `  <url>

@@ -1,10 +1,10 @@
 ---
 title: 小满券仓（coupon.zangeng.com）
 owner: Michaelxlm
-updated: 2026-10-15
+updated: 2026-10-16
 scope: coupon（coupon.zangeng.com · 京东优惠券聚合静态站）
 status: 有效
-tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页]
+tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页, 收藏, 凑单计算器, 大促日历]
 ---
 
 # 小满券仓（coupon.zangeng.com）
@@ -39,7 +39,10 @@ coupon/
 ├── rank.html           榜单（日/周/月 tab + 排序，rank limit=50，data-mode=rank）
 ├── category.html       品类中心（静态导航 8 品类 → cat/*.html）
 ├── cat/<slug>.html     品类落地页（build.js 依 categories.json 生成，paging?search=kw）
-├── guide.html          领券攻略（HowTo + FAQPage，纯静态内容）
+├── guide.html          领券攻略（HowTo + FAQPage，纯静态内容，含省钱工具交叉链接）
+├── calculator.html     凑单省钱计算器（满X减Y 叠加算到手价，WebApplication + FAQPage JSON-LD，支持 ?price=&quota=&off= 预填）
+├── holidays.html       全年大促日历（8 档静态内容 + 每年滚动倒数增强，FAQPage + BreadcrumbList）
+├── favorites.html      我的收藏（localStorage 收藏 + 最近看过，noindex,follow 不入 sitemap）
 ├── about.html          关于与免责（AboutPage + 数据来源/合规，纯静态）
 ├── 404.html            404
 ├── assets/
@@ -48,9 +51,13 @@ coupon/
 │   ├── css/coupon.css  优惠券页独有样式（网格 / 券卡 / 满X减Y / 今日新增 / 品类 chip）
 │   ├── js/tracker.js   统一埋点 SDK（上报 /api/v1/public/track，默认 project=coupon-zangeng）
 │   ├── js/conversion.js 转化与来源归因层
-│   ├── js/app.js       站点交互（主题三态 / 移动菜单）
-│   ├── js/coupon-page.js 领券中心交互（首页：精选 / 榜单 / 搜索 / 分页加载更多）
-│   ├── js/list-page.js  通用列表脚本（browse / rank / category 三模式，按 body data-mode 分支）
+│   ├── js/app.js       站点交互（主题三态 / 移动菜单 / 回到顶部）
+│   ├── js/store.js     本地数据层（收藏 coupon_favs / 最近看过 coupon_recent / 搜索历史 coupon_searches，均静默失败）；券卡星标按钮 attachStar + 预渲染卡 enhance
+│   ├── js/coupon-page.js 领券中心交互（首页：精选 / 榜单 / 搜索（含 ?s= 直达与搜索历史 chip）/ 分页加载更多 / 星标 / 骨架屏）
+│   ├── js/list-page.js  通用列表脚本（browse / rank / category 三模式，按 body data-mode 分支；含到手价区间前端筛选 #listPrice）
+│   ├── js/favorites.js  收藏 / 最近看过页渲染（取消收藏、删除、去凑单跳转）
+│   ├── js/calculator.js 凑单计算器逻辑（多商品 × 多券叠加，实时算到手价/省钱额，未达门槛提示差多少）
+│   ├── js/holidays.js   大促日历倒数（每年滚动重算下一次日期，最近一场高亮；黑五按 11 月第四个周五计算）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
 │   ├── build.js        构建期预渲染 index/browse/rank + 生成 cat/*.html + 重写 sitemap.xml（CI 执行，fail-soft）
@@ -59,9 +66,19 @@ coupon/
 │   ├── ad-slots.json   自营广告位兜底（远程 OSS 同步 JSON 优先）
 │   └── categories.json 8 品类元数据（slug/name/kw/icon/desc，品类页与 build.js 共用）
 ├── deploy/nginx.conf   部署配置（server_name 与证书路径按域名填）
-├── robots.txt / sitemap.xml  （sitemap 由 build.js 重写：固定页 + cat/* + guide/about）
+├── robots.txt / sitemap.xml  （sitemap 由 build.js 重写：固定页 + cat/* + guide/calculator/holidays/about，现 16 条；favorites 为 noindex 不入）
 └── .github/workflows/deploy.yml  push-to-deploy（39.107 上的 self-hosted runner 执行）
 ```
+
+## 交互与内容能力（零后端，纯前端 localStorage）
+
+- **收藏星标**：所有券卡（含预渲染静态卡）右上角星标，数据存 `coupon_favs`（上限 100）；`store.js` 统一读写，空间异常（隐私模式等）静默失败。
+- **最近看过**：券卡点击自动记录快照（上限 24），在 `favorites.html` 与首页搜索历史 chip 行下方可见。
+- **搜索历史 / 热搜词**：首页提交搜索后存 `coupon_searches`（上限 10）并以 chip 展示；未搜索时展示固定热搜词，均可点 `/?s=关键词` 直达搜索。
+- **凑单计算器**：`calculator.html` 多商品 × 多券叠加算到手价；收藏页券卡可一键携带价格/门槛跳转预填（`?price=&quota=&off=`）。
+- **大促日历**：`holidays.html` 8 档常规大促静态内容 + 每年滚动倒数；档期为往年规律估算，页面文案已声明“以京东官方公告为准”。
+- **体验小件**：到手价区间前端筛选（50 以下 / 50-100 / 100-300 / 300 以上，对已加载集合生效）、骨架屏加载态、回到顶部按钮。
+- 埋点新增事件：`fav_toggle` / `fav_remove` / `calc_result`；全站页脚“站点”栏已闭环指向三新页。
 
 ## 本地预览
 
@@ -80,7 +97,7 @@ python -m http.server 8080
 站体仍为纯静态托管（HTML 直加源文件），但新增一个**部署前的可选预渲染步骤**（为让券内容可被百度等弱 JS 搜索引擎索引）：
 
 1. **预渲染与生成（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后、`sync` 前执行 `node scripts/build.js`，一次拉取后端后：将首页（精选+周榜去重）、`browse.html`（paging 前 20）、`rank.html`（周榜前 50）写入各自 `PRERENDER:GRID` 标记的券网格并注入 `ItemList/Product/Offer` JSON-LD；再依 `data/categories.json` 的关键词生成 `cat/<slug>.html` 品类落地页（**页面壳每次写盘**，即使接口不可达也不 404，仅网格 fail-soft 留空）；最后重写 `sitemap.xml`（固定页 + `cat/*` + `guide`/`about`，`lastmod=当日`）。脚本 fail-soft：上游不可达 / 未取到券时保持原有 HTML 壳，绝不阻断部署。运行时 `coupon-page.js`（首页）/ `list-page.js`（browse/rank/category）会清空重绘（渐进增强，禁 JS 仍可读到预渲染内容）。
-2. **缓存指纹**：Nginx 对 `/assets/**` 设 30 天长缓存，改了 `assets/css/*.css` / `assets/js/*.js` 后跑 `node scripts/cache-bust.js <版本号>`（形如 `2026.10.15`），一次性刷新全站本地 CSS/JS 的 `?v=` 与 `<body data-build>` 统一个 token（外部 OSS 脚本自动跳过）。当前 token：`2026.10.15`。
+2. **缓存指纹**：Nginx 对 `/assets/**` 设 30 天长缓存，改了 `assets/css/*.css` / `assets/js/*.js` 后跑 `node scripts/cache-bust.js <版本号>`（形如 `2026.10.15`），一次性刷新全站本地 CSS/JS 的 `?v=` 与 `<body data-build>` 统一个 token（外部 OSS 脚本自动跳过）。当前 token：`2026.10.16`。
 
 ## 上线 checklist（缺一不可）
 

@@ -5,6 +5,9 @@
  * 背景：coupon 为纯静态站，券网格此前全靠运行时 JS fetch 注入，HTML 源码为空。
  * 本站主入口是百度等弱 JS 爬虫 → 券内容需构建期落进 HTML 才能被索引。
  * 本脚本在部署前：
+ *   0) 全部手写页（index/browse/rank/category/guide/calculator/holidays/favorites/about/404）
+ *      的 header/footer chrome 委托 shared-partials renderHeader/renderFooter 渲染（WO-86）：
+ *      CHROME 标记内整段覆盖、标记外不动 → 「六站一处改 chrome 生效」且重跑幂等，body 内容原样保留；
  *   1) 预渲染 index.html（精选 + 周榜）券网格 + ItemList JSON-LD；
  *   2) 预渲染 browse.html（全部好物 paging 首页）、rank.html（周榜 50）；
  *   3) 依 data/categories.json 生成 cat/<slug>.html 品类落地页（关键词映射，壳始终写盘，
@@ -38,6 +41,12 @@ const GRID_START = '<!-- PRERENDER:GRID:START -->';
 const GRID_END = '<!-- PRERENDER:GRID:END -->';
 const JSONLD_START = '<!-- PRERENDER:JSONLD:START -->';
 const JSONLD_END = '<!-- PRERENDER:JSONLD:END -->';
+
+// WO-86：header/footer chrome 委托 shared-partials 渲染的区块标记（标记内整段覆盖，幂等）
+const CHROME_HDR_START = '<!-- CHROME:HEADER:START -->';
+const CHROME_HDR_END = '<!-- CHROME:HEADER:END -->';
+const CHROME_FTR_START = '<!-- CHROME:FOOTER:START -->';
+const CHROME_FTR_END = '<!-- CHROME:FOOTER:END -->';
 
 // 站点静态 chrome（header/footer 数据源）：委托 shared-partials 渲染，不再内联字面量
 const COUPON_SITE = {
@@ -78,6 +87,21 @@ const COUPON_SITE = {
   contact: { email: 'xlm8826@gmail.com', feedback_url: 'https://antucao.com' },
 };
 const COUPON_PAGE = { nav: '/category.html' }; // 品类落地页恒高亮「品类」
+
+// WO-86：全部手写页 chrome 委托 shared 渲染。key=文件名，value=导航高亮的 url（'' = 不高亮）。
+// 注意：calculator / holidays 归在「攻略」下（与改造前各页 is-active 一致），favorites/about/404 无高亮。
+const STATIC_PAGES = {
+  'index.html': '/',
+  'browse.html': '/browse.html',
+  'rank.html': '/rank.html',
+  'category.html': '/category.html',
+  'guide.html': '/guide.html',
+  'calculator.html': '/guide.html',
+  'holidays.html': '/guide.html',
+  'favorites.html': '',
+  'about.html': '',
+  '404.html': '',
+};
 
 function esc(s) {
   return String(s == null ? '' : s)
@@ -203,6 +227,22 @@ function prerenderFile(file, list, name, url) {
   }
   fs.writeFileSync(file, html);
   console.log(`[build] ${path.basename(file)}：预渲染 ${list.length} 张券卡`);
+}
+
+// WO-86：把 <header>/<footer> 区块整段委托 renderHeader/renderFooter（标记内覆盖，标记外不动，幂等）
+function injectChrome(file, pageNav) {
+  let html;
+  try { html = fs.readFileSync(file, 'utf8'); } catch (e) { console.warn('[build] 找不到 ' + path.basename(file) + '，跳过 chrome：', e.message); return; }
+  if (!html.includes(CHROME_HDR_START) || !html.includes(CHROME_FTR_START)) {
+    console.warn('[build] ' + path.basename(file) + '：缺 CHROME 标记，跳过 chrome（需先加标记）');
+    return;
+  }
+  const header = P.renderHeader(COUPON_SITE, { nav: pageNav || undefined }, {}, { navAriaCurrent: true });
+  const footer = P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' });
+  html = replaceBlock(html, CHROME_HDR_START, CHROME_HDR_END, header);
+  html = replaceBlock(html, CHROME_FTR_START, CHROME_FTR_END, footer);
+  fs.writeFileSync(file, html);
+  console.log('[build] ' + path.basename(file) + '：chrome 委托 shared 渲染' + (pageNav ? ('（高亮 ' + pageNav + '）') : ''));
 }
 
 /* ---------------------------- 品类落地页模板 ---------------------------- */
@@ -370,6 +410,11 @@ function writeSitemap(slugs) {
 }
 
 async function run() {
+  // 0) chrome：全部手写页 header/footer 委托 shared（本地步骤，不依赖网络，始终先执行）
+  for (const [name, nav] of Object.entries(STATIC_PAGES)) {
+    try { injectChrome(path.join(ROOT, name), nav); } catch (e) { console.warn('[build] chrome ' + name + ' 异常（忽略）：', e.message); }
+  }
+
   // 读品类定义（失败则不生成 cat 页，仍不影响其它预渲染）
   let categories = [];
   try {

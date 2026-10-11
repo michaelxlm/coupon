@@ -62,7 +62,7 @@ coupon/
 │   ├── js/holidays.js   大促日历倒数（每年滚动重算下一次日期，最近一场高亮；黑五按 11 月第四个周五计算）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
-│   ├── build.js        构建期预渲染 index/browse/rank + 生成 cat/*.html + 重写 sitemap.xml（CI 执行，fail-soft）
+│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 重写 sitemap.xml（CI 执行，fail-soft）
 │   └── cache-bust.js   统一刷新本地 CSS/JS 的 ?v= 与 body data-build 版本号（零依赖）
 ├── data/
 │   ├── ad-slots.json   自营广告位兜底（远程 OSS 同步 JSON 优先）
@@ -98,7 +98,7 @@ python -m http.server 8080
 
 站体仍为纯静态托管（HTML 直加源文件），但新增一个**部署前的可选预渲染步骤**（为让券内容可被百度等弱 JS 搜索引擎索引）：
 
-1. **预渲染与生成（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后、`sync` 前执行 `node scripts/build.js`，一次拉取后端后：将首页（精选+周榜去重）、`browse.html`（paging 前 20）、`rank.html`（周榜前 50）写入各自 `PRERENDER:GRID` 标记的券网格并注入 `ItemList/Product/Offer` JSON-LD；再依 `data/categories.json` 的关键词生成 `cat/<slug>.html` 品类落地页（**页面壳每次写盘**，即使接口不可达也不 404，仅网格 fail-soft 留空）；最后重写 `sitemap.xml`（固定页 + `cat/*` + `guide`/`about`，`lastmod=当日`）。脚本 fail-soft：上游不可达 / 未取到券时保持原有 HTML 壳，绝不阻断部署。运行时 `coupon-page.js`（首页）/ `list-page.js`（browse/rank/category）会清空重绘（渐进增强，禁 JS 仍可读到预渲染内容）。
+1. **预渲染与生成（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后、`sync` 前执行 `node scripts/build.js`。**全站 chrome（WO-86）**：`injectChrome()` 先把 10 张手写页（index/browse/rank/category/guide/calculator/holidays/favorites/about/404）的 `<header>/<footer>` 在 `CHROME:HEADER/FOOTER` 标记内整段委托 `shared-partials` 的 `renderHeader/renderFooter` 渲染（`STATIC_PAGES` 定义各页导航高亮，cat 页由 `catPageShell` 同样委托）——与历史/notes/zangeng 共单一源，实现「六站一处改 chrome 生效」，标记内覆盖、重跑幂等。随后一次拉取后端：将首页（精选+周榜去重）、`browse.html`（paging 前 20）、`rank.html`（周榜前 50）写入各自 `PRERENDER:GRID` 标记的券网格并注入 `ItemList/Product/Offer` JSON-LD；再依 `data/categories.json` 的关键词生成 `cat/<slug>.html` 品类落地页（**页面壳每次写盘**，即使接口不可达也不 404，仅网格 fail-soft 留空）；最后重写 `sitemap.xml`（固定页 + `cat/*` + `guide`/`about`，`lastmod=当日`）。脚本 fail-soft：上游不可达 / 未取到券时保持原有 HTML 壳，绝不阻断部署。运行时 `coupon-page.js`（首页）/ `list-page.js`（browse/rank/category）会清空重绘（渐进增强，禁 JS 仍可读到预渲染内容）。
 2. **缓存指纹**：Nginx 对 `/assets/**` 设 30 天长缓存，改了 `assets/css/*.css` / `assets/js/*.js` 后跑 `node scripts/cache-bust.js <版本号>`（形如 `2026.10.15`），一次性刷新全站本地 CSS/JS 的 `?v=` 与 `<body data-build>` 统一个 token（外部 OSS 脚本自动跳过）。当前 token：`2026.10.16`。
 
 ## 上线 checklist（缺一不可）

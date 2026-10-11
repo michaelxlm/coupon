@@ -45,25 +45,29 @@
   <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="/" aria-label="小满券仓 首页">
-        <span class="brand-mark">券</span>
-        <span class="brand-text">小满券仓</span>
-      </a>
-      <nav class="nav" id="primaryNav" aria-label="主导航">
-        <a class="nav-link" href="/">领券中心</a>
-        <a class="nav-link is-active" href="/browse.html" aria-current="page">全部好物</a>
-        <a class="nav-link" href="/rank.html">榜单</a>
-        <a class="nav-link" href="/category.html">品类</a>
-        <a class="nav-link" href="/guide.html">攻略</a>
-        <a class="nav-link" href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></nav>
-      <div class="header-actions">
-        <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深色 / 浅色">🌙</button>
-        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="展开菜单" aria-expanded="false">☰</button>
-      </div>
+  <!-- CHROME:HEADER:START -->
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/" aria-label="小满券仓 首页">
+      <span class="brand-mark">券</span>
+      <span class="brand-text">小满券仓</span>
+    </a>
+    <nav class="nav" id="primaryNav" aria-label="主导航">
+      <a class="nav-link" href="/">领券中心</a>
+      <a class="nav-link is-active" href="/browse.html" aria-current="page">全部好物</a>
+      <a class="nav-link" href="/rank.html">榜单</a>
+      <a class="nav-link" href="/category.html">品类</a>
+      <a class="nav-link" href="/guide.html">攻略</a>
+      <a class="nav-link" href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深色 / 浅色">🌙</button>
+      <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="展开菜单" aria-expanded="false">☰</button>
     </div>
-  </header>
+  </div>
+</header>
+<!-- CHROME:HEADER:END -->
 
   <main id="main">
     <section class="section-sm"><div class="container"><div class="ad-slot" data-ad-slot="carousel"></div></div></section>
@@ -146,50 +150,65 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <a class="brand" href="/"><span class="brand-mark">券</span><span class="brand-text">小满券仓</span></a>
-          <p>京东优惠券，先领券再下单更省</p>
-        </div>
-
-        <div class="footer-col">
-          <h4>站点</h4>
-          <ul>
-            <li><a href="/">领券中心</a></li>
-            <li><a href="/browse.html">全部好物</a></li>
-            <li><a href="/rank.html">榜单</a></li>
-            <li><a href="/category.html">品类</a></li>
-            <li><a href="/guide.html">领券攻略</a></li>
-            <li><a href="/calculator.html">凑单计算器</a></li>
-            <li><a href="/holidays.html">大促日历</a></li>
-            <li><a href="/favorites.html">我的收藏</a></li>
-            <li><a href="/about.html">关于与免责</a></li>
-            <li><a href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></li></ul>
-        </div>
-
-        <div class="footer-col">
-          <h4>更多站点</h4>
-          <ul><li><a href="https://xuliming.com/" target="_blank" rel="noopener">建站向导 · xuliming.com</a></li>
-            <li><a href="https://2002cs.com/" target="_blank" rel="noopener">配色工具 · 2002cs.com</a></li>
-            <li><a href="https://fangkelianmeng.com/" target="_blank" rel="noopener">开发者工具箱 · fangkelianmeng.com</a></li>
-            <li><a href="https://585.ink/" target="_blank" rel="noopener">实测手记 · 585.ink</a></li>
-            <li><a href="https://20101115.com/" target="_blank" rel="noopener">历史知识库 · 20101115.com</a></li></ul>
-        </div>
-
-        <div class="footer-col">
-          <h4>联系</h4>
-          <ul><li><a href="mailto:xlm8826@gmail.com">xlm8826@gmail.com</a></li><li><a href="https://antucao.com" target="_blank" rel="noopener">反馈 / 其他 → antucao.com</a></li></ul>
-        </div>
+  <!-- CHROME:FOOTER:START -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="/">
+          <span class="brand-mark">券</span>
+          <span class="brand-text">小满券仓</span>
+        </a>
+        <p>京东优惠券，先领券再下单更省</p>
+        
       </div>
-      <div class="container"><div class="ad-slot" data-ad-slot="footer"></div></div>
-      <div class="container footer-bottom">
-        <span>© 2026 小满券仓</span>
-        <div class="footer-links"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">京ICP备18062653号-8</a></div>
+      
+    <div class="footer-col">
+      <h4>站点</h4>
+      <ul>
+        <li><a href="/">领券中心</a></li>
+        <li><a href="/browse.html">全部好物</a></li>
+        <li><a href="/rank.html">榜单</a></li>
+        <li><a href="/category.html">品类</a></li>
+        <li><a href="/guide.html">领券攻略</a></li>
+        <li><a href="/calculator.html">凑单计算器</a></li>
+        <li><a href="/holidays.html">大促日历</a></li>
+        <li><a href="/favorites.html">我的收藏</a></li>
+        <li><a href="/about.html">关于与免责</a></li>
+        <li><a href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>更多站点</h4>
+      <ul>
+        <li><a href="https://xuliming.com/" target="_blank" rel="noopener">建站向导 · xuliming.com</a></li>
+        <li><a href="https://2002cs.com/" target="_blank" rel="noopener">配色工具 · 2002cs.com</a></li>
+        <li><a href="https://fangkelianmeng.com/" target="_blank" rel="noopener">开发者工具箱 · fangkelianmeng.com</a></li>
+        <li><a href="https://585.ink/" target="_blank" rel="noopener">实测手记 · 585.ink</a></li>
+        <li><a href="https://20101115.com/" target="_blank" rel="noopener">历史知识库 · 20101115.com</a></li>
+      </ul>
+    </div>
+      
+    <div class="footer-col">
+      <h4>联系</h4>
+      <ul>
+        <li><a href="mailto:xlm8826@gmail.com">xlm8826@gmail.com</a></li>
+        <li><a href="https://antucao.com" target="_blank" rel="noopener">反馈 / 其他 → antucao.com</a></li>
+      </ul>
+    </div>
+    </div>
+    <div class="container"><div class="ad-slot" data-ad-slot="footer"></div></div>
+    <div class="container footer-bottom">
+      <span>© 2026 小满券仓</span>
+      <div class="footer-links">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">京ICP备18062653号-8</a>
+        
       </div>
     </div>
-  </footer>
+  </div>
+</footer>
+<!-- CHROME:FOOTER:END -->
 
   <script src="/assets/js/tracker.js?v=2026.10.16"></script>
   <script src="/assets/js/conversion.js?v=2026.10.16"></script>

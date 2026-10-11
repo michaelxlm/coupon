@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 /* ==========================================================================
- * build.js · 构建期预渲染券网格 + schema.org 结构化数据（零依赖，Node 18+）
+ * build.js · 构建期预渲染券内容 + 生成品类落地页 + 刷新 sitemap（零依赖，Node 18+）
  *
- * 背景：coupon 为纯静态站，券网格此前全靠 coupon-page.js 运行时 fetch 注入，
- * HTML 源码为空。本站主打中文京东券、主入口是百度，而百度对 JS 渲染支持弱 →
- * 券内容对爬虫不可见。本脚本在部署前拉一次后端「精选 + 周榜」数据，把券卡写进
- * index.html 的 #cpGrid（首屏可见、可被索引），运行时 JS 仍会清空重绘（渐进增强，
- * 禁用 JS 也能读到券）。同时生成 ItemList/Product/Offer 的 JSON-LD 争取富媒体摘要。
+ * 背景：coupon 为纯静态站，券网格此前全靠运行时 JS fetch 注入，HTML 源码为空。
+ * 本站主入口是百度等弱 JS 爬虫 → 券内容需构建期落进 HTML 才能被索引。
+ * 本脚本在部署前：
+ *   1) 预渲染 index.html（精选 + 周榜）券网格 + ItemList JSON-LD；
+ *   2) 预渲染 browse.html（全部好物 paging 首页）、rank.html（周榜 50）；
+ *   3) 依 data/categories.json 生成 cat/<slug>.html 品类落地页（关键词映射，壳始终写盘，
+ *      即使后端不可达也不 404，仅券网格 fail-soft 留空态）；
+ *   4) 依固定页面清单 + 品类 slug 重写 sitemap.xml。
  *
  * 幂等：注入内容用 START/END 注释标记包裹，重复运行整段替换，不会叠加。
- * fail-soft：任何网络/解析异常都不抛出（exit 0），保持原文件不动，绝不阻断部署。
+ * fail-soft：任何网络/解析异常都不抛出（exit 0），页面壳仍写盘，绝不阻断部署。
  *
- * 用法：
- *   node scripts/build.js
+ * 用法：node scripts/build.js
  * 环境变量（可选）：
  *   COUPON_API_BASE  默认 https://api.xuyiheng.com
  *   COUPON_MAIN_URL  默认 coupon.zangeng.com（须已在 main-api 登记，否则 sourceGuard 拦截返回空）
@@ -28,7 +30,8 @@ const API_BASE = process.env.COUPON_API_BASE || 'https://api.xuyiheng.com';
 const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
 const SITE_URL = (process.env.COUPON_SITE_URL || 'https://coupon.zangeng.com').replace(/\/+$/, '');
 const ROOT = path.resolve(__dirname, '..');
-const HTML_FILE = path.join(ROOT, 'index.html');
+const CAT_DIR = path.join(ROOT, 'cat');
+const TOKEN = '2026.10.15';
 
 const GRID_START = '<!-- PRERENDER:GRID:START -->';
 const GRID_END = '<!-- PRERENDER:GRID:END -->';
@@ -70,11 +73,19 @@ async function fetchList(p) {
   }
 }
 
+// 单个拉取失败不阻断，返回空数组（券网格留空态，页面壳仍写盘）
+async function safeList(p) {
+  try { return await fetchList(p); } catch (e) { console.warn('[build] 拉取失败 ' + p + '：', e.message); return []; }
+}
+
 function buildCard(c) {
   const link = cardLink(c);
   const cid = String(c.tao_id || c._id || '');
   const off = Number(c.couponDiscount) || 0;
+  const quota = Number(c.couponQuota) || 0;
   const finalPrice = Number(c.price) || 0;
+  const ct = Number(c.createTime) || 0;
+  const fresh = ct && (Date.now() - ct) < 24 * 60 * 60 * 1000;
   const rel = link ? ' rel="sponsored noopener"' : '';
   const href = link ? esc(link) : '#';
   let html = `<a class="cp-card" href="${href}"${rel} target="_blank" data-track="coupon_click"`;
@@ -85,17 +96,23 @@ function buildCard(c) {
     html += `<img src="${esc(imgSrc)}" alt="${esc(c.title || '')}" width="300" height="300" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
   }
   html += `<span class="cp-name">${esc(c.title || '优惠券')}</span><div class="cp-price">`;
-  if (off > 0) html += `<span class="cp-off">券 ¥${esc(off)}</span>`;
+  if (off > 0) html += `<span class="cp-off">${esc(quota > 0 ? ('满' + quota + '减' + off) : ('券 ¥' + off))}</span>`;
   if (finalPrice > 0) html += `<span class="cp-final">¥${esc(finalPrice)}</span>`;
-  html += '</div></a>';
+  html += '</div>';
+  if (fresh) html += '<span class="cp-fresh">今日新增</span>';
+  html += '</a>';
   return html;
 }
 
-function buildJsonLd(list) {
+function renderGridHtml(list) {
+  return list.map(buildCard).join('\n        ');
+}
+
+function jsonLd(list, name, url) {
   const items = list.slice(0, 20).map((c, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    url: cardLink(c) || SITE_URL,
+    url: cardLink(c) || url,
     item: {
       '@type': 'Product',
       name: c.title || '京东优惠券',
@@ -105,7 +122,7 @@ function buildJsonLd(list) {
         '@type': 'Offer',
         price: Number(c.price) || 0,
         priceCurrency: 'CNY',
-        url: cardLink(c) || SITE_URL,
+        url: cardLink(c) || url,
         availability: 'https://schema.org/InStock',
       },
     },
@@ -113,10 +130,14 @@ function buildJsonLd(list) {
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: '京东优惠券 · 限时领券中心',
-    url: SITE_URL + '/',
+    name: name,
+    url: url,
     itemListElement: items,
   };
+}
+
+function jsonLdBlock(list, name, url) {
+  return '<script type="application/ld+json">\n' + JSON.stringify(jsonLd(list, name, url), null, 0) + '\n</script>';
 }
 
 // 用标记整段替换：标记间内容每次覆盖，标记外原文不动（幂等、可反复重跑）
@@ -129,54 +150,280 @@ function replaceBlock(html, start, end, inner) {
   return html;
 }
 
-async function run() {
-  let original;
+// 对已存在的 HTML 文件按标记注入券网格 + JSON-LD（文件/标记不存在则跳过）
+function prerenderFile(file, list, name, url) {
+  let html;
+  try { html = fs.readFileSync(file, 'utf8'); } catch (e) { console.warn('[build] 找不到 ' + path.basename(file) + '，跳过：', e.message); return; }
+  if (html.includes(GRID_START) && html.includes(GRID_END)) {
+    html = replaceBlock(html, GRID_START, GRID_END, list.length ? renderGridHtml(list) : '');
+  }
+  if (list.length && html.includes(JSONLD_START) && html.includes(JSONLD_END)) {
+    html = replaceBlock(html, JSONLD_START, JSONLD_END, jsonLdBlock(list, name, url));
+  }
+  fs.writeFileSync(file, html);
+  console.log(`[build] ${path.basename(file)}：预渲染 ${list.length} 张券卡`);
+}
+
+/* ---------------------------- 品类落地页模板 ---------------------------- */
+function catPageShell(cat, list) {
+  const url = SITE_URL + '/cat/' + cat.slug + '.html';
+  const title = `${cat.name}优惠券 · 京东${cat.name}领券 | 小满券仓`;
+  const desc = cat.desc + ' 数据由折淘客提供，领券后跳转京东活动页下单，最终优惠以京东活动页为准。';
+  const grid = list.length ? renderGridHtml(list) : '';
+  const ld = JSON.stringify([
+    {
+      '@context': 'https://schema.org', '@type': 'CollectionPage',
+      name: `${cat.name}优惠券`, description: desc, url: url, inLanguage: 'zh-CN',
+      isPartOf: { '@type': 'WebSite', name: '小满券仓', url: SITE_URL },
+    },
+    {
+      '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '首页', item: SITE_URL + '/' },
+        { '@type': 'ListItem', position: 2, name: '品类', item: SITE_URL + '/category.html' },
+        { '@type': 'ListItem', position: 3, name: cat.name, item: url },
+      ],
+    },
+    list.length ? jsonLd(list, `${cat.name}优惠券`, url) : null,
+  ].filter(Boolean));
+
+  return `<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${esc(title)}</title>
+  <meta name="description" content="${esc(desc)}">
+  <meta name="keywords" content="${esc('京东' + cat.name + '优惠券,' + cat.name + '券,领券中心,满减券')}">
+  <meta name="robots" content="index,follow">
+  <link rel="icon" href="/assets/img/favicon.svg">
+  <link rel="canonical" href="${esc(url)}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="小满券仓">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="${esc(title)}">
+  <meta property="og:description" content="${esc(desc)}">
+  <meta property="og:url" content="${esc(url)}">
+  <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${esc(title)}">
+  <meta name="twitter:description" content="${esc(desc)}">
+  <script type="application/ld+json">${ld}</script>
+  <link rel="stylesheet" href="/assets/css/tokens.css?v=${TOKEN}">
+  <link rel="stylesheet" href="/assets/css/main.css?v=${TOKEN}" />
+  <link rel="stylesheet" href="/assets/css/coupon.css?v=${TOKEN}" />
+</head>
+<body data-page="category" data-mode="category" data-kw="${esc(cat.kw)}" data-theme-default="light" data-build="${TOKEN}">
+  <a class="skip-link" href="#main">跳到主内容</a>
+  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="小满券仓 首页">
+        <span class="brand-mark">券</span>
+        <span class="brand-text">小满券仓</span>
+      </a>
+      <nav class="nav" id="primaryNav" aria-label="主导航">
+        <a class="nav-link" href="/">领券中心</a>
+        <a class="nav-link" href="/browse.html">全部好物</a>
+        <a class="nav-link" href="/rank.html">榜单</a>
+        <a class="nav-link is-active" href="/category.html" aria-current="page">品类</a>
+        <a class="nav-link" href="/guide.html">攻略</a>
+        <a class="nav-link" href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深色 / 浅色">🌙</button>
+        <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="展开菜单" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section-sm"><div class="container"><div class="ad-slot" data-ad-slot="carousel"></div></div></section>
+
+    <section class="section hero">
+      <div class="container">
+        <span class="eyebrow">品类精选 · ${esc(cat.name)}</span>
+        <h1>${esc(cat.name)}优惠券</h1>
+        <p class="hero-sub">${esc(cat.desc)}</p>
+        <nav class="cp-cats" aria-label="其他品类">
+          <a class="cp-cat-chip" href="/category.html">全部品类</a>
+        </nav>
+      </div>
+    </section>
+
+    <section class="section-sm"><div class="container"><div class="ad-slot" data-ad-slot="inline"></div></div></section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head left">
+          <h2>${esc(cat.name)}券列表</h2>
+          <p class="section-desc">实时${esc(cat.name)}相关京东优惠券，先领券再下单更省。</p>
+        </div>
+
+        <div class="cp-toolbar">
+          <span class="muted">关键词：${esc(cat.kw)}</span>
+          <label class="cp-sort">
+            <span class="cp-sort-label">排序</span>
+            <select id="listSort" aria-label="列表排序">
+              <option value="">默认</option>
+              <option value="discount">券面额↓</option>
+              <option value="priceAsc">到手价↑</option>
+              <option value="priceDesc">到手价↓</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="listState" class="cp-state" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+        <div id="listGrid" class="cp-grid">
+          ${GRID_START}
+${grid}
+          ${GRID_END}
+        </div>
+        <div class="cp-more-wrap">
+          <button id="listMore" class="btn btn-ghost" type="button" hidden>加载更多</button>
+        </div>
+
+        <p class="cp-note">优惠券展示与核销由京东 / 折淘客完成，本站仅作内容聚合与跳转，不参与交易。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="/"><span class="brand-mark">券</span><span class="brand-text">小满券仓</span></a>
+          <p>京东优惠券，先领券再下单更省</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>站点</h4>
+          <ul>
+            <li><a href="/">领券中心</a></li>
+            <li><a href="/browse.html">全部好物</a></li>
+            <li><a href="/rank.html">榜单</a></li>
+            <li><a href="/category.html">品类</a></li>
+            <li><a href="/guide.html">领券攻略</a></li>
+            <li><a href="/about.html">关于与免责</a></li>
+            <li><a href="https://zangeng.com/" target="_blank" rel="noopener">小满手记</a></li></ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>更多站点</h4>
+          <ul><li><a href="https://xuliming.com/" target="_blank" rel="noopener">建站向导 · xuliming.com</a></li>
+            <li><a href="https://2002cs.com/" target="_blank" rel="noopener">配色工具 · 2002cs.com</a></li>
+            <li><a href="https://fangkelianmeng.com/" target="_blank" rel="noopener">开发者工具箱 · fangkelianmeng.com</a></li>
+            <li><a href="https://585.ink/" target="_blank" rel="noopener">实测手记 · 585.ink</a></li>
+            <li><a href="https://20101115.com/" target="_blank" rel="noopener">历史知识库 · 20101115.com</a></li></ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>联系</h4>
+          <ul><li><a href="mailto:xlm8826@gmail.com">xlm8826@gmail.com</a></li><li><a href="https://antucao.com" target="_blank" rel="noopener">反馈 / 其他 → antucao.com</a></li></ul>
+        </div>
+      </div>
+      <div class="container"><div class="ad-slot" data-ad-slot="footer"></div></div>
+      <div class="container footer-bottom">
+        <span>© 2026 小满券仓</span>
+        <div class="footer-links"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">京ICP备18062653号-8</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/assets/js/tracker.js?v=${TOKEN}"></script>
+  <script src="/assets/js/conversion.js?v=${TOKEN}"></script>
+  <script src="/assets/js/app.js?v=${TOKEN}"></script>
+  <script src="/assets/js/list-page.js?v=${TOKEN}"></script>
+  <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
+  <script src="https://antucao.oss-cn-beijing.aliyuncs.com/js/ad-slots.js" defer></script>
+</body>
+</html>
+`;
+}
+
+function todayIso() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
+function writeSitemap(slugs) {
+  const lm = todayIso();
+  const urls = [
+    ['/', '1.0', 'daily'],
+    ['/browse.html', '0.9', 'daily'],
+    ['/rank.html', '0.9', 'daily'],
+    ['/category.html', '0.8', 'weekly'],
+  ];
+  for (const s of slugs) urls.push(['/cat/' + s + '.html', '0.7', 'daily']);
+  urls.push(['/guide.html', '0.6', 'monthly']);
+  urls.push(['/about.html', '0.5', 'monthly']);
+  const body = urls.map(u =>
+`  <url>
+    <loc>${SITE_URL}${u[0]}</loc>
+    <lastmod>${lm}</lastmod>
+    <changefreq>${u[2]}</changefreq>
+    <priority>${u[1]}</priority>
+  </url>`).join('\n');
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
   try {
-    original = fs.readFileSync(HTML_FILE, 'utf8');
-  } catch (err) {
-    console.warn('[build] 找不到 index.html，跳过预渲染：', err.message);
-    return;
+    fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), xml);
+    console.log('[build] sitemap.xml 已刷新（' + urls.length + ' 条 URL，lastmod=' + lm + '）');
+  } catch (e) { console.warn('[build] 写 sitemap.xml 失败（忽略）：', e.message); }
+}
+
+async function run() {
+  // 读品类定义（失败则不生成 cat 页，仍不影响其它预渲染）
+  let categories = [];
+  try {
+    const raw = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'categories.json'), 'utf8'));
+    categories = Array.isArray(raw.categories) ? raw.categories : [];
+  } catch (e) { console.warn('[build] 读 categories.json 失败（跳过品类页）：', e.message); }
+
+  // 并发拉各页数据（各自 fail-soft）
+  const [ featured, week, browseList, rankList ] = await Promise.all([
+    safeList('/random?limit=12'),
+    safeList('/rank?period=week&limit=12'),
+    safeList('/paging?page=1&pageSize=20'),
+    safeList('/rank?period=week&limit=50'),
+  ]);
+  const catLists = {};
+  if (categories.length) {
+    const lists = await Promise.all(categories.map(c => safeList('/paging?search=' + encodeURIComponent(c.kw) + '&page=1&pageSize=20')));
+    categories.forEach((c, i) => { catLists[c.slug] = lists[i]; });
   }
 
-  // 拉数据（精选 + 周榜），任一失败都不阻断，尽力合并去重
-  let list = [];
+  // 1) index：精选 + 周榜合并去重（保持原口径）
   try {
-    const [ featured, week ] = await Promise.all([
-      fetchList('/random?limit=12').catch(() => []),
-      fetchList('/rank?period=week&limit=12').catch(() => []),
-    ]);
     const seen = new Set();
-    list = featured.concat(week).filter(c => {
+    const idxList = featured.concat(week).filter(c => {
       const key = c.tao_id || c._id || c.item_url || c.title;
       if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
+      seen.add(key); return true;
     });
-  } catch (err) {
-    console.warn('[build] 拉取券数据失败，跳过预渲染（不阻断部署）：', err.message);
-    return;
+    if (idxList.length) prerenderFile(path.join(ROOT, 'index.html'), idxList, '京东优惠券 · 限时领券中心', SITE_URL + '/');
+    else console.warn('[build] index 未取到券数据，保持原 HTML 不变。');
+  } catch (e) { console.warn('[build] index 预渲染异常（忽略）：', e.message); }
+
+  // 2) browse / rank
+  try { prerenderFile(path.join(ROOT, 'browse.html'), browseList, '全部好物优惠券 · 京东券大全', SITE_URL + '/browse.html'); } catch (e) { console.warn('[build] browse 异常：', e.message); }
+  try { prerenderFile(path.join(ROOT, 'rank.html'), rankList, '京东优惠券榜单 · 日榜周榜月榜', SITE_URL + '/rank.html'); } catch (e) { console.warn('[build] rank 异常：', e.message); }
+
+  // 3) cat 页：壳始终写盘（即使无券也不 404）
+  if (categories.length) {
+    try {
+      fs.mkdirSync(CAT_DIR, { recursive: true });
+      for (const c of categories) {
+        const html = catPageShell(c, catLists[c.slug] || []);
+        fs.writeFileSync(path.join(CAT_DIR, c.slug + '.html'), html);
+        console.log(`[build] cat/${c.slug}.html：生成，含 ${(catLists[c.slug] || []).length} 张券卡`);
+      }
+    } catch (e) { console.warn('[build] 生成品类页异常（忽略）：', e.message); }
   }
 
-  if (!list.length) {
-    console.warn('[build] 未取到券数据（sourceGuard 未放行 / 无手选券），保持原 HTML 不变。');
-    return;
-  }
-
-  // 只有当标记存在时才注入（避免把 HTML 结构改坏；标记须预置在 index.html 中）
-  if (original.includes(GRID_START) && original.includes(GRID_END)) {
-    const gridHtml = list.map(buildCard).join('\n        ');
-    original = replaceBlock(original, GRID_START, GRID_END, gridHtml);
-  } else {
-    console.warn('[build] index.html 缺少 PRERENDER:GRID 标记，跳过券网格注入。');
-  }
-
-  if (original.includes(JSONLD_START) && original.includes(JSONLD_END)) {
-    const ld = '<script type="application/ld+json">\n' + JSON.stringify(buildJsonLd(list), null, 0) + '\n</script>';
-    original = replaceBlock(original, JSONLD_START, JSONLD_END, ld);
-  }
-
-  fs.writeFileSync(HTML_FILE, original);
-  console.log(`[build] 预渲染 ${list.length} 张券卡 + JSON-LD 已写入 index.html`);
+  // 4) sitemap
+  writeSitemap(categories.map(c => c.slug));
 }
 
 run().catch(err => {

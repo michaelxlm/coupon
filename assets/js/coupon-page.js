@@ -135,10 +135,14 @@
     a.appendChild(el('span', 'cp-name', c.title || '优惠券'));
     var price = el('div', 'cp-price');
     var off = Number(c.couponDiscount) || 0;
-    if (off > 0) price.appendChild(el('span', 'cp-off', '券 ¥' + off));
+    var quota = Number(c.couponQuota) || 0;
+    if (off > 0) price.appendChild(el('span', 'cp-off', quota > 0 ? ('满' + quota + '减' + off) : ('券 ¥' + off)));
     var finalPrice = Number(c.price) || 0;
     if (finalPrice > 0) price.appendChild(el('span', 'cp-final', '¥' + finalPrice));
     a.appendChild(price);
+    // 时效标签（今日新增）：createTime 在 24h 内
+    var ct = Number(c.createTime) || 0;
+    if (ct && (Date.now() - ct) < 24 * 60 * 60 * 1000) a.appendChild(el('span', 'cp-fresh', '今日新增'));
     return a;
   }
 

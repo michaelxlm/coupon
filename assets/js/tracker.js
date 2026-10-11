@@ -18,7 +18,7 @@
      5. 事件队列 + 批量 flush，pagehide / 隐藏时兜底 flush
 
    接入方式（二选一）：
-     A. 部署前修改下方 CONFIG.project（推荐，零额外配置；本项目为 585ink）
+     A. 部署前修改下方 CONFIG.project（推荐，零额外配置；本项目为 coupon-zangeng）
      B. 在引入本脚本前声明 window.TrackerConfig = { project: 'xxx', ... } 覆盖
         （构建脚本 scripts/build.js 会按 data/site.json 的 track 字段自动注入）
    用法：
@@ -35,8 +35,8 @@
   var CONFIG = {
     // 上报端点（中台统一埋点端点）
     endpoint: 'https://api.xuyiheng.com/api/v1/public/track',
-    // 项目代号：本项目为 585ink
-    project: '585ink',
+    // 项目代号：本项目为 coupon-zangeng
+    project: 'coupon-zangeng',
     // 终端类型：Web 站点固定 web
     terminal: 'web',
     // 调试模式：置 true 时在控制台打印上报内容（生产请保持 false）

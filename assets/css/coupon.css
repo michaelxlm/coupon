@@ -93,6 +93,7 @@
 .cp-card {
   display: flex;
   flex-direction: column;
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -144,6 +145,44 @@
   font-size: 0.875rem;
 }
 .cp-final::before { content: "到手 "; color: var(--text-soft); }
+
+/* 今日新增小徽标（createTime 24h 内） */
+.cp-fresh {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--coupon-red);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.5;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 热门品类 chip 行（首页券区上方） */
+.cp-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 22px;
+}
+.cp-cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.cp-cat-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
 /* ---------------------------------- 状态 / 加载更多 ---------------------------------- */
 .cp-state {

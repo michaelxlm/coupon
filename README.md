@@ -1,10 +1,10 @@
 ---
 title: 小满券仓（coupon.zangeng.com）
 owner: Michaelxlm
-updated: 2026-10-09
+updated: 2026-10-15
 scope: coupon（coupon.zangeng.com · 京东优惠券聚合静态站）
 status: 有效
-tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点]
+tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页]
 ---
 
 # 小满券仓（coupon.zangeng.com）
@@ -24,7 +24,8 @@ tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点]
   日榜已改为**真时间窗排序**（近 24h 按券面额降序），与精选不再同源。
 - 搜索 / 分页：`GET /api/v1/front/coupon/jd/paging?search=关键词&page=1&pageSize=20&mainUrl=coupon.zangeng.com`
 
-> 前台接口经后端字段白名单裁剪（`title/pict_url/item_url/price/couponDiscount/couponQuota/clickURL/couponUrl/tao_id`），不再下发 `data/佣金/内部状态位` 等敏感字段。
+> 前台接口经后端字段白名单裁剪（`title/pict_url/item_url/price/couponDiscount/couponQuota/clickURL/couponUrl/tao_id/createTime/updateTime/createdAt`），不再下发 `data/佣金/内部状态位` 等敏感字段。
+> 券卡文案消费白名单里的 `couponQuota`+`couponDiscount` 拼「满X减Y」（无门槛回退「券 ¥off」），并用 `createTime` 对 24h 内新券打「今日新增」徽标。
 
 `coupon-page.js` 在每次请求里带上 `mainUrl=coupon.zangeng.com`，经 `main-api` 的 `sourceGuard` 中间件按 `projects.url` 放行。
 **务必先在 main-api 侧登记该来源**（见下方「上线 checklist」），否则接口返回空数据（响应头 `X-Source-Guard: BLOCKED`）。
@@ -33,23 +34,32 @@ tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点]
 
 ```
 coupon/
-├── index.html          领券中心页（SEO / header / footer / 优惠券网格）
+├── index.html          领券中心页（首页：精选 + 周榜 + 热门品类 chip）
+├── browse.html         全部好物（paging 无限加载更多，data-mode=browse）
+├── rank.html           榜单（日/周/月 tab + 排序，rank limit=50，data-mode=rank）
+├── category.html       品类中心（静态导航 8 品类 → cat/*.html）
+├── cat/<slug>.html     品类落地页（build.js 依 categories.json 生成，paging?search=kw）
+├── guide.html          领券攻略（HowTo + FAQPage，纯静态内容）
+├── about.html          关于与免责（AboutPage + 数据来源/合规，纯静态）
 ├── 404.html            404
 ├── assets/
 │   ├── css/tokens.css  六站共享设计令牌（单一事实来源，勿改品牌令牌）
 │   ├── css/main.css    站点组件样式（头部 / 页脚 / 按钮 / 广告位，复用 zangeng 模板）
-│   ├── css/coupon.css  优惠券页独有样式（网格 / 券卡 / 榜单切换 / 搜索）
-│   ├── js/tracker.js   统一埋点 SDK（上报 /api/v1/public/track，project=coupon-zangeng）
+│   ├── css/coupon.css  优惠券页独有样式（网格 / 券卡 / 满X减Y / 今日新增 / 品类 chip）
+│   ├── js/tracker.js   统一埋点 SDK（上报 /api/v1/public/track，默认 project=coupon-zangeng）
 │   ├── js/conversion.js 转化与来源归因层
 │   ├── js/app.js       站点交互（主题三态 / 移动菜单）
-│   ├── js/coupon-page.js 领券中心交互（精选 / 榜单 / 搜索 / 分页加载更多）
+│   ├── js/coupon-page.js 领券中心交互（首页：精选 / 榜单 / 搜索 / 分页加载更多）
+│   ├── js/list-page.js  通用列表脚本（browse / rank / category 三模式，按 body data-mode 分支）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
-│   ├── build.js        构建期预渲染券网格 + schema.org JSON-LD（部署前由 CI 执行，fail-soft）
+│   ├── build.js        构建期预渲染 index/browse/rank + 生成 cat/*.html + 重写 sitemap.xml（CI 执行，fail-soft）
 │   └── cache-bust.js   统一刷新本地 CSS/JS 的 ?v= 与 body data-build 版本号（零依赖）
-├── data/ad-slots.json  自营广告位兜底（远程 OSS 同步 JSON 优先）
+├── data/
+│   ├── ad-slots.json   自营广告位兜底（远程 OSS 同步 JSON 优先）
+│   └── categories.json 8 品类元数据（slug/name/kw/icon/desc，品类页与 build.js 共用）
 ├── deploy/nginx.conf   部署配置（server_name 与证书路径按域名填）
-├── robots.txt / sitemap.xml
+├── robots.txt / sitemap.xml  （sitemap 由 build.js 重写：固定页 + cat/* + guide/about）
 └── .github/workflows/deploy.yml  push-to-deploy（39.107 上的 self-hosted runner 执行）
 ```
 
@@ -63,12 +73,14 @@ python -m http.server 8080
 
 然后访问 http://localhost:8080 （优惠券需联网请求 `api.xuyiheng.com`，本地预览同样受 sourceGuard 放行约束，登记后即可正常拉取）。
 
+> `cat/*.html` 品类落地页由 `build.js` 生成，本地首次预览若想看到品类页需先跑 `node scripts/build.js`（未跑不 404，但 `category.html` 链接会指向尚不存在的 cat 页）。
+
 ## 构建与缓存规范
 
 站体仍为纯静态托管（HTML 直加源文件），但新增一个**部署前的可选预渲染步骤**（为让券内容可被百度等弱 JS 搜索引擎索引）：
 
-1. **预渲染（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后、`sync` 前执行 `node scripts/build.js`，拉一次后端「精选 + 周榜」写入 `index.html` 的 `#cpGrid`（`PRERENDER:GRID` 标记包裹，幂等替换）并生成 `ItemList/Product/Offer` JSON-LD。脚本 fail-soft：上游不可达 / 未取到券时保持原 HTML，绝不阻断部署。运行时 `coupon-page.js` 会清空重绘（渐进增强，禁 JS 仍可读到券）。
-2. **缓存指纹**：Nginx 对 `/assets/**` 设 30 天长缓存，改了 `assets/css/*.css` / `assets/js/*.js` 后跑 `node scripts/cache-bust.js <版本号>`（形如 `2026.10.13`），一次性刷新全站本地 CSS/JS 的 `?v=` 与 `<body data-build>` 统一个 token（外部 OSS 脚本自动跳过）。当前 token：`2026.10.13`。
+1. **预渲染与生成（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后、`sync` 前执行 `node scripts/build.js`，一次拉取后端后：将首页（精选+周榜去重）、`browse.html`（paging 前 20）、`rank.html`（周榜前 50）写入各自 `PRERENDER:GRID` 标记的券网格并注入 `ItemList/Product/Offer` JSON-LD；再依 `data/categories.json` 的关键词生成 `cat/<slug>.html` 品类落地页（**页面壳每次写盘**，即使接口不可达也不 404，仅网格 fail-soft 留空）；最后重写 `sitemap.xml`（固定页 + `cat/*` + `guide`/`about`，`lastmod=当日`）。脚本 fail-soft：上游不可达 / 未取到券时保持原有 HTML 壳，绝不阻断部署。运行时 `coupon-page.js`（首页）/ `list-page.js`（browse/rank/category）会清空重绘（渐进增强，禁 JS 仍可读到预渲染内容）。
+2. **缓存指纹**：Nginx 对 `/assets/**` 设 30 天长缓存，改了 `assets/css/*.css` / `assets/js/*.js` 后跑 `node scripts/cache-bust.js <版本号>`（形如 `2026.10.15`），一次性刷新全站本地 CSS/JS 的 `?v=` 与 `<body data-build>` 统一个 token（外部 OSS 脚本自动跳过）。当前 token：`2026.10.15`。
 
 ## 上线 checklist（缺一不可）
 

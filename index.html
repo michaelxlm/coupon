@@ -175,6 +175,18 @@
         <p class="cp-note">优惠券展示与核销由京东 / 折淘客完成，本站仅作内容聚合与跳转，不参与交易。</p>
       </div>
     </section>
+
+    <!-- 广告三域分离 · WO-90：官方活动卡片区（数据源 couponActivities，与广告位 ads 解耦；空池整块隐藏不占位） -->
+    <section class="section section-soft" hidden>
+      <div class="container">
+        <div class="section-head left">
+          <h2>官方活动</h2>
+          <p class="section-desc">平台官方大促 / 活动直链，先领再看。</p>
+        </div>
+        <div class="cp-grid" id="cpActs"></div>
+        <p class="cp-note">活动由平台方举办，点击直达官方活动页；本站仅提供入口，不参与交易。</p>
+      </div>
+    </section>
   </main>
 
   <!-- CHROME:FOOTER:START -->
@@ -243,6 +255,7 @@
   <script src="/assets/js/app.js?v=2026.10.12b"></script>
   <script src="/assets/js/store.js?v=2026.10.12b"></script>
   <script src="/assets/js/coupon-page.js?v=2026.10.12b"></script>
+  <script src="/assets/js/activities.js?v=2026.10.12b"></script>
   <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'data/ad-slots.json'};</script>
   <script src="https://antucao.oss-cn-beijing.aliyuncs.com/js/ad-slots.js" defer></script>
 </body>

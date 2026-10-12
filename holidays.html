@@ -165,6 +165,17 @@
         </div>
       </div>
     </section>
+
+    <!-- 广告三域分离 · WO-90：大促日历页并入官方活动直链（rel="sponsored noopener"；数据源 couponActivities，与 ads 解耦；空池隐藏） -->
+    <section class="section section-soft" hidden>
+      <div class="container">
+        <div class="section-head left">
+          <h2>当前官方活动</h2>
+          <p class="section-desc">正在进行的大促 / 活动直链，提前领券再配合凑单计算器预估到手价。</p>
+        </div>
+        <div class="cp-grid" id="cpActs"></div>
+      </div>
+    </section>
   </main>
 
   <!-- CHROME:FOOTER:START -->
@@ -232,6 +243,7 @@
   <script src="/assets/js/conversion.js?v=2026.10.12b"></script>
   <script src="/assets/js/app.js?v=2026.10.12b"></script>
   <script src="/assets/js/holidays.js?v=2026.10.12b"></script>
+  <script src="/assets/js/activities.js?v=2026.10.12b"></script>
   <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
   <script src="https://antucao.oss-cn-beijing.aliyuncs.com/js/ad-slots.js" defer></script>
 </body>

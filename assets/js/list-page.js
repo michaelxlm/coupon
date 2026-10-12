@@ -7,7 +7,7 @@
    健壮性对齐 coupon-page.js：AbortController 超时 + 自增 token 丢弃过期响应 + 同参短时内存缓存。
    曝光埋点：券卡带 data-case，由 conversion.js 观察视口产出「曝光→点击」归因。
    防 CLS：卡片图带 width/height，配合 coupon.css 的 aspect-ratio 占位。
-   排序：对已加载集合按 券面额 / 到手价 客户端重排（不改后端分页语义）。
+   排序：默认按「省钱力度」（券面额 + 折扣率）重排，兼顾券面额 / 到手价客户端重排（不改后端分页语义）。
    本地功能：券卡收藏星标（store.js）+ 骨架屏加载态 + 到手价区间前端筛选（browse/category）。
    ========================================================================== */
 (function (global) {
@@ -92,10 +92,18 @@
     return e;
   }
 
+  // value（省钱力度）与构建期 build.js sortByValue 同口径：分数 = 券面额 + 折扣率×100，同分按到手价低者前
+  function saveScore(c) {
+    var off = Number(c.couponDiscount) || 0;
+    var price = Number(c.price) || 0;
+    return off > 0 ? off + (off / (price + off)) * 100 : 0;
+  }
+
   function sortList(list) {
     if (!state.sort) return list;
     var arr = list.slice();
-    if (state.sort === 'discount') arr.sort(function (a, b) { return (Number(b.couponDiscount) || 0) - (Number(a.couponDiscount) || 0); });
+    if (state.sort === 'value') arr.sort(function (a, b) { var d = saveScore(b) - saveScore(a); return d !== 0 ? d : ((Number(a.price) || 0) - (Number(b.price) || 0)); });
+    else if (state.sort === 'discount') arr.sort(function (a, b) { return (Number(b.couponDiscount) || 0) - (Number(a.couponDiscount) || 0); });
     else if (state.sort === 'priceAsc') arr.sort(function (a, b) { return (Number(a.price) || 0) - (Number(b.price) || 0); });
     else if (state.sort === 'priceDesc') arr.sort(function (a, b) { return (Number(b.price) || 0) - (Number(a.price) || 0); });
     return arr;
@@ -241,6 +249,8 @@
     else setLoading(true);
     var action = loadActions.paging = function () { loadPaging(reset); };
     var params = [ [ 'page', state.page ], [ 'pageSize', PAGE_SIZE ] ];
+    // 非「默认(createTime 倒序)」排序时向后端要券值优先（只返有券面额券、按面额降序），与首页「省钱力度」一致并消除采集池空卡
+    if (state.sort) params.push([ 'sort', 'discount' ]);
     if (mode === 'category' && kw) params.unshift([ 'search', kw ]);
     var url = buildUrl('/paging', params);
     request(url, function (err, d) {
@@ -249,7 +259,9 @@
       if (err) { showStatus('加载失败，请稍后重试。', action); return; }
       var list = pickList(d);
       state.list = state.list.concat(list);
-      render(reset ? sortList(state.list.filter(matchPrice)) : list.filter(matchPrice), !reset);
+      // 排序生效时追加也全量重排保序；无排序时维持新一页追加
+      var appendMode = !reset && !state.sort;
+      render(sortList((appendMode ? list : state.list).filter(matchPrice)), appendMode);
       var count = Number(d && d.count) || 0;
       state.hasMore = state.page * PAGE_SIZE < count;
       if (moreBtn) moreBtn.hidden = !(state.hasMore && list.length);
@@ -273,6 +285,8 @@
     grid = $('listGrid'); statusEl = $('listState'); moreBtn = $('listMore');
     tabs = $('rankTabs'); sortSelect = $('listSort'); priceSelect = $('listPrice');
     if (!grid || !statusEl) return;
+    // 默认排序跟随 select 初始选中项（省钱力度↓），与预渲染顺序一致
+    if (sortSelect) state.sort = sortSelect.value || '';
 
     if (sortSelect) {
       sortSelect.addEventListener('change', function () {

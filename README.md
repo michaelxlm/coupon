@@ -9,19 +9,19 @@ tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, �
 
 # 小满券仓（coupon.zangeng.com）
 
-> 文档治理：本文件是 coupon 唯一项目介绍；跨项目规范与集中文档见 `main-api/app/docs/`；
-> 统一视图见 `main-api/app/docs/knowledge-base/projects/coupon/README.md`（2026-10-09 纳入知识库）。
+> 文档治理：本文件是 coupon 唯一项目介绍；跨项目规范与集中文档见 `main/app/docs/`；
+> 统一视图见 `main/app/docs/knowledge-base/projects/coupon/README.md`（2026-10-09 纳入知识库）。
 
-> **新功能落点自查（开发前默认动作 · [05 · Part 6 五](../main-api/app/docs/knowledge-base/05-项目优化建议.md#五功能归属与迁移总览)）**：动手前先跑 `node ../main-api/scripts/feature-placement.js "<功能描述>"` 评估该功能应落哪站 + 各端合规门控；跨站能力单一源见 [`main-api/shared/capabilities.json`](../main-api/shared/capabilities.json)。
+> **新功能落点自查（开发前默认动作 · [05 · Part 6 五](../main/app/docs/knowledge-base/05-项目优化建议.md#五功能归属与迁移总览)）**：动手前先跑 `node ../main/scripts/feature-placement.js "<功能描述>"` 评估该功能应落哪站 + 各端合规门控；跨站能力单一源见 [`main/shared/capabilities.json`](../main/shared/capabilities.json)。
 
 从 `zangeng.com` 剥离出来的**独立优惠券站**，域名 `coupon.zangeng.com`，专门展示京东优惠券数据。
-优惠券数据实时来自中台 `main-api`（`/api/v1/front/coupon/jd/*`），与其他静态站（zangeng / color-tool / visitor / aiWeb / notes / history）**同一套零依赖静态站框架**：手写 HTML + 共享设计令牌 + push-to-deploy。
+优惠券数据实时来自中台 `main`（`/api/v1/front/coupon/jd/*`），与其他静态站（zangeng / color-tool / visitor / aiWeb / notes / history）**同一套零依赖静态站框架**：手写 HTML + 共享设计令牌 + push-to-deploy。
 
 ## 数据来源
 
 - 精选（手选池）：`GET /api/v1/front/coupon/jd/random?limit=10&mainUrl=coupon.zangeng.com`
   由原「全库随机」改为**纯手选池**：只展示管理端「优惠券商品」页导入的京东手选券（`isHandpick='1'`）；
-  当 `main-api` 的 `config.taobaoTbk.enable=true` 时，京东手选与淘宝有效券**混合同一榜**（按 `createTime` 倒序截断）。淘宝审核通过后仅切此开关即面客，无需改代码。
+  当中台 `main` 的 `config.taobaoTbk.enable=true` 时，京东手选与淘宝有效券**混合同一榜**（按 `createTime` 倒序截断）。淘宝审核通过后仅切此开关即面客，无需改代码。
 - 榜单（日 / 周 / 月）：`GET /api/v1/front/coupon/jd/rank?period=week|month|day&limit=20&mainUrl=coupon.zangeng.com`
   日榜已改为**真时间窗排序**（近 24h 按券面额降序），与精选不再同源。
 - 搜索 / 分页：`GET /api/v1/front/coupon/jd/paging?search=关键词&page=1&pageSize=20&mainUrl=coupon.zangeng.com`
@@ -29,8 +29,8 @@ tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, �
 > 前台接口经后端字段白名单裁剪（`title/pict_url/item_url/price/couponDiscount/couponQuota/clickURL/couponUrl/tao_id/createTime/updateTime/createdAt`），不再下发 `data/佣金/内部状态位` 等敏感字段。
 > 券卡文案消费白名单里的 `couponQuota`+`couponDiscount` 拼「满X减Y」（无门槛回退「券 ¥off」），并用 `createTime` 对 24h 内新券打「今日新增」徽标。
 
-`coupon-page.js` 在每次请求里带上 `mainUrl=coupon.zangeng.com`，经 `main-api` 的 `sourceGuard` 中间件按 `projects.url` 放行。
-**务必先在 main-api 侧登记该来源**（见下方「上线 checklist」），否则接口返回空数据（响应头 `X-Source-Guard: BLOCKED`）。
+`coupon-page.js` 在每次请求里带上 `mainUrl=coupon.zangeng.com`，经中台 `main` 的 `sourceGuard` 中间件按 `projects.url` 放行。
+**务必先在中台 main 侧登记该来源**（见下方「上线 checklist」），否则接口返回空数据（响应头 `X-Source-Guard: BLOCKED`）。
 
 ## 目录
 
@@ -105,7 +105,7 @@ python -m http.server 8080
 
 1. **DNS**：在域名服务商把 `coupon.zangeng.com` 的 A 记录指向 `60.205.214.88`（与 zangeng.com 同 IP）。
 2. **Nginx**：在 60.205 上新建 `/etc/nginx/conf.d/coupon.zangeng.com.conf`（复制 `deploy/nginx.conf`，改证书路径为本域名），`nginx -t && nginx -s reload`；并用 certbot 申请 `coupon.zangeng.com` 证书。
-3. **来源登记（关键）**：在本机 / 服务器跑 main-api 的登记脚本，把 `coupon.zangeng.com` 写入 `projects` 集合：
+3. **来源登记（关键）**：在本机 / 服务器跑中台 main 的登记脚本，把 `coupon.zangeng.com` 写入 `projects` 集合：
    ```bash
    cd main-api
    export MAIN_MONGO_URL='mongodb://<user>:<pass>@<host>:<port>/main'
@@ -122,7 +122,7 @@ python -m http.server 8080
    .\config.cmd --url https://github.com/michaelxlm/coupon --token <TOKEN> --labels static-deploy --name coupon-runner --unattended
    ```
    注意：本机 Windows runner 无 rsync 且远端无 gzip，workflow 已采用未压缩 `tar cf - | ssh`（不要改回 rsync / `-z`）。
-5. **管理端（可选）**：`coupon.zangeng.com` 已加入 `main-api` `config.deploy.projects`，可在管理端「静态站部署」页一键触发（需 39.107 设 `GITHUB_DEPLOY_TOKEN`）。
+5. **管理端（可选）**：`coupon.zangeng.com` 已加入中台 `main` `config.deploy.projects`，可在管理端「静态站部署」页一键触发（需 39.107 设 `GITHUB_DEPLOY_TOKEN`）。
 6. **推送即部署**：`git push` 到 `main` 分支即触发 `deploy.yml`，把仓库同步到 `60.205:/www/wwwroot/coupon.zangeng.com`。
 
 ## 合规

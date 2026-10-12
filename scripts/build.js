@@ -35,7 +35,10 @@ const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
 const SITE_URL = (process.env.COUPON_SITE_URL || 'https://coupon.zangeng.com').replace(/\/+$/, '');
 const ROOT = path.resolve(__dirname, '..');
 const CAT_DIR = path.join(ROOT, 'cat');
-const TOKEN = '2026.10.16';
+const TOKEN = '2026.10.12b';
+
+// 双 11 专题取数量（大额券榜单 + 手选池合并去重后按省钱力度取 top N）
+const D11_LIMIT = 24;
 
 const GRID_START = '<!-- PRERENDER:GRID:START -->';
 const GRID_END = '<!-- PRERENDER:GRID:END -->';
@@ -72,6 +75,7 @@ const COUPON_SITE = {
       { label: '领券攻略', url: '/guide.html' },
       { label: '凑单计算器', url: '/calculator.html' },
       { label: '大促日历', url: '/holidays.html' },
+      { label: '双 11 专题', url: '/double11.html' },
       { label: '我的收藏', url: '/favorites.html' },
       { label: '关于与免责', url: '/about.html' },
       { label: '小满手记', url: 'https://zangeng.com/', external: true },
@@ -99,6 +103,7 @@ const STATIC_PAGES = {
   'calculator.html': '/guide.html',
   'holidays.html': '/guide.html',
   'favorites.html': '',
+  'double11.html': '',
   'about.html': '',
   '404.html': '',
 };
@@ -167,6 +172,24 @@ function buildCard(c) {
   if (fresh) html += '<span class="cp-fresh">今日新增</span>';
   html += '</a>';
   return html;
+}
+
+// 选品曝光权重（省钱力度优先，时间/佣金不再主导展示顺序）：
+// 分数 = 券面额 + 折扣率×100（折扣率 = 券面额 / (到手价 + 券面额)）；同分按到手价低者靠前。
+// 与前端 coupon-page.js / list-page.js 的 value 排序同口径，预渲染与运行时顺序一致。
+function saveScore(c) {
+  const off = Number(c.couponDiscount) || 0;
+  const price = Number(c.price) || 0;
+  if (off <= 0) return 0;
+  return off + (off / (price + off)) * 100;
+}
+
+function sortByValue(list) {
+  return list.slice().sort((a, b) => {
+    const d = saveScore(b) - saveScore(a);
+    if (d !== 0) return d;
+    return (Number(a.price) || 0) - (Number(b.price) || 0);
+  });
 }
 
 function renderGridHtml(list) {
@@ -339,6 +362,7 @@ function catPageShell(cat, list) {
           <label class="cp-sort">
             <span class="cp-sort-label">排序</span>
             <select id="listSort" aria-label="列表排序">
+              <option value="value" selected>省钱力度↓</option>
               <option value="">默认</option>
               <option value="discount">券面额↓</option>
               <option value="priceAsc">到手价↑</option>
@@ -386,6 +410,7 @@ function writeSitemap(slugs) {
   const lm = todayIso();
   const urls = [
     ['/', '1.0', 'daily'],
+    ['/double11.html', '0.95', 'daily'],
     ['/browse.html', '0.9', 'daily'],
     ['/rank.html', '0.9', 'daily'],
     ['/category.html', '0.8', 'weekly'],
@@ -426,30 +451,49 @@ async function run() {
   const [ featured, week, browseList, rankList ] = await Promise.all([
     safeList('/random?limit=12'),
     safeList('/rank?period=week&limit=12'),
-    safeList('/paging?page=1&pageSize=20'),
+    safeList('/paging?page=1&pageSize=20&sort=discount'),
     safeList('/rank?period=week&limit=50'),
   ]);
   const catLists = {};
   if (categories.length) {
-    const lists = await Promise.all(categories.map(c => safeList('/paging?search=' + encodeURIComponent(c.kw) + '&page=1&pageSize=20')));
-    categories.forEach((c, i) => { catLists[c.slug] = lists[i]; });
+    const lists = await Promise.all(categories.map(c => safeList('/paging?search=' + encodeURIComponent(c.kw) + '&page=1&pageSize=20&sort=discount')));
+    categories.forEach((c, i) => { catLists[c.slug] = sortByValue(lists[i]); });
   }
 
-  // 1) index：精选 + 周榜合并去重（保持原口径）
+  // 双 11 专题：大额券榜单（月榜，券面额降序）+ 手选池合并去重，仅留有券额/到手价的商品（search 采集池无券额会渲成空卡，故不用），再按省钱力度取 top N
+  const [ d11Rank, d11Feat ] = await Promise.all([
+    safeList('/rank?period=month&limit=100'),
+    safeList('/random?limit=40'),
+  ]);
+  const d11Seen = new Set();
+  const d11List = sortByValue(d11Rank.concat(d11Feat).filter(c => {
+    const key = c.tao_id || c._id || c.item_url || c.title;
+    if (!key || d11Seen.has(key)) return false;
+    if ((Number(c.couponDiscount) || 0) <= 0 && (Number(c.price) || 0) <= 0) return false;
+    d11Seen.add(key); return true;
+  })).slice(0, D11_LIMIT);
+
+  // 1) index：精选 + 周榜合并去重后按省钱力度排序（攒量期先让刚需高折扣品靠前）
   try {
     const seen = new Set();
-    const idxList = featured.concat(week).filter(c => {
+    const idxList = sortByValue(featured.concat(week).filter(c => {
       const key = c.tao_id || c._id || c.item_url || c.title;
       if (!key || seen.has(key)) return false;
       seen.add(key); return true;
-    });
+    }));
     if (idxList.length) prerenderFile(path.join(ROOT, 'index.html'), idxList, '京东优惠券 · 限时领券中心', SITE_URL + '/');
     else console.warn('[build] index 未取到券数据，保持原 HTML 不变。');
   } catch (e) { console.warn('[build] index 预渲染异常（忽略）：', e.message); }
 
-  // 2) browse / rank
-  try { prerenderFile(path.join(ROOT, 'browse.html'), browseList, '全部好物优惠券 · 京东券大全', SITE_URL + '/browse.html'); } catch (e) { console.warn('[build] browse 异常：', e.message); }
-  try { prerenderFile(path.join(ROOT, 'rank.html'), rankList, '京东优惠券榜单 · 日榜周榜月榜', SITE_URL + '/rank.html'); } catch (e) { console.warn('[build] rank 异常：', e.message); }
+  // 2) browse / rank（同样按省钱力度重排；rank 后端已是券面额口径，此处统一兼得折扣率）
+  try { prerenderFile(path.join(ROOT, 'browse.html'), sortByValue(browseList), '全部好物优惠券 · 京东券大全', SITE_URL + '/browse.html'); } catch (e) { console.warn('[build] browse 异常：', e.message); }
+  try { prerenderFile(path.join(ROOT, 'rank.html'), sortByValue(rankList), '京东优惠券榜单 · 日榜周榜月榜', SITE_URL + '/rank.html'); } catch (e) { console.warn('[build] rank 异常：', e.message); }
+
+  // 2.5) double11：专题未取到券数据时保持原 HTML（大促页不被空网格覆盖）
+  try {
+    if (d11List.length) prerenderFile(path.join(ROOT, 'double11.html'), d11List, '双 11 必囤好物 · 京东优惠券专题', SITE_URL + '/double11.html');
+    else console.warn('[build] double11 未取到券数据，保持原 HTML 不变。');
+  } catch (e) { console.warn('[build] double11 异常（忽略）：', e.message); }
 
   // 3) cat 页：壳始终写盘（即使无券也不 404）
   if (categories.length) {

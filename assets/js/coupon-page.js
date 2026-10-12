@@ -7,7 +7,7 @@
    健壮性（C3）：AbortController 超时 + 自增 token 丢弃过期响应（防切 tab/搜索乱序覆盖）+ 同参短时内存缓存。
    曝光埋点（C2）：券卡带 data-case，由 conversion.js 观察视口产出「曝光→点击」归因。
    防 CLS（C4）：卡片图带 width/height，配合 coupon.css 的 aspect-ratio 占位。
-   排序透出（C8）：对已加载结果按 券面额 / 到手价 做客户端排序（低成本，不改后端分页语义）。
+   排序透出（C8）：默认按「省钱力度」（券面额 + 折扣率）重排，兼顾券面额 / 到手价客户端排序（低成本，不改后端分页语义）。
    本地功能：券卡收藏星标 + 骨架屏加载态；?s=关键词 直达搜索；搜索历史由 store.js 落 localStorage。
    ========================================================================== */
 (function (global) {
@@ -97,10 +97,18 @@
   }
 
   // 客户端排序（C8）：不改动后端分页/榜单语义，仅对已加载集合重排
+  // value（省钱力度）与构建期 build.js sortByValue 同口径：分数 = 券面额 + 折扣率×100，同分按到手价低者前
+  function saveScore(c) {
+    var off = Number(c.couponDiscount) || 0;
+    var price = Number(c.price) || 0;
+    return off > 0 ? off + (off / (price + off)) * 100 : 0;
+  }
+
   function sortList(list) {
     if (!state.sort) return list;
     var arr = list.slice();
-    if (state.sort === 'discount') arr.sort(function (a, b) { return (Number(b.couponDiscount) || 0) - (Number(a.couponDiscount) || 0); });
+    if (state.sort === 'value') arr.sort(function (a, b) { var d = saveScore(b) - saveScore(a); return d !== 0 ? d : ((Number(a.price) || 0) - (Number(b.price) || 0)); });
+    else if (state.sort === 'discount') arr.sort(function (a, b) { return (Number(b.couponDiscount) || 0) - (Number(a.couponDiscount) || 0); });
     else if (state.sort === 'priceAsc') arr.sort(function (a, b) { return (Number(a.price) || 0) - (Number(b.price) || 0); });
     else if (state.sort === 'priceDesc') arr.sort(function (a, b) { return (Number(b.price) || 0) - (Number(a.price) || 0); });
     return arr;
@@ -267,7 +275,9 @@
       if (err) { showStatus('加载失败，请稍后重试。', action); return; }
       var list = pickList(d);
       state.list = state.list.concat(list);
-      render(reset ? sortList(state.list) : list, !reset);
+      // 排序生效时追加也全量重排保序；无排序时维持新一页追加
+      var appendMode = !reset && !state.sort;
+      render(sortList(appendMode ? list : state.list), appendMode);
       var count = Number(d && d.count) || 0;
       state.hasMore = state.page * PAGE_SIZE < count;
       moreBtn.hidden = !(state.hasMore && list.length);
@@ -292,6 +302,8 @@
     tabs = $('cpTabs'); searchForm = $('cpSearchForm'); searchInput = $('cpSearchInput');
     sortSelect = $('cpSort');
     if (!grid || !statusEl) return;
+    // 默认排序跟随 select 初始选中项（省钱力度↓），与预渲染顺序一致
+    if (sortSelect) state.sort = sortSelect.value || '';
 
     Array.prototype.forEach.call(tabs.children, function (t) {
       t.addEventListener('click', function () {

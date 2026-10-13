@@ -41,6 +41,32 @@
 .cp-tab.is-active { background: var(--accent); color: #fff; }
 .cp-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* 平台筛选（JS 动态注入 .cp-toolbar；数据带 platform 后才显示，京东/淘宝混合期可见） */
+.cp-plat {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.cp-plat[hidden] { display: none; }
+.cp-plat-chip {
+  border: 0;
+  background: transparent;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: inherit;
+  transition: background .15s ease, color .15s ease;
+}
+.cp-plat-chip:hover { color: var(--text); }
+.cp-plat-chip.is-active { background: var(--accent); color: #fff; }
+.cp-plat-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 /* 排序下拉（C8） */
 .cp-sort { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.875rem; }
 .cp-sort select {
@@ -159,6 +185,19 @@
   font-weight: 700;
   line-height: 1.5;
   box-shadow: var(--shadow-sm);
+}
+
+/* 即将失效小徽标（couponEndTime 3 天内，行内贴在手价旁，避免与 cp-fresh / 星标争位） */
+.cp-expire {
+  align-self: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
 /* 热门品类 chip 行（首页券区上方） */

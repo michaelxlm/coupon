@@ -80,6 +80,9 @@ coupon/
 ## 交互与内容能力（零后端，纯前端 localStorage）
 
 - **收藏星标**：所有券卡（含预渲染静态卡）右上角星标，数据存 `coupon_favs`（上限 100）；`store.js` 统一读写，空间异常（隐私模式等）静默失败。
+- **收藏导出 / 导入**：`favorites.html` 支持「导出收藏」下载 JSON 备份、在其它设备「导入收藏」按 id 合并去重（`store.js` 的 `exportFavs`/`importFavs`），弥补 localStorage 无法跨设备的短板。
+- **即将失效提醒**：券卡在手价旁显示「N 天后失效 / 即将到期」（数据来自后端 `couponEndTime`，需 main-api 放行该字段后生效；构建期同时从预渲染/快照剔除已过期券）。
+- **平台筛选**：京东/淘宝混合榜单支持按平台筛选（后端归并注入 `platform` 后，工具栏自动出现「全部/京东/淘宝」；字段缺失时控件自动隐藏，行为回退为现状）。
 - **最近看过**：券卡点击自动记录快照（上限 24），在 `favorites.html` 与首页搜索历史 chip 行下方可见。
 - **搜索历史 / 热搜词**：首页提交搜索后存 `coupon_searches`（上限 10）并以 chip 展示；未搜索时展示固定热搜词，均可点 `/?s=关键词` 直达搜索。
 - **凑单计算器**：`calculator.html` 多商品 × 多券叠加算到手价；收藏页券卡可一键携带价格/门槛跳转预填（`?price=&quota=&off=`）。
@@ -150,6 +153,17 @@ python -m http.server 8080
 - **JSON-LD 质量**：`build.js` 的 Product/Offer `description` 改为用真实标题生成（不再千篇一律兜底文案），京东图走 `pict_url`，富媒体摘要更准。
 - **缓存归一**：移除 `build.js` 写死的 `?v=` token，`cache-bust.js` 归档至 `scripts/archive/`，版本指纹统一由 `fingerprint.js` 管理。
 - **质量门**：新增 `scripts/selfcheck.js`（chrome 标记 / 快照合法 / 指纹生效校验），接入 `deploy.yml` 在 sync 前运行，关键项失败阻断部署。
+
+**第二批（内容质量 + 功能增强）：**
+
+- **死链券过滤**：`build.js` 新增 `isLinkable`/`usable`，预渲染 / JSON-LD / 兜底快照统一剔除无跳转链接的死卡（运行时本会渲成不可点的 `is-dead`），提升索引与摘要质量。
+- **兜底提示带快照时间**：前端回退文案追加快照 `updatedAt`（如「构建快照 2026-10-13 08:20」），让用户知道兜底数据有多旧。
+- **收藏导出 / 导入**：`favorites.html` 支持导出 JSON 备份、跨设备按 id 合并导入（`store.js` `exportFavs`/`importFavs`），埋点 `fav_export`/`fav_import`。
+
+**第三批（消费后端新字段 · 需 main-api 放行并重启后生效）：**
+
+- **「即将失效」徽标**：`build.js` 与运行时 `coupon-page.js`/`list-page.js` 消费 `couponEndTime`，3 天内到期显示「N 天后失效 / 即将到期」；`usable()` 构建期剔除已过期券。
+- **平台筛选**：消费归并时注入的 `platform`（jd/taobao），首页与 browse/rank/category 页工具栏动态注入「全部/京东/淘宝」（仅数据带 `platform` 时显示）。main-api 未重启前字段缺失，控件自动隐藏、无空筛。
 
 > 唯一未解锁阻塞仍为 **WO-56 备案接入**（coupon.zangeng.com 对百度爬虫的可达性）。兜底快照已缓解「运行时空白」，但搜索引擎能否抓到并索引本站内容仍取决于域名可达；上线前请用 `site:coupon.zangeng.com` + 爬虫 UA `curl` 验证可达性。
 

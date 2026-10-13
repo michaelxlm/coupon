@@ -26,7 +26,7 @@
   var mode = body.getAttribute('data-mode') || 'browse';
   var kw = body.getAttribute('data-kw') || '';
 
-  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', list: [] };
+  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', list: [] };
 
   var grid, statusEl, moreBtn, tabs, sortSelect, priceSelect;
   var loadActions = {};
@@ -48,6 +48,36 @@
       .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
       .then(function (json) { global.clearTimeout(timer); snapshotCache = json || {}; done(snapshotCache); })
       .catch(function () { global.clearTimeout(timer); done(null); });
+  }
+
+  // 快照更新时间戳（兜底时告知用户数据有多旧）
+  function snapStamp(snap) {
+    try {
+      var t = snap && snap.updatedAt ? new Date(snap.updatedAt) : null;
+      if (!t || isNaN(t.getTime())) return '';
+      var p = function (n) { return (n < 10 ? '0' : '') + n; };
+      return t.getFullYear() + '-' + p(t.getMonth() + 1) + '-' + p(t.getDate()) + ' ' + p(t.getHours()) + ':' + p(t.getMinutes());
+    } catch (e) { return ''; }
+  }
+
+  // 券到期时间解析：兼容时间戳（秒/毫秒）与日期字符串；解析不出返回 0
+  function endMs(v) {
+    if (v == null || v === '') return 0;
+    if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
+    var s = String(v).trim();
+    if (!s) return 0;
+    if (/^\d+$/.test(s)) { var n = Number(s); return s.length >= 12 ? n : n * 1000; }
+    var t = Date.parse(s.replace(/\.\d+/, '').replace(/-/g, '/'));
+    return isNaN(t) ? 0 : t;
+  }
+  // 即将失效文案（3 天内）；无到期时间 / 已过期返回 ''
+  function expireLabel(c) {
+    var ms = endMs(c && c.couponEndTime);
+    if (!ms) return '';
+    var diff = ms - Date.now();
+    if (diff <= 0) return '';
+    var d = Math.ceil(diff / 86400000);
+    return d <= 1 ? '即将到期' : (d + '天后失效');
   }
 
   function safeUrl(u) {
@@ -124,6 +154,39 @@
     return arr;
   }
 
+  // 平台筛选（数据带 platform 后才显示；京东/淘宝来源由中台归并时注入）
+  function filterPlat(list) {
+    if (!state.platform) return list;
+    return list.filter(function (c) { return (c.platform || 'jd') === state.platform; });
+  }
+  function currentView() { return sortList(filterPlat(state.list).filter(matchPrice)); }
+  function maybeShowPlat(list) {
+    var bar = $('cpPlat');
+    if (bar && list && list.some(function (c) { return c && c.platform !== undefined; })) bar.hidden = false;
+  }
+  function ensurePlatBar() {
+    if ($('cpPlat')) return;
+    var host = global.document.querySelector('.cp-toolbar');
+    if (!host) return;
+    var bar = el('div', 'cp-plat');
+    bar.id = 'cpPlat';
+    bar.setAttribute('role', 'group');
+    bar.setAttribute('aria-label', '平台筛选');
+    bar.hidden = true;
+    [ [ '', '全部' ], [ 'jd', '京东' ], [ 'taobao', '淘宝' ] ].forEach(function (o) {
+      var b = el('button', 'cp-plat-chip' + (o[0] === '' ? ' is-active' : ''), o[1]);
+      b.type = 'button';
+      b.setAttribute('data-plat', o[0]);
+      b.addEventListener('click', function () {
+        state.platform = o[0];
+        Array.prototype.forEach.call(bar.children, function (x) { x.classList.toggle('is-active', x.getAttribute('data-plat') === o[0]); });
+        if (state.list.length) render(currentView(), false);
+      });
+      bar.appendChild(b);
+    });
+    host.appendChild(bar);
+  }
+
   function buildCard(c) {
     var a = el('a', 'cp-card');
     var link = safeUrl(c.clickURL) || safeUrl(c.couponUrl) || safeUrl(c.item_url);
@@ -156,6 +219,8 @@
     if (off > 0) price.appendChild(el('span', 'cp-off', quota > 0 ? ('满' + quota + '减' + off) : ('券 ¥' + off)));
     var finalPrice = Number(c.price) || 0;
     if (finalPrice > 0) price.appendChild(el('span', 'cp-final', '¥' + finalPrice));
+    var exLabel = expireLabel(c);
+    if (exLabel) price.appendChild(el('span', 'cp-expire', exLabel));
     a.appendChild(price);
     var ct = Number(c.createTime) || 0;
     if (ct && (Date.now() - ct) < 24 * 60 * 60 * 1000) a.appendChild(el('span', 'cp-fresh', '今日新增'));
@@ -199,6 +264,7 @@
   }
 
   function render(list, append) {
+    maybeShowPlat(list);
     if (!append) grid.innerHTML = '';
     if (!list.length) {
       if (!append) { showStatus(state.price && state.list.length ? '已加载的券里没有符合该价格区间的，试试更大区间或加载更多。' : '暂无优惠券，换个关键词或稍后再试。'); }
@@ -256,8 +322,8 @@
           var arr = snap && snap.rank && (snap.rank[period] || []);
           if (arr && arr.length) {
             state.list = arr;
-            render(sortList(state.list.filter(matchPrice)), false);
-            showStatus('实时数据暂时不可用，已展示最近一次更新的' + ({ day: '日', week: '周', month: '月' }[period] || '') + '榜（构建快照）。');
+            render(currentView(), false);
+            showStatus('实时数据暂时不可用，已展示最近一次更新的' + ({ day: '日', week: '周', month: '月' }[period] || '') + '榜（构建快照 ' + snapStamp(snap) + '）。');
           } else {
             showStatus('加载失败，请稍后重试。', action);
           }
@@ -265,7 +331,7 @@
         return;
       }
       state.list = pickList(d);
-      render(sortList(state.list.filter(matchPrice)), false);
+      render(currentView(), false);
     }, { cache: true });
   }
 
@@ -292,10 +358,10 @@
             state.page = 1;
             state.list = arr;
             var appendMode = false;
-            render(sortList(state.list.filter(matchPrice)), false);
+            render(currentView(), false);
             state.hasMore = false;
             if (moreBtn) moreBtn.hidden = true;
-            showStatus('实时数据暂时不可用，已展示最近一次更新的券（构建快照）。');
+            showStatus('实时数据暂时不可用，已展示最近一次更新的券（构建快照 ' + snapStamp(snap) + '）。');
           } else {
             showStatus('加载失败，请稍后重试。', action);
           }
@@ -306,7 +372,7 @@
       state.list = state.list.concat(list);
       // 排序生效时追加也全量重排保序；无排序时维持新一页追加
       var appendMode = !reset && !state.sort;
-      render(sortList((appendMode ? list : state.list).filter(matchPrice)), appendMode);
+      render(sortList(filterPlat(appendMode ? list : state.list).filter(matchPrice)), appendMode);
       var count = Number(d && d.count) || 0;
       state.hasMore = state.page * PAGE_SIZE < count;
       if (moreBtn) moreBtn.hidden = !(state.hasMore && list.length);
@@ -330,20 +396,21 @@
     grid = $('listGrid'); statusEl = $('listState'); moreBtn = $('listMore');
     tabs = $('rankTabs'); sortSelect = $('listSort'); priceSelect = $('listPrice');
     if (!grid || !statusEl) return;
+    ensurePlatBar();
     // 默认排序跟随 select 初始选中项（省钱力度↓），与预渲染顺序一致
     if (sortSelect) state.sort = sortSelect.value || '';
 
     if (sortSelect) {
       sortSelect.addEventListener('change', function () {
         state.sort = sortSelect.value;
-        if (state.list.length) render(sortList(state.list.filter(matchPrice)), false);
+        if (state.list.length) render(currentView(), false);
       });
     }
 
     if (priceSelect) {
       priceSelect.addEventListener('change', function () {
         state.price = priceSelect.value;
-        if (state.list.length) render(sortList(state.list.filter(matchPrice)), false);
+        if (state.list.length) render(currentView(), false);
       });
     }
 

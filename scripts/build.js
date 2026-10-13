@@ -167,6 +167,8 @@ function buildCard(c) {
   html += `<span class="cp-name">${esc(c.title || '优惠券')}</span><div class="cp-price">`;
   if (off > 0) html += `<span class="cp-off">${esc(quota > 0 ? ('满' + quota + '减' + off) : ('券 ¥' + off))}</span>`;
   if (finalPrice > 0) html += `<span class="cp-final">¥${esc(finalPrice)}</span>`;
+  var exLabel = expireLabel(c);
+  if (exLabel) html += `<span class="cp-expire">${esc(exLabel)}</span>`;
   html += '</div>';
   if (fresh) html += '<span class="cp-fresh">今日新增</span>';
   html += '</a>';
@@ -189,6 +191,42 @@ function sortByValue(list) {
     if (d !== 0) return d;
     return (Number(a.price) || 0) - (Number(b.price) || 0);
   });
+}
+
+// 可索引/可用券判定：有任一可用跳转链接（clickURL/couponUrl/item_url）才算可渲染，
+// 否则是死卡（运行时渲成 is-dead、不可点），预渲染/JSON-LD/快照都不应收录，避免污染索引。
+function isLinkable(c) {
+  return Boolean(safeUrl(c.clickURL) || safeUrl(c.couponUrl) || safeUrl(c.item_url) || (c.item_url && String(c.item_url).trim()));
+}
+
+// 过滤死链 + 按省钱力度排序（预渲染与快照统一口径）；同时剔除已过期券
+function usable(list) {
+  return sortByValue((list || []).filter(c => isLinkable(c) && !isExpired(c)));
+}
+
+// 券到期时间解析：兼容时间戳（秒/毫秒）与日期字符串；解析不出返回 0
+function endMs(v) {
+  if (v == null || v === '') return 0;
+  if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
+  var s = String(v).trim();
+  if (!s) return 0;
+  if (/^\d+$/.test(s)) { var n = Number(s); return s.length >= 12 ? n : n * 1000; }
+  var t = Date.parse(s.replace(/\.\d+/, '').replace(/-/g, '/'));
+  return isNaN(t) ? 0 : t;
+}
+// 已过期（有到期时间且已过）：构建期从预渲染 / 快照剔除
+function isExpired(c) {
+  var ms = endMs(c && c.couponEndTime);
+  return ms > 0 && ms <= Date.now();
+}
+// 即将失效文案（3 天内）；无到期时间 / 已过期返回 ''
+function expireLabel(c) {
+  var ms = endMs(c && c.couponEndTime);
+  if (!ms) return '';
+  var diff = ms - Date.now();
+  if (diff <= 0) return '';
+  var d = Math.ceil(diff / 86400000);
+  return d <= 1 ? '即将到期' : (d + '天后失效');
 }
 
 function renderGridHtml(list) {
@@ -468,7 +506,7 @@ async function run() {
   const catLists = {};
   if (categories.length) {
     const lists = await Promise.all(categories.map(c => safeList('/paging?search=' + encodeURIComponent(c.kw) + '&page=1&pageSize=20&sort=discount')));
-    categories.forEach((c, i) => { catLists[c.slug] = sortByValue(lists[i]); });
+    categories.forEach((c, i) => { catLists[c.slug] = usable(lists[i]); });
   }
   // 快照按品类关键词（data-kw）建索引，供前端品类页回退
   const catByKw = {};
@@ -483,6 +521,8 @@ async function run() {
   const d11List = sortByValue(d11Rank.concat(d11Feat).filter(c => {
     const key = c.tao_id || c._id || c.item_url || c.title;
     if (!key || d11Seen.has(key)) return false;
+    if (!isLinkable(c)) return false;
+    if (isExpired(c)) return false;
     if ((Number(c.couponDiscount) || 0) <= 0 && (Number(c.price) || 0) <= 0) return false;
     d11Seen.add(key); return true;
   })).slice(0, D11_LIMIT);
@@ -494,6 +534,7 @@ async function run() {
     idxList = sortByValue(featured.concat(week).filter(c => {
       const key = c.tao_id || c._id || c.item_url || c.title;
       if (!key || seen.has(key)) return false;
+      if (!isLinkable(c)) return false;
       seen.add(key); return true;
     }));
     if (idxList.length) prerenderFile(path.join(ROOT, 'index.html'), idxList, '全网优惠券 · 限时领券中心', SITE_URL + '/');
@@ -501,8 +542,8 @@ async function run() {
   } catch (e) { console.warn('[build] index 预渲染异常（忽略）：', e.message); }
 
   // 2) browse / rank（同样按省钱力度重排；rank 后端已是券面额口径，此处统一兼得折扣率）
-  try { prerenderFile(path.join(ROOT, 'browse.html'), sortByValue(browseList), '全部好物优惠券 · 全网券大全', SITE_URL + '/browse.html'); } catch (e) { console.warn('[build] browse 异常：', e.message); }
-  try { prerenderFile(path.join(ROOT, 'rank.html'), sortByValue(rankList), '全网优惠券榜单 · 日榜周榜月榜', SITE_URL + '/rank.html'); } catch (e) { console.warn('[build] rank 异常：', e.message); }
+  try { prerenderFile(path.join(ROOT, 'browse.html'), usable(browseList), '全部好物优惠券 · 全网券大全', SITE_URL + '/browse.html'); } catch (e) { console.warn('[build] browse 异常：', e.message); }
+  try { prerenderFile(path.join(ROOT, 'rank.html'), usable(rankList), '全网优惠券榜单 · 日榜周榜月榜', SITE_URL + '/rank.html'); } catch (e) { console.warn('[build] rank 异常：', e.message); }
 
   // 2.5) double11：专题未取到券数据时保持原 HTML（大促页不被空网格覆盖）
   try {
@@ -517,11 +558,11 @@ async function run() {
       updatedAt: new Date().toISOString(),
       featured: idxList,
       rank: {
-        day: sortByValue(dayRank),
-        week: sortByValue(rankList),
-        month: sortByValue(d11Rank),
+        day: usable(dayRank),
+        week: usable(rankList),
+        month: usable(d11Rank),
       },
-      browse: sortByValue(browseList),
+      browse: usable(browseList),
       category: catByKw,
     });
   } catch (e) { console.warn('[build] 写快照失败（忽略）：', e.message); }

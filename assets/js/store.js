@@ -87,6 +87,32 @@
 
   function clearFavs() { lsSet(K_FAV, []); }
 
+  // 导出收藏为 JSON 文本（本地备份 / 跨设备迁移）
+  function exportFavs() {
+    return JSON.stringify({ v: 1, site: 'coupon.zangeng.com', exportedAt: new Date().toISOString(), favs: favs() });
+  }
+  // 从 JSON 文本导入收藏：按 id 合并去重、保留已有；返回 {ok:true,added,total} 或 {ok:false,msg}
+  function importFavs(text) {
+    var obj;
+    try { obj = typeof text === 'string' ? JSON.parse(text) : text; } catch (e) { return { ok: false, msg: '不是合法的 JSON 文件' }; }
+    var arr = Array.isArray(obj) ? obj : (obj && Array.isArray(obj.favs) ? obj.favs : null);
+    if (!arr) return { ok: false, msg: '文件中没有收藏数据' };
+    var cur = favs();
+    var seen = {};
+    cur.forEach(function (f) { if (f && f.id != null) seen[String(f.id)] = 1; });
+    var added = 0;
+    arr.forEach(function (f) {
+      if (!f || f.id == null) return;
+      var id = String(f.id);
+      if (seen[id]) return;
+      cur.push({ id: id, t: f.t || '', img: f.img || '', url: f.url || '', price: Number(f.price) || 0, quota: Number(f.quota) || 0, off: Number(f.off) || 0, at: Number(f.at) || Date.now() });
+      seen[id] = 1;
+      added++;
+    });
+    lsSet(K_FAV, cur.slice(0, FAV_MAX));
+    return { ok: true, added: added, total: Math.min(cur.length, FAV_MAX) };
+  }
+
   /* ------------------------------ 最近看过 ------------------------------ */
   function recent() { return lsGet(K_RECENT); }
 
@@ -171,6 +197,7 @@
 
   global.CouponStore = {
     favs: favs, isFav: isFav, toggleFav: toggleFav, removeFav: removeFav, clearFavs: clearFavs,
+    exportFavs: exportFavs, importFavs: importFavs,
     recent: recent, pushRecent: pushRecent, removeRecent: removeRecent, clearRecent: clearRecent,
     searches: searches, pushSearch: pushSearch, clearSearches: clearSearches,
     itemFromCard: itemFromCard, attachStar: attachStar, enhance: enhance,

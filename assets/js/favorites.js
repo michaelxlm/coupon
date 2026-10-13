@@ -132,6 +132,41 @@
       global.CouponStore.clearFavs();
       refresh();
     });
+    // 导出收藏为 JSON 文件（本地备份 / 跨设备迁移）
+    var exportBtn = $('favExport');
+    if (exportBtn) exportBtn.addEventListener('click', function () {
+      var data = global.CouponStore.exportFavs();
+      var blob = new global.Blob([data], { type: 'application/json' });
+      var url = global.URL.createObjectURL(blob);
+      var a = doc.createElement('a');
+      a.href = url;
+      a.download = 'coupon-favs.json';
+      doc.body.appendChild(a);
+      a.click();
+      doc.body.removeChild(a);
+      global.URL.revokeObjectURL(url);
+      if (global.Conv) global.Conv.track('fav_export', {});
+    });
+    // 导入收藏：选择 JSON 文件后按 id 合并去重
+    var importBtn = $('favImport');
+    var importFile = $('favImportFile');
+    if (importBtn && importFile) {
+      importBtn.addEventListener('click', function () { importFile.click(); });
+      importFile.addEventListener('change', function (e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        var reader = new global.FileReader();
+        reader.onload = function () {
+          var res = global.CouponStore.importFavs(reader.result);
+          if (global.Conv) global.Conv.track('fav_import', { ok: res.ok ? 1 : 0 });
+          global.alert(res.ok ? ('导入完成：新增 ' + res.added + ' 条，现有 ' + res.total + ' 条。') : ('导入失败：' + res.msg));
+          refresh();
+          e.target.value = '';
+        };
+        reader.onerror = function () { global.alert('读取文件失败，请重试。'); };
+        reader.readAsText(file);
+      });
+    }
     $('recentClear').addEventListener('click', function () {
       if (!global.confirm('确定清空最近看过吗？')) return;
       global.CouponStore.clearRecent();

@@ -6,6 +6,9 @@ name: Deploy coupon.zangeng.com
 on:
   push:
     branches: [main]
+  # 定时重建：优惠券时效短，每日重建让百度等爬虫抓到新鲜券（UTC 00:20 / 08:20 ≈ 北京 08:20 / 16:20）
+  schedule:
+    - cron: '20 0,8 * * *'
   # 允许从管理端（GitHub API workflow_dispatch）手动触发部署，无需重新 push
   workflow_dispatch:
 
@@ -34,6 +37,10 @@ jobs:
       - name: Content hash fingerprint
         shell: bash
         run: node scripts/fingerprint.js
+      # 部署前质量门：chrome 标记 / 兜底快照 / 指纹生效校验（关键项失败则阻断 sync）
+      - name: Self check
+        shell: bash
+        run: node scripts/selfcheck.js
       - name: Sync to /www/wwwroot/coupon.zangeng.com
         shell: bash
         run: |

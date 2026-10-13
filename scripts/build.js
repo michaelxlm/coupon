@@ -35,7 +35,6 @@ const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
 const SITE_URL = (process.env.COUPON_SITE_URL || 'https://coupon.zangeng.com').replace(/\/+$/, '');
 const ROOT = path.resolve(__dirname, '..');
 const CAT_DIR = path.join(ROOT, 'cat');
-const TOKEN = '2026.10.12b';
 
 // 双 11 专题取数量（大额券榜单 + 手选池合并去重后按省钱力度取 top N）
 const D11_LIMIT = 24;
@@ -205,7 +204,7 @@ function jsonLd(list, name, url) {
       '@type': 'Product',
       name: c.title || '优惠券',
       image: safeUrl(c.pict_url) || undefined,
-      description: c.jianjie || '全网优惠券，先领券再下单更省。',
+      description: (c.title ? c.title + '。' : '') + '京东/淘宝等平台联盟实时优惠，先领券再下单更省。',
       offers: {
         '@type': 'Offer',
         price: Number(c.price) || 0,
@@ -313,11 +312,11 @@ function catPageShell(cat, list) {
   <meta name="twitter:title" content="${esc(title)}">
   <meta name="twitter:description" content="${esc(desc)}">
   <script type="application/ld+json">${ld}</script>
-  <link rel="stylesheet" href="/assets/css/tokens.css?v=${TOKEN}">
-  <link rel="stylesheet" href="/assets/css/main.css?v=${TOKEN}" />
-  <link rel="stylesheet" href="/assets/css/coupon.css?v=${TOKEN}" />
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="/assets/css/coupon.css" />
 </head>
-<body data-page="category" data-mode="category" data-kw="${esc(cat.kw)}" data-theme-default="light" data-build="${TOKEN}">
+<body data-page="category" data-mode="category" data-kw="${esc(cat.kw)}" data-theme-default="light">
   <a class="skip-link" href="#main">跳到主内容</a>
   <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
@@ -388,11 +387,11 @@ ${grid}
 
   ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
 
-  <script src="/assets/js/tracker.js?v=${TOKEN}"></script>
-  <script src="/assets/js/conversion.js?v=${TOKEN}"></script>
-  <script src="/assets/js/app.js?v=${TOKEN}"></script>
-  <script src="/assets/js/store.js?v=${TOKEN}"></script>
-  <script src="/assets/js/list-page.js?v=${TOKEN}"></script>
+  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/conversion.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script src="/assets/js/store.js"></script>
+  <script src="/assets/js/list-page.js"></script>
   <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
   <script src="https://antucao.oss-cn-beijing.aliyuncs.com/js/ad-slots.js" defer></script>
 </body>
@@ -434,6 +433,17 @@ function writeSitemap(slugs) {
   } catch (e) { console.warn('[build] 写 sitemap.xml 失败（忽略）：', e.message); }
 }
 
+// 运行时节点的兜底快照：写盘 data/coupon-snapshot.json（nginx 已放行），
+// 前端 coupon-page.js / list-page.js 在后端 fetch 失败时用它渲染最近一次成功取到的券。
+function writeSnapshot(obj) {
+  try {
+    const dir = path.join(ROOT, 'data');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'coupon-snapshot.json'), JSON.stringify(obj));
+    console.log('[build] coupon-snapshot.json 已生成（updatedAt=' + obj.updatedAt + '）');
+  } catch (e) { console.warn('[build] 写 coupon-snapshot.json 失败（忽略）：', e.message); }
+}
+
 async function run() {
   // 0) chrome：全部手写页 header/footer 委托 shared（本地步骤，不依赖网络，始终先执行）
   for (const [name, nav] of Object.entries(STATIC_PAGES)) {
@@ -448,17 +458,21 @@ async function run() {
   } catch (e) { console.warn('[build] 读 categories.json 失败（跳过品类页）：', e.message); }
 
   // 并发拉各页数据（各自 fail-soft）
-  const [ featured, week, browseList, rankList ] = await Promise.all([
+  const [ featured, week, browseList, rankList, dayRank ] = await Promise.all([
     safeList('/random?limit=12'),
     safeList('/rank?period=week&limit=12'),
     safeList('/paging?page=1&pageSize=20&sort=discount'),
     safeList('/rank?period=week&limit=50'),
+    safeList('/rank?period=day&limit=50'),
   ]);
   const catLists = {};
   if (categories.length) {
     const lists = await Promise.all(categories.map(c => safeList('/paging?search=' + encodeURIComponent(c.kw) + '&page=1&pageSize=20&sort=discount')));
     categories.forEach((c, i) => { catLists[c.slug] = sortByValue(lists[i]); });
   }
+  // 快照按品类关键词（data-kw）建索引，供前端品类页回退
+  const catByKw = {};
+  if (categories.length) categories.forEach((c) => { catByKw[c.kw] = sortByValue(catLists[c.slug] || []); });
 
   // 双 11 专题：大额券榜单（月榜，券面额降序）+ 手选池合并去重，仅留有券额/到手价的商品（search 采集池无券额会渲成空卡，故不用），再按省钱力度取 top N
   const [ d11Rank, d11Feat ] = await Promise.all([
@@ -474,9 +488,10 @@ async function run() {
   })).slice(0, D11_LIMIT);
 
   // 1) index：精选 + 周榜合并去重后按省钱力度排序（攒量期先让刚需高折扣品靠前）
+  let idxList = [];
   try {
     const seen = new Set();
-    const idxList = sortByValue(featured.concat(week).filter(c => {
+    idxList = sortByValue(featured.concat(week).filter(c => {
       const key = c.tao_id || c._id || c.item_url || c.title;
       if (!key || seen.has(key)) return false;
       seen.add(key); return true;
@@ -494,6 +509,22 @@ async function run() {
     if (d11List.length) prerenderFile(path.join(ROOT, 'double11.html'), d11List, '双 11 必囤好物 · 全网优惠券专题', SITE_URL + '/double11.html');
     else console.warn('[build] double11 未取到券数据，保持原 HTML 不变。');
   } catch (e) { console.warn('[build] double11 异常（忽略）：', e.message); }
+
+  // 2.6) 快照：运行时后端不可达时的兜底数据源（配合 nginx 放行 /data/coupon-snapshot.json）
+  //      构建期随部署刷新，使 api.xuyiheng.com 抖动/被墙时前端仍能渲染最近一次成功取到的券。
+  try {
+    writeSnapshot({
+      updatedAt: new Date().toISOString(),
+      featured: idxList,
+      rank: {
+        day: sortByValue(dayRank),
+        week: sortByValue(rankList),
+        month: sortByValue(d11Rank),
+      },
+      browse: sortByValue(browseList),
+      category: catByKw,
+    });
+  } catch (e) { console.warn('[build] 写快照失败（忽略）：', e.message); }
 
   // 3) cat 页：壳始终写盘（即使无券也不 404）
   if (categories.length) {

@@ -1,0 +1,9 @@
+# 构建期生成物（CI 每次重新生成并随部署 sync 到服务器，无需入库）
+/data/coupon-snapshot.json
+# fingerprint.js 产出的内容哈希副本：name.<hash>.ext（与源文件并存，部署时由 Nginx immutable 长缓存）
+/assets/**/*.[A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-].*
+
+# 系统/编辑器
+.DS_Store
+.user.ini
+.workbuddy

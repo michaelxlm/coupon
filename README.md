@@ -64,11 +64,14 @@ coupon/
 │   ├── js/double11.js   双 11 专题交互（大促页券网格增强）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
-│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 重写 sitemap.xml（CI 执行，fail-soft）
-│   └── cache-bust.js   统一刷新本地 CSS/JS 的 ?v= 与 body data-build 版本号（零依赖）
+│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 重写 sitemap.xml（CI 执行，fail-soft）
+│   ├── fingerprint.js  内容哈希指纹（取代 cache-bust.js，部署前把资源引用改写为 <name>.<hash>.<ext>）
+│   ├── selfcheck.js    部署前质量门（chrome 标记 / 兜底快照 / 指纹生效，关键项失败阻断 sync）
+│   └── archive/cache-bust.js  [已废弃] 手工 ?v= 刷新脚本历史归档，勿再用
 ├── data/
 │   ├── ad-slots.json   自营广告位兜底（远程 OSS 同步 JSON 优先）
-│   └── categories.json 8 品类元数据（slug/name/kw/icon/desc，品类页与 build.js 共用）
+│   ├── categories.json 8 品类元数据（slug/name/kw/icon/desc，品类页与 build.js 共用）
+│   └── coupon-snapshot.json 构建期兜底快照（首页精选/日周月榜/全部好物/品类按 kw），运行时后端不可达时回退渲染，nginx 放行 `/data/coupon-snapshot.json`
 ├── deploy/nginx.conf   部署配置（server_name 与证书路径按域名填）
 ├── robots.txt / sitemap.xml  （sitemap 由 build.js 重写：固定页 + cat/* + guide/calculator/holidays/about，现 16 条；favorites 为 noindex 不入）
 └── .github/workflows/deploy.yml  push-to-deploy（39.107 上的 self-hosted runner 执行）
@@ -101,7 +104,9 @@ python -m http.server 8080
 站体仍为纯静态托管（HTML 直加源文件），但新增一个**部署前的可选预渲染步骤**（为让券内容可被百度等弱 JS 搜索引擎索引）：
 
 1. **预渲染与生成（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后、`sync` 前执行 `node scripts/build.js`。**全站 chrome（WO-86）**：`injectChrome()` 先把 10 张手写页（index/browse/rank/category/guide/calculator/holidays/favorites/about/404）的 `<header>/<footer>` 在 `CHROME:HEADER/FOOTER` 标记内整段委托 `shared-partials` 的 `renderHeader/renderFooter` 渲染（`STATIC_PAGES` 定义各页导航高亮，cat 页由 `catPageShell` 同样委托）——与历史/notes/zangeng 共单一源，实现「六站一处改 chrome 生效」，标记内覆盖、重跑幂等。随后一次拉取后端：将首页（精选+周榜去重）、`browse.html`（paging 前 20）、`rank.html`（周榜前 50）写入各自 `PRERENDER:GRID` 标记的券网格并注入 `ItemList/Product/Offer` JSON-LD；再依 `data/categories.json` 的关键词生成 `cat/<slug>.html` 品类落地页（**页面壳每次写盘**，即使接口不可达也不 404，仅网格 fail-soft 留空）；最后重写 `sitemap.xml`（固定页 + `cat/*` + `guide`/`about`，`lastmod=当日`）。脚本 fail-soft：上游不可达 / 未取到券时保持原有 HTML 壳，绝不阻断部署。运行时 `coupon-page.js`（首页）/ `list-page.js`（browse/rank/category）会清空重绘（渐进增强，禁 JS 仍可读到预渲染内容）。
-2. **缓存指纹**：Nginx 对 `/assets/**` 设 30 天长缓存，改了 `assets/css/*.css` / `assets/js/*.js` 后跑 `node scripts/cache-bust.js <版本号>`（形如 `2026.10.15`），一次性刷新全站本地 CSS/JS 的 `?v=` 与 `<body data-build>` 统一个 token（外部 OSS 脚本自动跳过）。当前 token：`2026.10.16`。
+2. **内容哈希指纹（取代 cache-bust.js）**：部署前 `node scripts/fingerprint.js` 把本地 `css/js/图片/字体` 复制为 `<name>.<hash>.<ext>` 并改写 HTML/CSS 引用，配 Nginx 对 `/assets/**` 的 `immutable` 长缓存实现「内容变 URL 变、无手工版本号」的最优缓存。`cache-bust.js` 已归档至 `scripts/archive/`，不再使用。
+3. **兜底快照（运行时韧性）**：`build.js` 随每次构建写出 `data/coupon-snapshot.json`（首页精选 / 日周月榜 / 全部好物 / 品类按 `data-kw`），`nginx.conf` 已放行该路径（`no-cache`）。当 `api.xuyiheng.com` 抖动 / 被墙导致前端 fetch 失败时，`coupon-page.js` / `list-page.js` 自动回退渲染该快照，整页不再空白。
+4. **定时重建**：`deploy.yml` 除 `push` 外增加每日 `schedule`（UTC `20 0,8 * * *` ≈ 北京 08:20 / 16:20）重跑 build + 指纹 + sync，使优惠券（时效短）在搜索引擎侧保持新鲜，无需手动 push。
 
 ## 上线 checklist（缺一不可）
 
@@ -134,9 +139,19 @@ python -m http.server 8080
 - **来源守卫登记（项 2）**：中台 `scripts/register-static-projects.js --audit` **7/7 PASS**，`coupon.zangeng.com` 已登记（`status='0'` `cheatSwitch='1'` `platform='h5'`）；线上 `GET /coupon/jd/random?mainUrl=coupon.zangeng.com` 返回 `HTTP 200` + `X-Source-Guard: PASS`。
 - **官方活动直链卡（项 4 / WO-90）**：线上 `GET /coupon/activity/list?mainUrl=coupon.zangeng.com` 返回 `HTTP 200` + `PASS` + `list.Count=8`（taobao×2 / jd×6，均带官方直链）；`assets/js/activities.js` 拉取同接口、渲染 `#cpActs`、`rel="sponsored noopener"`，与中台 `service/coupon/activity.js` 字段白名单（`title/cover/url/platform/tag/startAt/endAt`）对齐。
 - **广告三域分离（项 3）**：`scripts/check-coupon-ads.js` 实跑 **14/14 通过**（六站兜底 JSON 无 `type=coupon` + `OWN_TYPES=['self','domain','next']` 不含 coupon + 部署 `ad-slots.js` 0 处 coupon 残留）；本站 `data/ad-slots.json` 仅 `self` 同族互推，券内容走独立接口不回流广告位。
-- **待改进（非阻塞）**：`main/scripts/check-coupon-ads.js` 的 `SITES` 列表未含 `coupon`，故该门禁不扫描本站兜底 JSON；建议把 `coupon` 加入 `SITES`（路径 `data/ad-slots.json`、探针 `index.html`）以闭环解耦守护。
+- **待改进（非阻塞）**：`main/scripts/check-coupon-ads.js` 的 `SITES` 列表未含 `coupon`，故该门禁不扫描本站兜底 JSON；建议把 `coupon` 加入 `SITES`（路径 `data/ad-slots.json`、探针 `index.html`）以闭环解耦守护（该项在 `main-api` 仓库，不在本站）。
 
-> 唯一未解锁阻塞仍为 **WO-56 备案接入**（coupon.zangeng.com 站点可达性），与以上三项无关。
+## 改造落地（2026-10-13 评估后实施）
+
+针对「单点故障 / SEO 时效 / 缓存漂移 / 质量门缺失」四项，已完成以下改造（代码已落仓库，待部署生效）：
+
+- **兜底快照（运行时韧性）**：`build.js` 随构建写出 `data/coupon-snapshot.json`（首页精选 / 日周月榜 / 全部好物 / 品类按 `data-kw`），`nginx.conf` 已放行该路径；前端 `coupon-page.js` / `list-page.js` 在 `api.xuyiheng.com` fetch 失败时自动回退渲染，整页不再空白。
+- **定时重建**：`deploy.yml` 增加每日 `schedule`（UTC `20 0,8 * * *` ≈ 北京 08:20 / 16:20）重跑 build + fingerprint + sync，保持 SEO 内容新鲜。
+- **JSON-LD 质量**：`build.js` 的 Product/Offer `description` 改为用真实标题生成（不再千篇一律兜底文案），京东图走 `pict_url`，富媒体摘要更准。
+- **缓存归一**：移除 `build.js` 写死的 `?v=` token，`cache-bust.js` 归档至 `scripts/archive/`，版本指纹统一由 `fingerprint.js` 管理。
+- **质量门**：新增 `scripts/selfcheck.js`（chrome 标记 / 快照合法 / 指纹生效校验），接入 `deploy.yml` 在 sync 前运行，关键项失败阻断部署。
+
+> 唯一未解锁阻塞仍为 **WO-56 备案接入**（coupon.zangeng.com 对百度爬虫的可达性）。兜底快照已缓解「运行时空白」，但搜索引擎能否抓到并索引本站内容仍取决于域名可达；上线前请用 `site:coupon.zangeng.com` + 爬虫 UA `curl` 验证可达性。
 
 ## 合规
 

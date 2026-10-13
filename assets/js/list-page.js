@@ -35,6 +35,21 @@
 
   function $(id) { return doc.getElementById(id); }
 
+  // 构建期快照：后端不可达时回退渲染（data/coupon-snapshot.json，nginx 已放行）
+  var snapshotCache = null;
+  var snapshotLoading = false;
+  function loadSnapshot(done) {
+    if (snapshotCache) { done(snapshotCache); return; }
+    if (snapshotLoading) { return; }
+    snapshotLoading = true;
+    var ctrl = global.AbortController ? new global.AbortController() : null;
+    var timer = global.setTimeout(function () { if (ctrl) { try { ctrl.abort(); } catch (e) { /* 忽略 */ } } }, TIMEOUT_MS);
+    global.fetch('/data/coupon-snapshot.json', { cache: 'no-store' })
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(function (json) { global.clearTimeout(timer); snapshotCache = json || {}; done(snapshotCache); })
+      .catch(function () { global.clearTimeout(timer); done(null); });
+  }
+
   function safeUrl(u) {
     if (typeof u !== 'string') return '';
     var v = u.trim();
@@ -236,7 +251,19 @@
     request(url, function (err, d) {
       if (token !== viewToken) return;
       setLoading(false);
-      if (err) { showStatus('加载失败，请稍后重试。', action); return; }
+      if (err) {
+        loadSnapshot(function (snap) {
+          var arr = snap && snap.rank && (snap.rank[period] || []);
+          if (arr && arr.length) {
+            state.list = arr;
+            render(sortList(state.list.filter(matchPrice)), false);
+            showStatus('实时数据暂时不可用，已展示最近一次更新的' + ({ day: '日', week: '周', month: '月' }[period] || '') + '榜（构建快照）。');
+          } else {
+            showStatus('加载失败，请稍后重试。', action);
+          }
+        });
+        return;
+      }
       state.list = pickList(d);
       render(sortList(state.list.filter(matchPrice)), false);
     }, { cache: true });
@@ -256,7 +283,25 @@
     request(url, function (err, d) {
       if (reset && token !== viewToken) return;
       setLoading(false);
-      if (err) { showStatus('加载失败，请稍后重试。', action); return; }
+      if (err) {
+        loadSnapshot(function (snap) {
+          var arr = [];
+          if (mode === 'category') arr = (snap && snap.category && (snap.category[kw] || [])) || [];
+          else arr = (snap && snap.browse) || [];
+          if (arr.length) {
+            state.page = 1;
+            state.list = arr;
+            var appendMode = false;
+            render(sortList(state.list.filter(matchPrice)), false);
+            state.hasMore = false;
+            if (moreBtn) moreBtn.hidden = true;
+            showStatus('实时数据暂时不可用，已展示最近一次更新的券（构建快照）。');
+          } else {
+            showStatus('加载失败，请稍后重试。', action);
+          }
+        });
+        return;
+      }
       var list = pickList(d);
       state.list = state.list.concat(list);
       // 排序生效时追加也全量重排保序；无排序时维持新一页追加

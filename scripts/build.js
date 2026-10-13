@@ -55,7 +55,7 @@ const CHROME_FTR_END = '<!-- CHROME:FOOTER:END -->';
 const COUPON_SITE = {
   site_name: '小满券仓',
   logo_text: '券',
-  slogan: '京东优惠券，先领券再下单更省',
+  slogan: '全网优惠券，先领券再下单更省',
   icp: '京ICP备18062653号-8',
   icp_url: 'https://beian.miit.gov.cn/',
   nav: [
@@ -203,9 +203,9 @@ function jsonLd(list, name, url) {
     url: cardLink(c) || url,
     item: {
       '@type': 'Product',
-      name: c.title || '京东优惠券',
+      name: c.title || '优惠券',
       image: safeUrl(c.pict_url) || undefined,
-      description: c.jianjie || '京东优惠券，先领券再下单更省。',
+      description: c.jianjie || '全网优惠券，先领券再下单更省。',
       offers: {
         '@type': 'Offer',
         price: Number(c.price) || 0,
@@ -271,8 +271,8 @@ function injectChrome(file, pageNav) {
 /* ---------------------------- 品类落地页模板 ---------------------------- */
 function catPageShell(cat, list) {
   const url = SITE_URL + '/cat/' + cat.slug + '.html';
-  const title = `${cat.name}优惠券 · 京东${cat.name}领券 | 小满券仓`;
-  const desc = cat.desc + ' 数据由折淘客提供，领券后跳转京东活动页下单，最终优惠以京东活动页为准。';
+  const title = `${cat.name}优惠券 · 全网${cat.name}领券 | 小满券仓`;
+  const desc = cat.desc + ' 券数据由各平台联盟实时聚合，领券后跳转商家活动页下单，最终优惠以商家活动页为准。';
   const grid = list.length ? renderGridHtml(list) : '';
   const ld = JSON.stringify([
     {
@@ -298,7 +298,7 @@ function catPageShell(cat, list) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
-  <meta name="keywords" content="${esc('京东' + cat.name + '优惠券,' + cat.name + '券,领券中心,满减券')}">
+  <meta name="keywords" content="${esc('全网' + cat.name + '优惠券,' + cat.name + '券,领券中心,满减券')}">
   <meta name="robots" content="index,follow">
   <link rel="icon" href="/assets/img/favicon.svg">
   <link rel="canonical" href="${esc(url)}">
@@ -344,7 +344,7 @@ function catPageShell(cat, list) {
       <div class="container">
         <div class="section-head left">
           <h2>${esc(cat.name)}券列表</h2>
-          <p class="section-desc">实时${esc(cat.name)}相关京东优惠券，先领券再下单更省。</p>
+          <p class="section-desc">实时${esc(cat.name)}相关全网优惠券，先领券再下单更省。</p>
         </div>
 
         <div class="cp-toolbar">
@@ -381,7 +381,7 @@ ${grid}
           <button id="listMore" class="btn btn-ghost" type="button" hidden>加载更多</button>
         </div>
 
-        <p class="cp-note">优惠券展示与核销由京东 / 折淘客完成，本站仅作内容聚合与跳转，不参与交易。</p>
+        <p class="cp-note">优惠券展示与核销由各平台官方活动页完成，本站仅作内容聚合与跳转，不参与交易。</p>
       </div>
     </section>
   </main>
@@ -481,17 +481,17 @@ async function run() {
       if (!key || seen.has(key)) return false;
       seen.add(key); return true;
     }));
-    if (idxList.length) prerenderFile(path.join(ROOT, 'index.html'), idxList, '京东优惠券 · 限时领券中心', SITE_URL + '/');
+    if (idxList.length) prerenderFile(path.join(ROOT, 'index.html'), idxList, '全网优惠券 · 限时领券中心', SITE_URL + '/');
     else console.warn('[build] index 未取到券数据，保持原 HTML 不变。');
   } catch (e) { console.warn('[build] index 预渲染异常（忽略）：', e.message); }
 
   // 2) browse / rank（同样按省钱力度重排；rank 后端已是券面额口径，此处统一兼得折扣率）
-  try { prerenderFile(path.join(ROOT, 'browse.html'), sortByValue(browseList), '全部好物优惠券 · 京东券大全', SITE_URL + '/browse.html'); } catch (e) { console.warn('[build] browse 异常：', e.message); }
-  try { prerenderFile(path.join(ROOT, 'rank.html'), sortByValue(rankList), '京东优惠券榜单 · 日榜周榜月榜', SITE_URL + '/rank.html'); } catch (e) { console.warn('[build] rank 异常：', e.message); }
+  try { prerenderFile(path.join(ROOT, 'browse.html'), sortByValue(browseList), '全部好物优惠券 · 全网券大全', SITE_URL + '/browse.html'); } catch (e) { console.warn('[build] browse 异常：', e.message); }
+  try { prerenderFile(path.join(ROOT, 'rank.html'), sortByValue(rankList), '全网优惠券榜单 · 日榜周榜月榜', SITE_URL + '/rank.html'); } catch (e) { console.warn('[build] rank 异常：', e.message); }
 
   // 2.5) double11：专题未取到券数据时保持原 HTML（大促页不被空网格覆盖）
   try {
-    if (d11List.length) prerenderFile(path.join(ROOT, 'double11.html'), d11List, '双 11 必囤好物 · 京东优惠券专题', SITE_URL + '/double11.html');
+    if (d11List.length) prerenderFile(path.join(ROOT, 'double11.html'), d11List, '双 11 必囤好物 · 全网优惠券专题', SITE_URL + '/double11.html');
     else console.warn('[build] double11 未取到券数据，保持原 HTML 不变。');
   } catch (e) { console.warn('[build] double11 异常（忽略）：', e.message); }
 

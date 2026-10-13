@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>京东凑单省钱计算器 · 满减券到手价怎么算 | 小满券仓</title>
-  <meta name="description" content="小满券仓凑单计算器：输入商品价格与多张满X减Y优惠券，实时算出凑单总额、可叠加优惠与最终到手价，并提示还差多少金额能达到满减门槛。先凑单再下单，把京东优惠券用到最省。">
-  <meta name="keywords" content="凑单计算器,满减计算器,京东优惠券到手价,满300减50怎么凑,省钱计算">
+  <title>凑单省钱计算器 · 满减券到手价怎么算 | 小满券仓</title>
+  <meta name="description" content="小满券仓凑单计算器：输入商品价格与多张满X减Y优惠券，实时算出凑单总额、可叠加优惠与最终到手价，并提示还差多少金额能达到满减门槛。先凑单再下单，把全网优惠券用到最省。">
+  <meta name="keywords" content="凑单计算器,满减计算器,全网优惠券到手价,满300减50怎么凑,省钱计算">
   <meta name="robots" content="index,follow">
   <link rel="icon" href="/assets/img/favicon.svg">
   <link rel="canonical" href="https://coupon.zangeng.com/calculator.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="小满券仓">
   <meta property="og:locale" content="zh_CN">
-  <meta property="og:title" content="京东凑单省钱计算器 · 满减券到手价怎么算 | 小满券仓">
+  <meta property="og:title" content="凑单省钱计算器 · 满减券到手价怎么算 | 小满券仓">
   <meta property="og:description" content="输入商品价格与满减券，实时算出凑单总额、可叠加优惠与最终到手价。">
   <meta property="og:url" content="https://coupon.zangeng.com/calculator.html">
   <meta property="og:image" content="https://coupon.zangeng.com/assets/img/og-cover.svg">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="京东凑单省钱计算器 | 小满券仓">
+  <meta name="twitter:title" content="凑单省钱计算器 | 小满券仓">
   <meta name="twitter:description" content="满减券怎么凑最省？输入价格与券，实时算到手价。">
   <meta name="twitter:image" content="https://coupon.zangeng.com/assets/img/og-cover.svg">
   <script type="application/ld+json">
@@ -37,7 +37,7 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    { "@type": "Question", "name": "凑单计算器算出来的到手价准确吗？", "acceptedAnswer": { "@type": "Answer", "text": "本工具按「购物车总额达到门槛即可叠加所填优惠」的规则估算，结果供参考；京东实际下单还受券品类限制、活动叠加规则与价保影响，最终以京东结算页为准。" } },
+    { "@type": "Question", "name": "凑单计算器算出来的到手价准确吗？", "acceptedAnswer": { "@type": "Answer", "text": "本工具按「购物车总额达到门槛即可叠加所填优惠」的规则估算，结果供参考；各平台实际下单还受券品类限制、活动叠加规则与价保影响，最终以平台结算页为准。" } },
     { "@type": "Question", "name": "满300减50和店铺券可以一起用吗？", "acceptedAnswer": { "@type": "Answer", "text": "通常平台级满减（如每满300减50）与店铺优惠券可以叠加，同类店铺券一般一单只能用一张。建议把要叠加的规则逐条填入本计算器估算。" } },
     { "@type": "Question", "name": "为了满减凑单真的划算吗？", "acceptedAnswer": { "@type": "Answer", "text": "凑到刚好满足门槛且多余商品确实用得上才划算。可先算「不凑单直接买」与「凑单后到手价」的差值，为需要的商品省钱，而不是为折扣买不需要的东西。" } }
   ]
@@ -84,7 +84,7 @@
       <div class="container">
         <span class="eyebrow">省钱工具</span>
         <h1>凑单省钱计算器</h1>
-        <p class="hero-sub">把想买的商品价格和手上的「满X减Y」优惠券都填进来，实时算出凑单总额、能叠加的优惠与最终到手价，并提示每张未达标券还差多少。估算结果仅供参考，实际以京东结算页为准。</p>
+        <p class="hero-sub">把想买的商品价格和手上的「满X减Y」优惠券都填进来，实时算出凑单总额、能叠加的优惠与最终到手价，并提示每张未达标券还差多少。估算结果仅供参考，实际以平台结算页为准。</p>
       </div>
     </section>
 
@@ -132,7 +132,7 @@
             <div class="cal-result-line"><span>折扣力度</span><strong id="calRate">—</strong></div>
             <ul id="calDetail" class="cal-detail" style="margin:14px 0 0; padding-left: 20px; color: var(--text-muted); font-size: .875rem; line-height: 1.8;"></ul>
             <p class="cal-warn" id="calWarn"></p>
-            <p class="cal-warn">从「<a href="/favorites.html">我的收藏</a>」点「去凑单」会自动带入券的门槛与减免；到手价以京东结算页为准。</p>
+            <p class="cal-warn">从「<a href="/favorites.html">我的收藏</a>」点「去凑单」会自动带入券的门槛与减免；到手价以平台结算页为准。</p>
             <noscript><p class="cal-warn">本计算器需要启用 JavaScript 才能实时计算；计算规则：凑单总额达到门槛 X 的优惠可叠加减免 Y。</p></noscript>
           </div>
         </div>
@@ -160,7 +160,7 @@
           <span class="brand-mark">券</span>
           <span class="brand-text">小满券仓</span>
         </a>
-        <p>京东优惠券，先领券再下单更省</p>
+        <p>全网优惠券，先领券再下单更省</p>
         
       </div>
       

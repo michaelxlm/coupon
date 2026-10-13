@@ -2,7 +2,7 @@
   "note": "品类以关键词映射实现（复用前台 paging?search=关键词），无后端 category 接口。name 为展示名，kw 为检索关键词（选更可能命中商品标题前缀 / 简介的词）。新增品类后跑 node scripts/build.js 生成 cat/<slug>.html 与 sitemap。",
   "categories": [
     { "slug": "digital",   "name": "手机数码", "kw": "手机",   "icon": "📱", "desc": "手机、耳机、充电器等数码好物优惠券，先领券再下单更省。" },
-    { "slug": "appliance", "name": "家用电器", "kw": "家电",   "icon": "🔌", "desc": "大小家电、厨房电器满减券聚合，领券后跳转京东活动页下单。" },
+    { "slug": "appliance", "name": "家用电器", "kw": "家电",   "icon": "🔌", "desc": "大小家电、厨房电器满减券聚合，先领券再下单更省。" },
     { "slug": "home",      "name": "家居生活", "kw": "收纳",   "icon": "🏠", "desc": "收纳整理、家纺日用等家居好物优惠券，居家更省心。" },
     { "slug": "beauty",    "name": "美妆个护", "kw": "面霜",   "icon": "💄", "desc": "护肤彩妆、个人护理优惠券，先领券再买更划算。" },
     { "slug": "baby",      "name": "母婴玩具", "kw": "儿童",   "icon": "🍼", "desc": "奶粉尿裤、童装玩具等母婴好物优惠券，遛娃不踩坑。" },

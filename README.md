@@ -1,7 +1,7 @@
 ---
 title: 小满券仓（coupon.zangeng.com）
 owner: Michaelxlm
-updated: 2026-10-16
+updated: 2026-10-13
 scope: coupon（coupon.zangeng.com · 京东优惠券聚合静态站）
 status: 有效
 tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页, 收藏, 凑单计算器, 大促日历]
@@ -29,8 +29,8 @@ tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, �
 > 前台接口经后端字段白名单裁剪（`title/pict_url/item_url/price/couponDiscount/couponQuota/clickURL/couponUrl/tao_id/createTime/updateTime/createdAt`），不再下发 `data/佣金/内部状态位` 等敏感字段。
 > 券卡文案消费白名单里的 `couponQuota`+`couponDiscount` 拼「满X减Y」（无门槛回退「券 ¥off」），并用 `createTime` 对 24h 内新券打「今日新增」徽标。
 
-`coupon-page.js` 在每次请求里带上 `mainUrl=coupon.zangeng.com`，经中台 `main` 的 `sourceGuard` 中间件按 `projects.url` 放行。
-**务必先在中台 main 侧登记该来源**（见下方「上线 checklist」），否则接口返回空数据（响应头 `X-Source-Guard: BLOCKED`）。
+`coupon-page.js` 在每次请求里带上 `mainUrl=coupon.zangeng.com`，经中台 `main` 的 `sourceGuard` 中间件按 `projects.url` 放行（**2026-10-13 已实跑登记并验证 `X-Source-Guard: PASS`**，见下方「验收状态」）。
+来源未登记时接口返回空数据（响应头 `X-Source-Guard: BLOCKED`）；登记步骤见下方「上线 checklist」第 3 条。
 
 ## 目录
 
@@ -56,10 +56,12 @@ coupon/
 │   ├── js/app.js       站点交互（主题三态 / 移动菜单 / 回到顶部）
 │   ├── js/store.js     本地数据层（收藏 coupon_favs / 最近看过 coupon_recent / 搜索历史 coupon_searches，均静默失败）；券卡星标按钮 attachStar + 预渲染卡 enhance
 │   ├── js/coupon-page.js 领券中心交互（首页：精选 / 榜单 / 搜索（含 ?s= 直达与搜索历史 chip）/ 分页加载更多 / 星标 / 骨架屏）
+│   ├── js/activities.js 官方活动直链卡（拉 /coupon/activity/list，渲染 #cpActs，rel="sponsored noopener"，空池静默隐藏）
 │   ├── js/list-page.js  通用列表脚本（browse / rank / category 三模式，按 body data-mode 分支；含到手价区间前端筛选 #listPrice）
 │   ├── js/favorites.js  收藏 / 最近看过页渲染（取消收藏、删除、去凑单跳转）
 │   ├── js/calculator.js 凑单计算器逻辑（多商品 × 多券叠加，实时算到手价/省钱额，未达门槛提示差多少）
 │   ├── js/holidays.js   大促日历倒数（每年滚动重算下一次日期，最近一场高亮；黑五按 11 月第四个周五计算）
+│   ├── js/double11.js   双 11 专题交互（大促页券网格增强）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
 │   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 重写 sitemap.xml（CI 执行，fail-soft）
@@ -124,6 +126,17 @@ python -m http.server 8080
    注意：本机 Windows runner 无 rsync 且远端无 gzip，workflow 已采用未压缩 `tar cf - | ssh`（不要改回 rsync / `-z`）。
 5. **管理端（可选）**：`coupon.zangeng.com` 已加入中台 `main` `config.deploy.projects`，可在管理端「静态站部署」页一键触发（需 39.107 设 `GITHUB_DEPLOY_TOKEN`）。
 6. **推送即部署**：`git push` 到 `main` 分支即触发 `deploy.yml`，把仓库同步到 `60.205:/www/wwwroot/coupon.zangeng.com`。
+
+## 验收状态（2026-10-13）
+
+来源守卫登记、广告三域分离、官方活动直链卡三项已于 2026-10-13 实跑验收（证据与口径见知识库 `projects/coupon/README.md`）：
+
+- **来源守卫登记（项 2）**：中台 `scripts/register-static-projects.js --audit` **7/7 PASS**，`coupon.zangeng.com` 已登记（`status='0'` `cheatSwitch='1'` `platform='h5'`）；线上 `GET /coupon/jd/random?mainUrl=coupon.zangeng.com` 返回 `HTTP 200` + `X-Source-Guard: PASS`。
+- **官方活动直链卡（项 4 / WO-90）**：线上 `GET /coupon/activity/list?mainUrl=coupon.zangeng.com` 返回 `HTTP 200` + `PASS` + `list.Count=8`（taobao×2 / jd×6，均带官方直链）；`assets/js/activities.js` 拉取同接口、渲染 `#cpActs`、`rel="sponsored noopener"`，与中台 `service/coupon/activity.js` 字段白名单（`title/cover/url/platform/tag/startAt/endAt`）对齐。
+- **广告三域分离（项 3）**：`scripts/check-coupon-ads.js` 实跑 **14/14 通过**（六站兜底 JSON 无 `type=coupon` + `OWN_TYPES=['self','domain','next']` 不含 coupon + 部署 `ad-slots.js` 0 处 coupon 残留）；本站 `data/ad-slots.json` 仅 `self` 同族互推，券内容走独立接口不回流广告位。
+- **待改进（非阻塞）**：`main/scripts/check-coupon-ads.js` 的 `SITES` 列表未含 `coupon`，故该门禁不扫描本站兜底 JSON；建议把 `coupon` 加入 `SITES`（路径 `data/ad-slots.json`、探针 `index.html`）以闭环解耦守护。
+
+> 唯一未解锁阻塞仍为 **WO-56 备案接入**（coupon.zangeng.com 站点可达性），与以上三项无关。
 
 ## 合规
 

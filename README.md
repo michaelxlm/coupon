@@ -170,7 +170,7 @@ python -m http.server 8080
 ## 合规
 
 - 优惠券展示与核销由京东 / 折淘客完成，本站仅作内容聚合与跳转，不参与交易（页脚与卡片均标注 `rel="sponsored noopener"`）。
-- 沿用 zangeng 同主体 ICP 备案号 `京ICP备18062653号-8`（同主域子站点共用）。
+- 沿用 zangeng 同主域 ICP 备案号 `京ICP备18062653号-26`（同主域子站点共用；页脚由 `scripts/build.js` 的 `COUPON_SITE.icp` 经 shared-partials `renderFooter` 渲染）。
 
 ## 与 zangeng.com 原 coupon.html 的关系
 

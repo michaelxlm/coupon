@@ -55,7 +55,7 @@ const COUPON_SITE = {
   site_name: '小满券仓',
   logo_text: '券',
   slogan: '全网优惠券，先领券再下单更省',
-  icp: '京ICP备18062653号-8',
+  icp: '京ICP备18062653号-26',
   icp_url: 'https://beian.miit.gov.cn/',
   nav: [
     { label: '领券中心', url: '/' },

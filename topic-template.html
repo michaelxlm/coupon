@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{TITLE}} · 小满券仓</title>
+  <meta name="description" content="{{DESC}}" />
+  <link rel="stylesheet" href="/assets/css/tokens.css?v=2026.10.12b" />
+  <link rel="stylesheet" href="/assets/css/main.css?v=2026.10.12b" />
+  <link rel="stylesheet" href="/assets/css/coupon.css?v=2026.10.12b" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+</head>
+<body data-mode="browse" data-kw="{{KW}}">
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="/">小满券仓</a>
+      <nav class="nav-links">
+        <a href="/">首页</a>
+        <a href="/browse.html">全部分类</a>
+        <a href="/favorites.html">我的收藏</a>
+        <a href="/about.html">关于</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <section class="section">
+      <h1 class="section-head" id="topicTitle">{{TITLE}}</h1>
+      <p class="cp-note">{{DESC}}</p>
+      <div id="cpGrid" class="cp-grid" role="list"></div>
+      <div id="cpState" class="cp-state" hidden></div>
+      <div class="cp-more-wrap"><button id="cpMore" class="cp-more" type="button" hidden>加载更多</button></div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 小满券仓 · 领券中心 · <a href="/about.html">关于本站</a></p>
+    </div>
+  </footer>
+  <script>window.__TOPIC__ = { slug: '{{SLUG}}', kw: '{{KW}}', title: '{{TITLE}}', desc: '{{DESC}}' };</script>
+  <script src="/assets/js/tracker.js?v=2026.10.12b"></script>
+  <script src="/assets/js/app.js?v=2026.10.12b"></script>
+  <script src="/assets/js/store.js?v=2026.10.12b"></script>
+  <script src="/assets/js/list-page.js?v=2026.10.12b"></script>
+</body>
+</html>

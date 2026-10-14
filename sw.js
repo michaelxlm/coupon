@@ -1,0 +1,78 @@
+/* ==========================================================================
+   sw.js · 小满券仓 Service Worker（M5a 离线兜底）
+   —— 导航请求：网络优先，失败回退缓存首页 / 快照，断网也能浏览已缓存券。
+      静态资源：缓存优先，后台更新。不拦截 API（/api/）请求，保证数据实时。
+   ========================================================================== */
+const CACHE = 'coupon-v1';
+const CORE = [
+  '/', '/index.html',
+  '/assets/css/tokens.css', '/assets/css/main.css', '/assets/css/coupon.css',
+  '/assets/js/tracker.js', '/assets/js/app.js', '/assets/js/store.js',
+  '/assets/js/share.js', '/assets/js/coupon-page.js', '/assets/js/activities.js',
+  '/data/coupon-snapshot.json'
+];
+
+self.addEventListener('install', function (e) {
+  e.waitUntil(
+    caches.open(CACHE).then(function (c) { return c.addAll(CORE).catch(function () {}); }).then(function () { return self.skipWaiting(); })
+  );
+});
+
+self.addEventListener('activate', function (e) {
+  e.waitUntil(
+    caches.keys().then(function (ks) {
+      return Promise.all(ks.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    }).then(function () { return self.clients.claim(); })
+  );
+});
+
+self.addEventListener('fetch', function (e) {
+  var req = e.request;
+  if (req.method !== 'GET') return;
+  var url = req.url || '';
+  // API 与跨域资源（图片/广告）不进缓存策略，直接走网络
+  if (url.indexOf('/api/') >= 0) return;
+
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req).catch(function () {
+        return caches.match('/index.html').then(function (r) { return r || caches.match('/'); });
+      })
+    );
+    return;
+  }
+
+  // 静态同源资源：缓存优先 + 后台更新
+  e.respondWith(
+    caches.match(req).then(function (r) {
+      var net = fetch(req).then(function (res) {
+        if (res && res.ok && res.type === 'basic') {
+          var cp = res.clone();
+          caches.open(CACHE).then(function (c) { c.put(req, cp); });
+        }
+        return res;
+      }).catch(function () { return r; });
+      return r || net;
+      })
+      );
+      });
+
+      /* Web Push（M5b）：展示降价提醒通知，点击打开站点 */
+      self.addEventListener('push', function (e) {
+      var data = {};
+      try { data = e.data ? e.data.json() : {}; } catch (err) { data = { title: '小满券仓', body: e.data ? e.data.text() : '' }; }
+      var title = data.title || '小满券仓 · 领券提醒';
+      var opts = { body: data.body || '', icon: '/assets/img/favicon.svg', badge: '/assets/img/favicon.svg', data: { url: data.url || '/' } };
+      e.waitUntil(self.registration.showNotification(title, opts));
+      });
+
+      self.addEventListener('notificationclick', function (e) {
+      e.notification.close();
+      var url = (e.notification.data && e.notification.data.url) || '/';
+      e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cls) {
+      for (var i = 0; i < cls.length; i++) {
+      if ('focus' in cls[i]) return cls[i].focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+      }));
+      });

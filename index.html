@@ -49,6 +49,7 @@
   <link rel="stylesheet" href="/assets/css/tokens.css?v=2026.10.12b">
   <link rel="stylesheet" href="/assets/css/main.css?v=2026.10.12b" />
   <link rel="stylesheet" href="/assets/css/coupon.css?v=2026.10.12b" />
+  <link rel="manifest" href="/manifest.webmanifest" />
 </head>
 <body data-page="coupon" data-theme-default="light" data-build="2026.10.12b">
   <a class="skip-link" href="#main">跳到主内容</a>
@@ -101,6 +102,7 @@
           <a class="cp-his-chip" href="/?s=%E5%9B%9B%E4%BB%B6%E5%A5%97">四件套</a>
         </div>
         <div class="cp-his" id="cpHistory" hidden></div>
+        <div class="cp-his" id="cpHotWords" hidden aria-label="大家都在搜"></div>
       </div>
     </section>
 
@@ -177,6 +179,17 @@
         </div>
 
         <p class="cp-note">优惠券展示与核销由相应平台 / 联盟完成，本站仅作内容聚合与跳转，不参与交易。</p>
+      </div>
+    </section>
+
+    <!-- 猜你喜欢（M1）：本地有浏览/搜索信号才展示，否则整块隐藏不占位 -->
+    <section class="section" id="cpRecSection" hidden>
+      <div class="container">
+        <div class="cp-rec-head">
+          <h2>猜你喜欢</h2>
+          <button class="cp-rec-dismiss" type="button" id="cpRecDismiss" aria-label="关闭猜你喜欢">不感兴趣</button>
+        </div>
+        <div id="cpRecGrid" class="cp-grid"></div>
       </div>
     </section>
 
@@ -257,6 +270,7 @@
   <script src="/assets/js/tracker.js?v=2026.10.12b"></script>
   <script src="/assets/js/conversion.js?v=2026.10.12b"></script>
   <script src="/assets/js/app.js?v=2026.10.12b"></script>
+  <script src="/assets/js/share.js?v=2026.10.12b"></script>
   <script src="/assets/js/store.js?v=2026.10.12b"></script>
   <script src="/assets/js/coupon-page.js?v=2026.10.12b"></script>
   <script src="/assets/js/activities.js?v=2026.10.12b"></script>

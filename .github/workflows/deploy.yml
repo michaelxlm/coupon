@@ -6,9 +6,10 @@ name: Deploy coupon.zangeng.com
 on:
   push:
     branches: [main]
-  # 定时重建：优惠券时效短，每日重建让百度等爬虫抓到新鲜券（UTC 00:20 / 08:20 ≈ 北京 08:20 / 16:20）
+  # 定时重建：优惠券时效短，每 4 小时重建让百度等爬虫抓到新鲜券
+  # （UTC 每 4h 的 :20 ≈ 北京 08:20 / 12:20 / 16:20 / 20:20 / 00:20 / 04:20，构建快照最长约 4h 即刷新）
   schedule:
-    - cron: '20 0,8 * * *'
+    - cron: '20 */4 * * *'
   # 允许从管理端（GitHub API workflow_dispatch）手动触发部署，无需重新 push
   workflow_dispatch:
 

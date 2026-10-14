@@ -235,6 +235,59 @@
     }, { passive: true });
   }
 
+  /* --------------------------- AB 实验客户端分桶（M11） --------------------------- */
+  // 由匿名访客 ID 哈希决定桶（A/B），上报 exp_assign；券卡埋点带 bucket 供回收分析
+  function initExp() {
+    if (!global.Tracker) return;
+    var vid = global.Tracker.visitorId();
+    if (!vid) return;
+    var h = 0;
+    for (var i = 0; i < vid.length; i++) h = (h * 31 + vid.charCodeAt(i)) | 0;
+    var bucket = (Math.abs(h) % 100) < 50 ? 'A' : 'B';
+    global.__exp = { name: 'card_style_2026', bucket: bucket };
+    global.Tracker.track('exp_assign', { exp: 'card_style_2026', bucket: bucket });
+  }
+
+  /* ----------------------------- PWA 注册（M5a） ----------------------------- */
+  function initPWA() {
+    if ('serviceWorker' in global.navigator) {
+      global.addEventListener('load', function () {
+        global.navigator.serviceWorker.register('/sw.js').catch(function () { /* 注册失败不影响页面 */ });
+      });
+    }
+  }
+
+  /* ----------------------------- Web Push 订阅（M5b） ----------------------------- */
+  function initPush() {
+    if (!('serviceWorker' in global.navigator) || !('PushManager' in global) || !('Notification' in global) || !global.Tracker) return;
+    var dev = global.Tracker.visitorId();
+    if (!dev) return;
+    global.addEventListener('load', function () {
+      global.navigator.serviceWorker.ready.then(function (reg) {
+        global.fetch('https://api.xuyiheng.com/api/v1/front/coupon/push/vapid', { cache: 'no-store' })
+          .then(function (r) { return r.json(); }).then(function (j) {
+            var pk = j && j.data && j.data.publicKey;
+            if (!pk) return; // 未配置 VAPID：跳过订阅，仍可用「我的降价提醒」列表
+            global.Notification.requestPermission().then(function (perm) {
+              if (perm !== 'granted') return;
+              reg.pushManager.getSubscription().then(function (sub) {
+                var doSub = function (s) {
+                  var raw = s.toJSON ? s.toJSON() : s;
+                  global.fetch('https://api.xuyiheng.com/api/v1/front/coupon/push/subscribe', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deviceId: dev, subscription: raw }),
+                  }).catch(function () { /* 忽略 */ });
+                };
+                if (sub) { doSub(sub); return; }
+                reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pk })
+                  .then(function (s) { doSub(s); }).catch(function () { /* 忽略 */ });
+              }).catch(function () { /* 忽略 */ });
+            });
+          }).catch(function () { /* 忽略 */ });
+      }).catch(function () { /* 忽略 */ });
+    });
+  }
+
   /* --------------------------------- 启动 --------------------------------- */
   function boot() {
     initTheme();
@@ -242,6 +295,9 @@
     initCopy();
     initForm();
     initBackTop();
+    initExp();
+    initPWA();
+    initPush();
   }
 
   if (doc.readyState === 'loading') {

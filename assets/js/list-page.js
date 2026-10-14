@@ -25,6 +25,11 @@
   var body = doc.body;
   var mode = body.getAttribute('data-mode') || 'browse';
   var kw = body.getAttribute('data-kw') || '';
+  // 专题落地页（M10）：模板注入 window.__TOPIC__ 时补齐标题
+  if (global.__TOPIC__) {
+    if (global.__TOPIC__.title) doc.title = global.__TOPIC__.title + ' · 小满券仓';
+    var tt = $('topicTitle'); if (tt) tt.textContent = global.__TOPIC__.title || '';
+  }
 
   var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', list: [] };
 
@@ -149,6 +154,7 @@
     var arr = list.slice();
     if (state.sort === 'value') arr.sort(function (a, b) { var d = saveScore(b) - saveScore(a); return d !== 0 ? d : ((Number(a.price) || 0) - (Number(b.price) || 0)); });
     else if (state.sort === 'discount') arr.sort(function (a, b) { return (Number(b.couponDiscount) || 0) - (Number(a.couponDiscount) || 0); });
+    else if (state.sort === 'expire') arr.sort(function (a, b) { return endMs(a.couponEndTime) - endMs(b.couponEndTime); });
     else if (state.sort === 'priceAsc') arr.sort(function (a, b) { return (Number(a.price) || 0) - (Number(b.price) || 0); });
     else if (state.sort === 'priceDesc') arr.sort(function (a, b) { return (Number(b.price) || 0) - (Number(a.price) || 0); });
     return arr;
@@ -173,7 +179,7 @@
     bar.setAttribute('role', 'group');
     bar.setAttribute('aria-label', '平台筛选');
     bar.hidden = true;
-    [ [ '', '全部' ], [ 'jd', '京东' ], [ 'taobao', '淘宝' ] ].forEach(function (o) {
+    [ [ '', '全部' ], [ 'jd', '京东' ], [ 'taobao', '淘宝' ], [ 'pdd', '拼多多' ] ].forEach(function (o) {
       var b = el('button', 'cp-plat-chip' + (o[0] === '' ? ' is-active' : ''), o[1]);
       b.type = 'button';
       b.setAttribute('data-plat', o[0]);
@@ -193,6 +199,12 @@
     a.href = link || '#';
     if (link) { a.target = '_blank'; a.setAttribute('rel', 'sponsored noopener'); }
     else { a.classList.add('is-dead'); a.setAttribute('aria-disabled', 'true'); }
+    // 平台色描边（京东红 / 淘宝橙）供 CSS 区分
+    a.setAttribute('data-plat', c.platform === 'taobao' ? 'taobao' : c.platform === 'pdd' ? 'pdd' : 'jd');
+    // 超值 / 火爆 飘带（按券面额力度）
+    var off = Number(c.couponDiscount) || 0;
+    if (off >= 100) a.appendChild(el('span', 'cp-hot cp-hot--fire', '火爆'));
+    else if (off >= 50) a.appendChild(el('span', 'cp-hot', '超值'));
     var cid = String(c.tao_id || c._id || '');
     if (cid) a.setAttribute('data-case', 'coupon:' + cid);
     a.setAttribute('data-track', 'coupon_click');
@@ -214,17 +226,51 @@
     }
     a.appendChild(el('span', 'cp-name', c.title || '优惠券'));
     var price = el('div', 'cp-price');
-    var off = Number(c.couponDiscount) || 0;
     var quota = Number(c.couponQuota) || 0;
-    if (off > 0) price.appendChild(el('span', 'cp-off', quota > 0 ? ('满' + quota + '减' + off) : ('券 ¥' + off)));
+    if (off > 0) price.appendChild(el('span', 'cp-off', quota > 0 ? ('满' + quota + '减' + off) : ('立减¥' + off)));
     var finalPrice = Number(c.price) || 0;
     if (finalPrice > 0) price.appendChild(el('span', 'cp-final', '¥' + finalPrice));
-    var exLabel = expireLabel(c);
-    if (exLabel) price.appendChild(el('span', 'cp-expire', exLabel));
+    // 限时倒计时（couponEndTime 24h 内实时刷新）；否则展示即将失效文案
+    var end = endMs(c.couponEndTime);
+    if (end) {
+      var diff = end - Date.now();
+      if (diff > 0 && diff <= 86400000) {
+        var cd = el('span', 'cp-countdown', '');
+        cd.setAttribute('data-end', String(end));
+        price.appendChild(cd);
+        startCountdown();
+      } else {
+        var exLabel = expireLabel(c);
+        if (exLabel) price.appendChild(el('span', 'cp-expire', exLabel));
+      }
+    }
     a.appendChild(price);
     var ct = Number(c.createTime) || 0;
     if (ct && (Date.now() - ct) < 24 * 60 * 60 * 1000) a.appendChild(el('span', 'cp-fresh', '今日新增'));
     return a;
+  }
+
+  // 限时倒计时：全站单一定时器，每秒刷新所有 .cp-countdown（couponEndTime 24h 内券卡）
+  var countdownStarted = false;
+  function startCountdown() {
+    if (countdownStarted) return;
+    countdownStarted = true;
+    setInterval(function () {
+      var now = Date.now();
+      var nodes = doc.querySelectorAll('.cp-countdown');
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        var end = Number(n.getAttribute('data-end')) || 0;
+        var d = end - now;
+        if (d <= 0) { n.textContent = '已结束'; n.classList.add('is-ended'); continue; }
+        var p2 = function (x) { return (x < 10 ? '0' : '') + x; };
+        var dd = Math.floor(d / 86400000);
+        var hh = Math.floor((d % 86400000) / 3600000);
+        var mm = Math.floor((d % 3600000) / 60000);
+        var ss = Math.floor((d % 60000) / 1000);
+        n.textContent = '⏱ ' + (dd > 0 ? (dd + '天 ') : '') + p2(hh) + ':' + p2(mm) + ':' + p2(ss);
+      }
+    }, 1000);
   }
 
   // 到手价区间前端筛选（性能小件）：仅对已加载集合过滤，不改后端分页语义
@@ -298,6 +344,12 @@
     if (old) old.parentNode && old.parentNode.removeChild(old);
   }
 
+  // 后端不可达、用构建快照兜底时：灰化券卡 + 状态区加警示样式（快照券可能已失效，提示用户核对）
+  function markStale(on) {
+    if (grid) grid.classList.toggle('is-stale', !!on);
+    if (statusEl) statusEl.classList.toggle('is-fallback', !!on);
+  }
+
   function setLoading(on, quiet) {
     state.loading = on;
     if (moreBtn) moreBtn.disabled = on;
@@ -314,6 +366,7 @@
     setLoading(true, true);
     var action = loadActions.rank = function () { loadRank(period); };
     var url = buildUrl('/rank', [ [ 'period', period ], [ 'limit', RANK_LIMIT ] ]);
+    markStale(false);
     request(url, function (err, d) {
       if (token !== viewToken) return;
       setLoading(false);
@@ -323,7 +376,8 @@
           if (arr && arr.length) {
             state.list = arr;
             render(currentView(), false);
-            showStatus('实时数据暂时不可用，已展示最近一次更新的' + ({ day: '日', week: '周', month: '月' }[period] || '') + '榜（构建快照 ' + snapStamp(snap) + '）。');
+            markStale(true);
+            showStatus('⚠ 实时数据暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '）的' + ({ day: '日', week: '周', month: '月' }[period] || '') + '榜，券可能已失效，下单前请核对。');
           } else {
             showStatus('加载失败，请稍后重试。', action);
           }
@@ -342,10 +396,11 @@
     else setLoading(true);
     var action = loadActions.paging = function () { loadPaging(reset); };
     var params = [ [ 'page', state.page ], [ 'pageSize', PAGE_SIZE ] ];
-    // 非「默认(createTime 倒序)」排序时向后端要券值优先（只返有券面额券、按面额降序），与首页「省钱力度」一致并消除采集池空卡
-    if (state.sort) params.push([ 'sort', 'discount' ]);
+    // 非「默认(createTime 倒序)」排序时向后端透传真实排序值（discount=券值优先 / expire=即将失效），由后端保证分页语义
+    if (state.sort) params.push([ 'sort', state.sort ]);
     if (mode === 'category' && kw) params.unshift([ 'search', kw ]);
     var url = buildUrl('/paging', params);
+    markStale(false);
     request(url, function (err, d) {
       if (reset && token !== viewToken) return;
       setLoading(false);
@@ -359,9 +414,10 @@
             state.list = arr;
             var appendMode = false;
             render(currentView(), false);
+            markStale(true);
             state.hasMore = false;
             if (moreBtn) moreBtn.hidden = true;
-            showStatus('实时数据暂时不可用，已展示最近一次更新的券（构建快照 ' + snapStamp(snap) + '）。');
+            showStatus('⚠ 实时数据暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '），券可能已失效，下单前请核对。');
           } else {
             showStatus('加载失败，请稍后重试。', action);
           }

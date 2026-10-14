@@ -113,8 +113,8 @@
 /* ---------------------------------- 优惠券网格 ---------------------------------- */
 .cp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 16px;
 }
 .cp-card {
   display: flex;
@@ -129,10 +129,20 @@
   color: var(--text);
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
-.cp-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow);
-  border-color: var(--border-strong);
+/* 平台色描边（京东红 / 淘宝橙） */
+.cp-card[data-plat="jd"] { border-color: rgba(228, 57, 60, .45); }
+.cp-card[data-plat="taobao"] { border-color: rgba(255, 119, 0, .45); }
+.cp-card[data-plat="pdd"] { border-color: rgba(226, 33, 32, .42); }
+/* 悬停放大 + 强阴影（仅精确指针设备，避免触屏点击后 :hover 卡住导致放大/位移冲突） */
+@media (hover: hover) {
+  .cp-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-strong);
+  }
+  .cp-card[data-plat="jd"]:hover { border-color: var(--coupon-red); }
+  .cp-card[data-plat="taobao"]:hover { border-color: #ff7700; }
+.cp-card[data-plat="pdd"]:hover { border-color: #e22120; }
 }
 /* 无可点链接的券卡降级（防 featured 死卡）：置灰、取消 hover 位移 */
 .cp-card.is-dead { opacity: .55; cursor: not-allowed; }
@@ -161,16 +171,67 @@
   gap: 8px;
   padding: 10px 12px 14px;
 }
+/* 立减大角标：渐变红 pill，放大加粗，一眼可见力度 */
 .cp-off {
-  color: var(--coupon-red);
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff6a3d, #e4393c);
+  color: #fff;
   font-weight: 800;
-  font-size: 1.0625rem;
+  font-size: 1rem;
+  line-height: 1.3;
+  letter-spacing: .01em;
+  box-shadow: 0 4px 14px rgba(228, 57, 60, .32);
 }
 .cp-final {
   color: var(--text-muted);
   font-size: 0.875rem;
+  font-weight: 600;
 }
-.cp-final::before { content: "到手 "; color: var(--text-soft); }
+.cp-final::before { content: "到手 "; color: var(--text-soft); font-weight: 400; }
+
+/* 超值 / 火爆 飘带（按券面额力度），置于右上星标左侧 */
+/* 价格走势 sparkline（M7） */
+.cp-spark { vertical-align: middle; margin-left: 6px; }
+
+.cp-hot {
+  position: absolute;
+  top: 8px;
+  right: 80px;
+  z-index: 2;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffb03a, #ff7a00);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  box-shadow: 0 3px 10px rgba(255, 122, 0, .35);
+}
+.cp-hot--fire {
+  background: linear-gradient(135deg, #ff5a5f, #e4393c);
+  box-shadow: 0 3px 10px rgba(228, 57, 60, .35);
+}
+
+/* 限时倒计时（couponEndTime 24h 内）：红色脉冲，实时刷新 */
+.cp-countdown {
+  align-self: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(228, 57, 60, .12);
+  color: #e4393c;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  animation: cp-pulse 1.1s ease-in-out infinite;
+}
+.cp-countdown.is-ended { background: var(--surface-2); color: var(--text-soft); animation: none; }
+@keyframes cp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(228, 57, 60, .35); }
+  50% { box-shadow: 0 0 0 4px rgba(228, 57, 60, 0); }
+}
 
 /* 今日新增小徽标（createTime 24h 内） */
 .cp-fresh {
@@ -198,6 +259,7 @@
   font-weight: 700;
   line-height: 1.5;
   white-space: nowrap;
+  animation: cp-pulse 1.6s ease-in-out infinite;
 }
 
 /* 热门品类 chip 行（首页券区上方） */
@@ -231,6 +293,17 @@
   font-size: 0.9375rem;
 }
 .cp-state .cp-retry { margin-top: 14px; }
+/* 后端不可达、用构建快照兜底时：灰化券卡 + 状态区警示（快照券可能已失效，提示用户核对） */
+.cp-grid.is-stale .cp-card { opacity: .6; filter: grayscale(.5); transition: opacity .2s ease, filter .2s ease; }
+.cp-grid.is-stale .cp-card:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
+.cp-grid.is-stale .cp-card.is-dead { opacity: .4; }
+.cp-state.is-fallback {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+}
 .cp-more-wrap { text-align: center; margin-top: 18px; }
 .cp-more-wrap .btn[hidden] { display: none; }
 
@@ -298,6 +371,7 @@
 @media (prefers-reduced-motion: reduce) {
   .cp-skeleton .cp-sk-img, .cp-skeleton .cp-sk-line { animation: none; }
   .cp-star, .cp-star:hover { transform: none; }
+  .cp-countdown, .cp-expire { animation: none; }
 }
 
 /* ---------------------------------- 搜索历史 / 热门词 chip ---------------------------------- */
@@ -467,6 +541,61 @@
 @media (max-width: 720px) {
   .hol-item { grid-template-columns: 1fr; gap: 6px; }
 }
+
+/* ---------------------------------- 猜你喜欢（M1） ---------------------------------- */
+.cp-rec-section[hidden] { display: none; }
+.cp-rec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.cp-rec-head h2 { font-size: 1.25rem; margin: 0; }
+.cp-rec-dismiss {
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.cp-rec-dismiss:hover { color: var(--coupon-red); border-color: var(--coupon-red); }
+
+/* 分享按钮（M4）：星标左侧，火爆飘带再左侧（right:80px） */
+.cp-share {
+  position: absolute;
+  top: 8px;
+  right: 44px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 0.9375rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, transform .15s ease;
+}
+.cp-share:hover { transform: scale(1.12); background: rgba(0, 0, 0, 0.6); }
+.cp-share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 降价提醒按钮（M2）：价格行内联胶囊 */
+.cp-alert {
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.cp-alert.is-on { background: var(--coupon-red); border-color: var(--coupon-red); color: #fff; }
+.cp-alert:hover { color: var(--coupon-red); border-color: var(--coupon-red); }
+.cp-alert.is-on:hover { color: #fff; }
+.cp-expire.is-hot { background: var(--coupon-red); color: #fff; }
 
 /* ---------------------------------- 回到顶部 ---------------------------------- */
 .cp-back-top {

@@ -8,6 +8,7 @@
   'use strict';
 
   var doc = global.document;
+  var API_BASE = 'https://api.xuyiheng.com';
 
   function $(id) { return doc.getElementById(id); }
 
@@ -115,6 +116,46 @@
     }
   }
 
+  // 我的降价提醒（M2）：后端按 deviceId 返回订阅与当前力度对比
+  function buildAlertCard(item) {
+    var a = el('a', 'cp-card');
+    a.href = '#';
+    var cur = item.current || item.baseline || {};
+    var price = Number(cur.price) || 0;
+    var off = Number(cur.couponDiscount) || 0;
+    var quota = Number(cur.couponQuota) || 0;
+    a.appendChild(el('span', 'cp-name', item.title || '优惠券'));
+    var p = el('div', 'cp-price');
+    if (off > 0) p.appendChild(el('span', 'cp-off', quota > 0 ? ('满' + quota + '减' + off) : ('券 ¥' + off)));
+    if (price > 0) p.appendChild(el('span', 'cp-final', '¥' + price));
+    var status = '';
+    if (!item.current) status = '已失效';
+    else if ((Number(item.current.couponDiscount) || 0) > (Number(item.baseline.couponDiscount) || 0)) status = '券力提升';
+    else if ((Number(item.current.price) || 0) < (Number(item.baseline.price) || 0)) status = '到手价下降';
+    if (status) p.appendChild(el('span', 'cp-expire is-hot', status));
+    a.appendChild(p);
+    return a;
+  }
+
+  function loadAlerts() {
+    var grid = $('alertGrid');
+    if (!grid) return;
+    var empty = $('alertEmpty');
+    var count = $('alertCount');
+    var dev = global.Tracker && global.Tracker.visitorId ? global.Tracker.visitorId() : '';
+    if (!dev) { if (empty) empty.hidden = false; grid.hidden = true; return; }
+    var url = API_BASE + '/api/v1/front/coupon/alert/list?deviceId=' + encodeURIComponent(dev);
+    global.fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+      var list = (j && j.data && j.data.list) || [];
+      grid.innerHTML = '';
+      var has = list.length > 0;
+      if (empty) empty.hidden = has;
+      grid.hidden = !has;
+      if (count) count.textContent = has ? ('共 ' + list.length + ' 条') : '';
+      list.forEach(function (it) { grid.appendChild(buildAlertCard(it)); });
+    }).catch(function () { if (empty) empty.hidden = false; grid.hidden = true; });
+  }
+
   function refresh() {
     if (!global.CouponStore) return;
     var favList = global.CouponStore.favs();
@@ -173,6 +214,7 @@
       refresh();
     });
     refresh();
+    loadAlerts();
   }
 
   if (doc.readyState === 'loading') {

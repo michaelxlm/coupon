@@ -103,7 +103,7 @@ p:last-child { margin-bottom: 0; }
 
 .container {
   width: 100%;
-  max-width: var(--maxw);
+  max-width: 1920px;
   margin: 0 auto;
   padding: 0 24px;
 }

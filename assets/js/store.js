@@ -13,6 +13,8 @@
   var K_FAV = 'coupon_favs';
   var K_RECENT = 'coupon_recent';
   var K_SEARCH = 'coupon_searches';
+  var K_ALERT = 'coupon_alerts';
+  var API_BASE = 'https://api.xuyiheng.com';
   var FAV_MAX = 100;
   var RECENT_MAX = 24;
   var SEARCH_MAX = 10;
@@ -144,6 +146,87 @@
 
   function clearSearches() { lsSet(K_SEARCH, []); }
 
+  /* ---------------------- 猜你喜欢（M1）本地信号 ---------------------- */
+  // 用户信号词：最近看过标题 + 搜索历史，供 coupon-page.js 做子串匹配重排
+  function recommendTerms() {
+    var terms = [];
+    recent().forEach(function (r) { if (r && r.t) terms.push(r.t); });
+    searches().forEach(function (s) { if (s) terms.push(s); });
+    return terms.slice(0, 16);
+  }
+  // 已曝光/已收藏的券 id 集合，猜你喜欢去重用
+  function seenIds() {
+    var s = {};
+    favs().forEach(function (f) { if (f && f.id != null) s[String(f.id)] = 1; });
+    recent().forEach(function (f) { if (f && f.id != null) s[String(f.id)] = 1; });
+    return s;
+  }
+
+  /* ---------------------- 降价提醒（M2） ---------------------- */
+  function alerts() { return lsGet(K_ALERT, []); }
+  function isAlert(id) { return alerts().some(function (x) { return x.id === String(id); }); }
+  // 切换订阅：本地 localStorage 为主，后端上报为最佳努力（失败忽略）
+  function toggleAlert(item) {
+    var list = alerts();
+    var id = String(item.id);
+    if (!id) return false;
+    var idx = -1;
+    list.forEach(function (x, i) { if (x.id === id) idx = i; });
+    var on;
+    if (idx >= 0) { list.splice(idx, 1); on = false; }
+    else {
+      list.unshift({
+        id: id, t: item.t || '', img: item.img || '', url: item.url || '',
+        price: Number(item.price) || 0, quota: Number(item.quota) || 0, off: Number(item.off) || 0,
+        baseline: { price: Number(item.price) || 0, quota: Number(item.quota) || 0, couponDiscount: Number(item.off) || 0 },
+        ts: Date.now(),
+      });
+      on = true;
+    }
+    lsSet(K_ALERT, list.slice(0, 50));
+    syncAlert(on ? 'subscribe' : 'unsubscribe', item);
+    return on;
+  }
+  function syncAlert(action, item) {
+    var dev = global.Tracker && global.Tracker.visitorId ? global.Tracker.visitorId() : '';
+    if (!dev) return;
+    var url = (action === 'subscribe' ? '/api/v1/front/coupon/alert/subscribe' : '/api/v1/front/coupon/alert/unsubscribe');
+    try {
+      global.fetch(API_BASE + url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId: dev, tao_id: String(item.id), platform: (item.platform || 'jd'),
+          title: item.t || '',
+          baseline: { price: Number(item.price) || 0, quota: Number(item.quota) || 0, couponDiscount: Number(item.off) || 0 },
+        }),
+      }).catch(function () { /* 忽略 */ });
+    } catch (e) { /* 忽略 */ }
+  }
+  // 把「降价提醒」按钮挂到券卡价格行（绝对定位会拥挤，改为价格行内联胶囊）
+  function attachAlert(cardEl, item) {
+    if (!cardEl || !item || !item.id) return;
+    var price = cardEl.querySelector ? cardEl.querySelector('.cp-price') : null;
+    if (!price) return;
+    var btn = doc.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cp-alert';
+    var on = isAlert(item.id);
+    btn.textContent = on ? '已提醒' : '降价提醒';
+    if (on) btn.classList.add('is-on');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var nowOn = toggleAlert(item);
+      btn.textContent = nowOn ? '已提醒' : '降价提醒';
+      btn.classList.toggle('is-on', nowOn);
+      btn.setAttribute('aria-pressed', nowOn ? 'true' : 'false');
+      if (global.Conv) global.Conv.track('alert_toggle', { coupon_id: String(item.id), on: nowOn ? 1 : 0 });
+    });
+    price.appendChild(btn);
+  }
+
   /* ------------------------------ 券卡星标 ------------------------------ */
   function syncStar(btn, on) {
     btn.textContent = on ? '★' : '☆';
@@ -172,6 +255,14 @@
       syncStar(btn, toggleFav(item));
     });
     cell.appendChild(btn);
+    // 分享按钮（M4）：与星标并列，缺 CouponShare 时静默跳过
+    if (global.CouponShare && global.CouponShare.attach) {
+      try { global.CouponShare.attach(cell, item); } catch (e) { /* 忽略 */ }
+    }
+    // 降价提醒按钮（M2）：挂到券卡价格行内联
+    if (global.CouponStore && global.CouponStore.attachAlert) {
+      try { global.CouponStore.attachAlert(cell, item); } catch (e) { /* 忽略 */ }
+    }
   }
 
   // 增强页面里已存在的静态券卡（构建期预渲染产物），运行时卡由各自脚本直接 attachStar
@@ -200,6 +291,8 @@
     exportFavs: exportFavs, importFavs: importFavs,
     recent: recent, pushRecent: pushRecent, removeRecent: removeRecent, clearRecent: clearRecent,
     searches: searches, pushSearch: pushSearch, clearSearches: clearSearches,
+    recommendTerms: recommendTerms, seenIds: seenIds,
+    alerts: alerts, isAlert: isAlert, toggleAlert: toggleAlert, attachAlert: attachAlert,
     itemFromCard: itemFromCard, attachStar: attachStar, enhance: enhance,
   };
 

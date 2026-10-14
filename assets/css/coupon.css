@@ -133,6 +133,7 @@
 .cp-card[data-plat="jd"] { border-color: rgba(228, 57, 60, .45); }
 .cp-card[data-plat="taobao"] { border-color: rgba(255, 119, 0, .45); }
 .cp-card[data-plat="pdd"] { border-color: rgba(226, 33, 32, .42); }
+.cp-card[data-plat="douyin"] { border-color: rgba(17, 17, 17, .42); }
 /* 悬停放大 + 强阴影（仅精确指针设备，避免触屏点击后 :hover 卡住导致放大/位移冲突） */
 @media (hover: hover) {
   .cp-card:hover {
@@ -143,6 +144,7 @@
   .cp-card[data-plat="jd"]:hover { border-color: var(--coupon-red); }
   .cp-card[data-plat="taobao"]:hover { border-color: #ff7700; }
 .cp-card[data-plat="pdd"]:hover { border-color: #e22120; }
+.cp-card[data-plat="douyin"]:hover { border-color: #111; }
 }
 /* 无可点链接的券卡降级（防 featured 死卡）：置灰、取消 hover 位移 */
 .cp-card.is-dead { opacity: .55; cursor: not-allowed; }

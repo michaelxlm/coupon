@@ -312,7 +312,7 @@
     bar.setAttribute('role', 'group');
     bar.setAttribute('aria-label', '平台筛选');
     bar.hidden = true;
-    [ [ '', '全部' ], [ 'jd', '京东' ], [ 'taobao', '淘宝' ], [ 'pdd', '拼多多' ] ].forEach(function (o) {
+    [ [ '', '全部' ], [ 'jd', '京东' ], [ 'taobao', '淘宝' ], [ 'pdd', '拼多多' ], [ 'douyin', '抖音' ] ].forEach(function (o) {
       var b = el('button', 'cp-plat-chip' + (o[0] === '' ? ' is-active' : ''), o[1]);
       b.type = 'button';
       b.setAttribute('data-plat', o[0]);

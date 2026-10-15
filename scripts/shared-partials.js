@@ -39,7 +39,7 @@ function escapeAttr(input) {
 function renderPromoStrip(links, opts) {
   const o = opts || {};
   const multiline = o.multiline !== false;
-  const top = ((links || {}).global || []).filter((l) => l.position === 'top')[0];
+  const top = ((links || {}).global || []).filter(l => l.position === 'top')[0];
   if (!top) return '';
   const attrs = `data-track="cta_click" data-track-props='{"pos":"top-strip","target":"${escapeAttr(top.url)}"}'`;
   if (multiline) {
@@ -68,7 +68,7 @@ function renderHeader(site, page, links, opts) {
     navAriaCurrent: false,
   }, opts || {});
   const navInline = o.navInline === true;
-  const nav = (site.nav || []).map((n) => {
+  const nav = (site.nav || []).map(n => {
     const isActive = !!(page && page.nav && n.url === page.nav);
     const cls = 'nav-link' + (isActive ? ' is-active' : '');
     let extra = '';
@@ -100,25 +100,37 @@ function renderHeader(site, page, links, opts) {
 </header>`;
 }
 
+/* ------------------------------ 跨站推荐（单一源） ------------------------------ */
+/** 所有站点 footer「更多站点」列统一数据，改此处即全站同步 */
+const SISTER_SITES = [
+  { label: '明先生日常 · xuliming.com', url: 'https://xuliming.com/' },
+  { label: 'cs调色盘 · 2002cs.com', url: 'https://2002cs.com/' },
+  { label: '访客小站 · fangkelianmeng.com', url: 'https://fangkelianmeng.com/' },
+  { label: '小满手记 · zangeng.com', url: 'https://zangeng.com/' },
+  { label: '实测手记 · 585.ink', url: 'https://585.ink/' },
+  { label: '年表拾遗 · 20101115.com', url: 'https://20101115.com/' },
+  { label: '小满券仓 · coupon.zangeng.com', url: 'https://coupon.zangeng.com/' },
+];
+
 /* --------------------------------- 页脚 --------------------------------- */
 /**
+ * 统一 4 栏页脚：网站介绍 | 站点导航 | 更多站点 | 联系方式
+ * 底层：© 年份 + 备案号
+ *
  * @param {Object} site - 站点配置（site_name/footer_nav/contact/social/slogan/disclaimer/icp ...）
  * @param {Object} links - 全局链接（position=footer 追加到底部链接）
  * @param {Object} [opts] - {
- *   contactTitle='联系我们',   联系列标题（zangeng 用 '联系'）
- *   showSocial=true,           品牌区是否渲染 social 行
- *   showFooterLinks=true,      底部是否追加 links.global[position=footer]
- *   compact=false,             true 时页脚列压成 zangeng 的紧凑格式
- *   footerAdSlot=null,         传入 position（如 'footer' 或 true）则在底部栏前插入一个容器内广告位
+ *   contactTitle='联系',     联系列标题
+ *   showSocial=true,         品牌区是否渲染 social 行
+ *   showFooterLinks=true,    底部是否追加 links.global[position=footer]
+ *   footerAdSlot=null,       传入 position 则在底部栏前插入广告位容器
  * }
- *   footer_nav 列链接如带 external:true → 追加 target="_blank" rel="noopener"。
  */
 function renderFooter(site, links, opts) {
   const o = Object.assign({
-    contactTitle: '联系我们',
+    contactTitle: '联系',
     showSocial: true,
     showFooterLinks: true,
-    compact: false,
   }, opts || {});
 
   const year = new Date().getFullYear();
@@ -126,63 +138,40 @@ function renderFooter(site, links, opts) {
   const yearText = since === year ? String(year) : `${since} - ${year}`;
   const c = site.contact || {};
 
-  if (o.compact) {
-    // zangeng 既有紧凑格式（单行内联），保持其构建产物零变化
-    const cols = (site.footer_nav || []).map((col) => `
-    <div class="footer-col">
-      <h4>${escapeHtml(col.title)}</h4>
-      <ul>${(col.links || []).map((l) => `<li><a href="${escapeAttr(l.url)}">${escapeHtml(l.label)}</a></li>`).join('\n        ')}</ul>
-    </div>`).join('\n');
-    const contactCol = `
-    <div class="footer-col">
-      <h4>${escapeHtml(o.contactTitle)}</h4>
-      <ul>${c.email ? `<li><a href="mailto:${escapeAttr(c.email)}">${escapeHtml(c.email)}</a></li>` : ''}${c.feedback_url ? `<li><a href="${escapeAttr(c.feedback_url)}" target="_blank" rel="noopener">反馈 / 其他 → antucao.com</a></li>` : ''}</ul>
-    </div>`;
-    return `<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a class="brand" href="/"><span class="brand-mark">${escapeHtml(site.logo_text || site.short_name || '')}</span><span class="brand-text">${escapeHtml(site.site_name)}</span></a>
-        <p>${escapeHtml(site.slogan || '')}</p>
-      </div>
-      ${cols}
-      ${contactCol}
-    </div>
-    <div class="container footer-bottom">
-      <span>© ${yearText} ${escapeHtml(site.site_name)}${site.disclaimer ? ' · ' + escapeHtml(site.disclaimer) : ''}</span>
-      <div class="footer-links">${site.icp ? `<a href="${escapeAttr(site.icp_url || 'https://beian.miit.gov.cn/')}" target="_blank" rel="noopener">${escapeHtml(site.icp)}</a>` : ''}</div>
-    </div>
-  </div>
-</footer>`;
-  }
+  // 站点导航列：取 footer_nav 第一项（title 不限，统一渲染为「导航」）
+  const navCol = (site.footer_nav || [])[0];
+  const navLinks = (navCol && navCol.links || []).map(l =>
+    `<li><a href="${escapeAttr(l.url)}"${l.external ? ' target="_blank" rel="noopener"' : ''}>${escapeHtml(l.label)}</a></li>`
+  ).join('\n        ');
 
-  // 标准（notes / history）格式
-  const cols = (site.footer_nav || []).map((col) => `
-    <div class="footer-col">
-      <h4>${escapeHtml(col.title)}</h4>
-      <ul>
-        ${(col.links || []).map((l) => `<li><a href="${escapeAttr(l.url)}"${l.external ? ' target="_blank" rel="noopener"' : ''}>${escapeHtml(l.label)}</a></li>`).join('\n        ')}
-      </ul>
-    </div>`).join('\n');
+  // 更多站点列：统一使用 SISTER_SITES，排除本站域名
+  const selfDomain = (site.domain || '').replace(/^www\./, '');
+  const sisterLinks = SISTER_SITES
+    .filter(s => {
+      try { return new URL(s.url).hostname.replace(/^www\./, '') !== selfDomain; } catch (e) { return true; }
+    })
+    .map(s => `<li><a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.label)}</a></li>`)
+    .join('\n        ');
 
-  const contactCol = `
+  // 联系列
+  const contactHtml = `
     <div class="footer-col">
       <h4>${escapeHtml(o.contactTitle)}</h4>
       <ul>
         ${c.email ? `<li><a href="mailto:${escapeAttr(c.email)}">${escapeHtml(c.email)}</a></li>` : ''}
-        ${c.feedback_url ? `<li><a href="${escapeAttr(c.feedback_url)}" target="_blank" rel="noopener">反馈 / 其他 → antucao.com</a></li>` : ''}
+        ${c.feedback_url ? `<li><a href="${escapeAttr(c.feedback_url)}" target="_blank" rel="noopener">反馈 / 其他</a></li>` : ''}
       </ul>
     </div>`;
 
   const social = o.showSocial
-    ? (site.social || []).filter((s) => s.url).map((s) =>
-        `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.name)}</a>`)
+    ? (site.social || []).filter(s => s.url).map(s =>
+      `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.name)}</a>`)
       .join(' · ')
     : '';
 
   const footerLinks = o.showFooterLinks
-    ? (((links || {}).global) || []).filter((l) => l.position === 'footer').map((l) =>
-        `<a href="${escapeAttr(l.url)}">${escapeHtml(l.label)}</a>`)
+    ? (((links || {}).global) || []).filter(l => l.position === 'footer').map(l =>
+      `<a href="${escapeAttr(l.url)}">${escapeHtml(l.label)}</a>`)
       .join('\n      ')
     : '';
 
@@ -199,10 +188,21 @@ function renderFooter(site, links, opts) {
           <span class="brand-text">${escapeHtml(site.site_name)}</span>
         </a>
         <p>${escapeHtml(site.slogan || '')}</p>
-        ${social ? `<p>${social}</p>` : ''}
+        ${social ? `<p class="footer-social">${social}</p>` : ''}
       </div>
-      ${cols}
-      ${contactCol}
+      <div class="footer-col">
+        <h4>导航</h4>
+        <ul>
+          ${navLinks}
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>更多站点</h4>
+        <ul>
+          ${sisterLinks}
+        </ul>
+      </div>
+      ${contactHtml}
     </div>${footerAd}
     <div class="container footer-bottom">
       <span>© ${yearText} ${escapeHtml(site.site_name)}${site.disclaimer ? ' · ' + escapeHtml(site.disclaimer) : ''}</span>
@@ -216,13 +216,21 @@ function renderFooter(site, links, opts) {
 }
 
 /* -------------------------------- 广告位 -------------------------------- */
-/** 广告位占位（裸元素）：<div class="ad-slot" data-ad-slot="inline"></div> */
+/**
+ * 广告位占位（裸元素）：<div class="ad-slot" data-ad-slot="inline"></div>
+ * @param position
+ * @param opts
+ */
 function renderAdSlot(position, opts) {
   const cls = (opts && opts.cls) ? `ad-slot ${opts.cls}` : 'ad-slot';
   return `<div class="${cls}" data-ad-slot="${escapeAttr(position)}"></div>`;
 }
 
-/** 广告位整节（含 section + container 约束到内容宽度） */
+/**
+ * 广告位整节（含 section + container 约束到内容宽度）
+ * @param position
+ * @param opts
+ */
 function renderAdSlotSection(position, opts) {
   const slot = (opts && opts.type === 'coupon')
     ? `<div class="coupon-slot" data-coupon-slot="${escapeAttr(position)}"></div>`

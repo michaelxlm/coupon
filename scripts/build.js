@@ -55,6 +55,7 @@ const CHROME_FTR_END = '<!-- CHROME:FOOTER:END -->';
 const COUPON_SITE = {
   site_name: '小满券仓',
   logo_text: '券',
+  domain: 'coupon.zangeng.com',
   slogan: '全网优惠券，先领券再下单更省',
   icp: '京ICP备18062653号-26',
   icp_url: 'https://beian.miit.gov.cn/',
@@ -67,7 +68,7 @@ const COUPON_SITE = {
     { label: '小满手记', url: 'https://zangeng.com/', external: true },
   ],
   footer_nav: [
-    { title: '站点', links: [
+    { title: '导航', links: [
       { label: '领券中心', url: '/' },
       { label: '全部好物', url: '/browse.html' },
       { label: '榜单', url: '/rank.html' },
@@ -78,14 +79,6 @@ const COUPON_SITE = {
       { label: '双 11 专题', url: '/double11.html' },
       { label: '我的收藏', url: '/favorites.html' },
       { label: '关于与免责', url: '/about.html' },
-      { label: '小满手记', url: 'https://zangeng.com/', external: true },
-    ] },
-    { title: '更多站点', links: [
-      { label: '建站向导 · xuliming.com', url: 'https://xuliming.com/', external: true },
-      { label: '配色工具 · 2002cs.com', url: 'https://2002cs.com/', external: true },
-      { label: '开发者工具箱 · fangkelianmeng.com', url: 'https://fangkelianmeng.com/', external: true },
-      { label: '实测手记 · 585.ink', url: 'https://585.ink/', external: true },
-      { label: '历史知识库 · 20101115.com', url: 'https://20101115.com/', external: true },
     ] },
   ],
   contact: { email: 'xlm8826@gmail.com', feedback_url: 'https://antucao.com' },

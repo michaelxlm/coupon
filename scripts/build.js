@@ -29,6 +29,7 @@
 const fs = require('fs');
 const path = require('path');
 const P = require('./shared-partials'); // WO-85 阶段二：header/footer/ad-slot 委托跨站单一源
+const NAV = require('./shared-navigation'); // WO-93：原生导航无缝化（Speculation Rules 预取 + View Transitions）单一源
 
 const API_BASE = process.env.COUPON_API_BASE || 'https://api.xuyiheng.com';
 const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
@@ -285,7 +286,7 @@ function prerenderFile(file, list, name, url) {
   if (list.length && html.includes(JSONLD_START) && html.includes(JSONLD_END)) {
     html = replaceBlock(html, JSONLD_START, JSONLD_END, jsonLdBlock(list, name, url));
   }
-  fs.writeFileSync(file, html);
+  fs.writeFileSync(file, NAV.injectIntoHtml(html, { site: 'coupon' }));
   console.log(`[build] ${path.basename(file)}：预渲染 ${list.length} 张券卡`);
 }
 
@@ -301,7 +302,7 @@ function injectChrome(file, pageNav) {
   const footer = P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' });
   html = replaceBlock(html, CHROME_HDR_START, CHROME_HDR_END, header);
   html = replaceBlock(html, CHROME_FTR_START, CHROME_FTR_END, footer);
-  fs.writeFileSync(file, html);
+  fs.writeFileSync(file, NAV.injectIntoHtml(html, { site: 'coupon' }));
   console.log('[build] ' + path.basename(file) + '：chrome 委托 shared 渲染' + (pageNav ? ('（高亮 ' + pageNav + '）') : ''));
 }
 
@@ -573,7 +574,7 @@ async function run() {
       fs.mkdirSync(CAT_DIR, { recursive: true });
       for (const c of categories) {
         const html = catPageShell(c, catLists[c.slug] || []);
-        fs.writeFileSync(path.join(CAT_DIR, c.slug + '.html'), html);
+        fs.writeFileSync(path.join(CAT_DIR, c.slug + '.html'), NAV.injectIntoHtml(html, { site: 'coupon' }));
         console.log(`[build] cat/${c.slug}.html：生成，含 ${(catLists[c.slug] || []).length} 张券卡`);
       }
     } catch (e) { console.warn('[build] 生成品类页异常（忽略）：', e.message); }

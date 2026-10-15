@@ -106,11 +106,17 @@ const SISTER_SITES = [
   { label: '明先生日常 · xuliming.com', url: 'https://xuliming.com/' },
   { label: 'cs调色盘 · 2002cs.com', url: 'https://2002cs.com/' },
   { label: '访客小站 · fangkelianmeng.com', url: 'https://fangkelianmeng.com/' },
+  { label: '小满美图 · img.fangkelianmeng.com', url: 'https://img.fangkelianmeng.com/' },
   { label: '小满手记 · zangeng.com', url: 'https://zangeng.com/' },
   { label: '实测手记 · 585.ink', url: 'https://585.ink/' },
   { label: '年表拾遗 · 20101115.com', url: 'https://20101115.com/' },
   { label: '小满券仓 · coupon.zangeng.com', url: 'https://coupon.zangeng.com/' },
+  { label: '一成长笔记 · xuyiheng.com', url: 'https://xuyiheng.com/' },
+  { label: '东北电动车汇 · api.xuyiheng.com', url: 'https://api.xuyiheng.com/' },
 ];
+
+/** 单列超过此数量时自动分两列，控制底部区域高度 */
+const SPLIT_THRESHOLD = 10;
 
 /* --------------------------------- 页脚 --------------------------------- */
 /**
@@ -140,19 +146,22 @@ function renderFooter(site, links, opts) {
 
   // 站点导航列：取 footer_nav 第一项（title 不限，统一渲染为「导航」）
   const navCol = (site.footer_nav || [])[0];
-  const navLinks = (navCol && navCol.links || []).map(l =>
+  const navItems = (navCol && navCol.links || []);
+  const navLinks = navItems.map(l =>
     `<li><a href="${escapeAttr(l.url)}"${l.external ? ' target="_blank" rel="noopener"' : ''}>${escapeHtml(l.label)}</a></li>`
-  ).join('\n        ');
+  ).join('\n          ');
+  const navSplit = navItems.length > SPLIT_THRESHOLD ? ' is-split' : '';
 
   // 更多站点列：统一使用 SISTER_SITES，排除本站域名
   const selfDomain = (site.domain || '').replace(/^www\./, '');
-  const sisterLinks = SISTER_SITES
+  const sisterItems = SISTER_SITES
     .filter(s => {
       try { return new URL(s.url).hostname.replace(/^www\./, '') !== selfDomain; } catch (e) { return true; }
-    })
+    });
+  const sisterLinks = sisterItems
     .map(s => `<li><a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.label)}</a></li>`)
-    .join('\n        ');
-
+    .join('\n          ');
+  const sisterSplit = sisterItems.length > SPLIT_THRESHOLD ? ' is-split' : '';
   // 联系列
   const contactHtml = `
     <div class="footer-col">
@@ -192,13 +201,13 @@ function renderFooter(site, links, opts) {
       </div>
       <div class="footer-col">
         <h4>导航</h4>
-        <ul>
+        <ul class="${navSplit.trim()}">
           ${navLinks}
         </ul>
       </div>
       <div class="footer-col">
         <h4>更多站点</h4>
-        <ul>
+        <ul class="${sisterSplit.trim()}">
           ${sisterLinks}
         </ul>
       </div>

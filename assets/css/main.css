@@ -553,38 +553,37 @@ details.faq .faq-body { padding: 0 16px 12px; color: var(--text-muted); font-siz
 /* ---------------------------------- 页脚 ---------------------------------- */
 .site-footer {
   margin-top: 0;
-  padding: 32px 0 18px;
+  padding: 16px 0 10px;
   border-top: 1px solid var(--border);
   background: var(--bg-soft);
-  /* 页脚在首屏之外，跳过初始渲染，滚动到时才布局 */
   content-visibility: auto;
-  contain-intrinsic-size: auto 420px;
+  contain-intrinsic-size: auto 280px;
 }
 .footer-grid {
   display: grid;
   grid-template-columns: 1.6fr repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  gap: 14px;
 }
-.footer-brand .brand { margin-bottom: 12px; }
-.footer-brand p { color: var(--text-muted); font-size: 0.875rem; max-width: 280px; }
-.footer-col h4 { margin-bottom: 14px; font-size: 0.875rem; color: var(--text); }
+.footer-brand .brand { margin-bottom: 6px; }
+.footer-brand p { color: var(--text-muted); font-size: 0.8rem; max-width: 260px; line-height: 1.4; }
+.footer-col h4 { margin-bottom: 6px; font-size: 0.8rem; color: var(--text); }
 .footer-col ul { margin: 0; padding: 0; list-style: none; }
-.footer-col li { margin-bottom: 8px; }
-.footer-col a, .footer-col span { color: var(--text-muted); font-size: 0.875rem; }
+.footer-col li { margin-bottom: 3px; }
+.footer-col a, .footer-col span { color: var(--text-muted); font-size: 0.8rem; }
 .footer-col a:hover { color: var(--accent); }
 .footer-bottom {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 22px;
-  padding-top: 16px;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--border);
   color: var(--text-soft);
-  font-size: 0.8125rem;
+  font-size: 0.78rem;
 }
-.footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* --------------------------------- 空状态 --------------------------------- */
 .empty-state {

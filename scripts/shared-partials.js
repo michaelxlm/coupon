@@ -120,13 +120,12 @@ const SPLIT_THRESHOLD = 10;
 
 /* --------------------------------- 页脚 --------------------------------- */
 /**
- * 统一 4 栏页脚：网站介绍 | 站点导航 | 更多站点 | 联系方式
+ * 统一 3 栏页脚：网站介绍(含联系) | 站点导航 | 更多站点
  * 底层：© 年份 + 备案号
  *
  * @param {Object} site - 站点配置（site_name/footer_nav/contact/social/slogan/disclaimer/icp ...）
  * @param {Object} links - 全局链接（position=footer 追加到底部链接）
  * @param {Object} [opts] - {
- *   contactTitle='联系',     联系列标题
  *   showSocial=true,         品牌区是否渲染 social 行
  *   showFooterLinks=true,    底部是否追加 links.global[position=footer]
  *   footerAdSlot=null,       传入 position 则在底部栏前插入广告位容器
@@ -134,7 +133,6 @@ const SPLIT_THRESHOLD = 10;
  */
 function renderFooter(site, links, opts) {
   const o = Object.assign({
-    contactTitle: '联系',
     showSocial: true,
     showFooterLinks: true,
   }, opts || {});
@@ -162,15 +160,15 @@ function renderFooter(site, links, opts) {
     .map(s => `<li><a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.label)}</a></li>`)
     .join('\n          ');
   const sisterSplit = sisterItems.length > SPLIT_THRESHOLD ? ' is-split' : '';
-  // 联系列
-  const contactHtml = `
-    <div class="footer-col">
-      <h4>${escapeHtml(o.contactTitle)}</h4>
-      <ul>
-        ${c.email ? `<li><a href="mailto:${escapeAttr(c.email)}">${escapeHtml(c.email)}</a></li>` : ''}
-        ${c.feedback_url ? `<li><a href="${escapeAttr(c.feedback_url)}" target="_blank" rel="noopener">反馈 / 其他</a></li>` : ''}
-      </ul>
-    </div>`;
+  // 联系信息（内联到品牌列）
+  const contactInline = `
+        <div class="footer-contact">
+          <h4>联系</h4>
+          <ul>
+            ${c.email ? `<li><a href="mailto:${escapeAttr(c.email)}">${escapeHtml(c.email)}</a></li>` : ''}
+            ${c.feedback_url ? `<li><a href="${escapeAttr(c.feedback_url)}" target="_blank" rel="noopener">反馈 / 其他</a></li>` : ''}
+          </ul>
+        </div>`;
 
   const social = o.showSocial
     ? (site.social || []).filter(s => s.url).map(s =>
@@ -198,6 +196,7 @@ function renderFooter(site, links, opts) {
         </a>
         <p>${escapeHtml(site.slogan || '')}</p>
         ${social ? `<p class="footer-social">${social}</p>` : ''}
+        ${contactInline}
       </div>
       <div class="footer-col">
         <h4>导航</h4>
@@ -211,11 +210,12 @@ function renderFooter(site, links, opts) {
           ${sisterLinks}
         </ul>
       </div>
-      ${contactHtml}
     </div>${footerAd}
     <div class="container footer-bottom">
       <span>© ${yearText} ${escapeHtml(site.site_name)}${site.disclaimer ? ' · ' + escapeHtml(site.disclaimer) : ''}</span>
       <div class="footer-links">
+        <a href="/sitemap.xml">站点地图</a>
+        <a href="/about.html">关于</a>
         ${site.icp ? `<a href="${escapeAttr(site.icp_url || 'https://beian.miit.gov.cn/')}" target="_blank" rel="noopener">${escapeHtml(site.icp)}</a>` : ''}
         ${footerLinks}
       </div>

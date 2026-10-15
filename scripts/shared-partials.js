@@ -148,7 +148,7 @@ function renderFooter(site, links, opts) {
   const navLinks = navItems.map(l =>
     `<li><a href="${escapeAttr(l.url)}"${l.external ? ' target="_blank" rel="noopener"' : ''}>${escapeHtml(l.label)}</a></li>`
   ).join('\n          ');
-  const navSplit = navItems.length > SPLIT_THRESHOLD ? ' is-split' : '';
+  const navSplit = ' is-split';
 
   // 更多站点列：统一使用 SISTER_SITES，排除本站域名
   const selfDomain = (site.domain || '').replace(/^www\./, '');
@@ -159,7 +159,7 @@ function renderFooter(site, links, opts) {
   const sisterLinks = sisterItems
     .map(s => `<li><a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.label)}</a></li>`)
     .join('\n          ');
-  const sisterSplit = sisterItems.length > SPLIT_THRESHOLD ? ' is-split' : '';
+  const sisterSplit = ' is-split';
   // 联系信息（内联到品牌列）
   const contactInline = `
         <div class="footer-contact">

@@ -47,6 +47,21 @@
 :root { color-scheme: light; accent-color: var(--accent); }
 [data-theme="dark"] { color-scheme: dark; }
 
+/* 大促营销皮肤：double11 / holidays 等专题页在 <body class="theme-sale"> 启用，
+   只覆写品牌令牌不动组件；暗色（data-theme 在 html 上）另组取值保证对比度 */
+body.theme-sale {
+  --accent: #e0342d;
+  --accent-strong: #b52320;
+  --accent-soft: rgba(224, 52, 45, 0.1);
+  --glow-1: rgba(255, 170, 90, .18);
+}
+[data-theme="dark"] body.theme-sale {
+  --accent: #ff7062;
+  --accent-strong: #ff9a90;
+  --accent-soft: rgba(255, 112, 98, 0.16);
+  --glow-1: rgba(255, 170, 90, .14);
+}
+
 * { box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }

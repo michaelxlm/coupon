@@ -615,7 +615,7 @@ details.faq .faq-body { padding: 0 16px 12px; color: var(--text-muted); font-siz
 .footer-links { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* ── footer 列过多时自动分两列（压缩） ── */
-.footer-col ul.is-split { column-count: 2; column-gap: 1.2rem; }
+.footer-col ul.is-split { display: block; column-count: 2; column-gap: 1.2rem; }
 .footer-col ul.is-split a { font-size: 0.8rem; }
 @media (max-width: 720px) {
   .footer-col ul.is-split { column-count: 1; }

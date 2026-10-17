@@ -122,6 +122,10 @@
     '.isl-thumb img{width:100%;height:100%;object-fit:cover;display:block;background:#f3f4f6;}',
     '.isl-name{font-size:12px;line-height:1.3;color:#1f2328;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
     '.isl-tag{font-size:11px;color:#6d28d9;font-weight:600;line-height:1.2;}',
+    // CWV 修复：首帧同高骨架（与实卡行数/行高严格一致），数据到达后原位替换，消除插位布局位移
+    '.isl-skel{pointer-events:none;}',
+    '.isl-skel .isl-name{display:block;width:78%;background:#eef1f4;border-radius:6px;}',
+    '.isl-skel .isl-tag{display:block;width:46%;background:#f1eafd;border-radius:6px;}',
   ].join('');
 
   function injectStyle(doc) {
@@ -228,6 +232,30 @@
   }
 
   /**
+   * 骨架占位卡：与 buildCard 同构同高（thumb 96px + name/tag 等行高占位条），仅用于首帧防位移
+   * @param doc
+   */
+  function buildSkeletonCard(doc) {
+    var a = doc.createElement('div');
+    a.className = 'isl-card isl-skel';
+    a.setAttribute('aria-hidden', 'true');
+    var thumb = doc.createElement('div');
+    thumb.className = 'isl-thumb';
+    a.appendChild(thumb);
+    var body = doc.createElement('div');
+    var name = doc.createElement('span');
+    name.className = 'isl-name';
+    name.textContent = '\u00a0';
+    body.appendChild(name);
+    var tag = doc.createElement('span');
+    tag.className = 'isl-tag';
+    tag.textContent = '\u00a0';
+    body.appendChild(tag);
+    a.appendChild(body);
+    return a;
+  }
+
+  /**
    * 向上找最近的 section 包裹层（图位多包在 <section class="section-sm"> 里）
    * @param el
    */
@@ -281,7 +309,7 @@
     if (sec && sec.style.display === 'none') sec.style.display = '';
   }
 
-  function render(host, images) {
+  function render(host, images, skeleton) {
     var doc = global.document;
     var root = ensureRoot(host);
     host.style.display = 'block';
@@ -323,9 +351,13 @@
 
     var list = doc.createElement('div');
     list.className = 'isl-list';
-    images.slice(0, CONFIG.limit).forEach(function (img) {
-      if (imgUrl(img)) list.appendChild(buildCard(img));
-    });
+    if (skeleton) {
+      for (var i = 0; i < CONFIG.limit; i++) list.appendChild(buildSkeletonCard(doc));
+    } else {
+      images.slice(0, CONFIG.limit).forEach(function (img) {
+        if (imgUrl(img)) list.appendChild(buildCard(img));
+      });
+    }
     wrap.appendChild(list);
 
     if (!light) {
@@ -334,7 +366,7 @@
       root.appendChild(st);
     }
     root.appendChild(wrap);
-    host.setAttribute('data-img-filled', '1');
+    if (!skeleton) host.setAttribute('data-img-filled', '1');
   }
 
   function renderAll(hosts, images) {
@@ -365,6 +397,9 @@
     if (lastImages && lastImages.length && Date.now() - lastFetchAt < 30000) {
       paint(lastImages);
     } else {
+      // CWV 修复：fetch 前先同步渲染同高骨架，数据回来后原位替换（主路径零位移）；
+      // 无数据/失败仍 hideHost（低频一次性上移，可接受）
+      for (var i = 0; i < hosts.length; i++) render(hosts[i], null, true);
       lastFetchAt = Date.now();
       fetchImages(paint);
     }

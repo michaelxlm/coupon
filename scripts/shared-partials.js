@@ -112,7 +112,7 @@ const SISTER_SITES = [
   { label: '年表拾遗 · 20101115.com', url: 'https://20101115.com/' },
   { label: '小满券仓 · coupon.zangeng.com', url: 'https://coupon.zangeng.com/' },
   { label: '一成长笔记 · xuyiheng.com', url: 'https://xuyiheng.com/' },
-  { label: '东北电动车汇 · store.fangkelianmeng.com', url: 'https://store.fangkelianmeng.com/' }
+  { label: '东北电动车汇 · store.fangkelianmeng.com', url: 'https://store.fangkelianmeng.com/' },
 ];
 
 /** 单列超过此数量时自动分两列，控制底部区域高度 */
@@ -255,4 +255,6 @@ module.exports = {
   renderFooter,
   renderAdSlot,
   renderAdSlotSection,
+  SISTER_SITES,
+  SPLIT_THRESHOLD,
 };

@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{TITLE}} · 小满券仓</title>
   <meta name="description" content="{{DESC}}" />
+  <!-- 本文件是模板源件，不应对外服务：默认 noindex 防止裸模板泄漏到生产时被收录（{{TITLE}} 占位页无独立价值）。
+       build-topics.js 生成真实专题页时会把本行改写为 index, follow，落地页照常收录。 -->
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="stylesheet" href="/assets/css/tokens.css?v=2026.10.16" />
   <link rel="stylesheet" href="/assets/css/main.css?v=2026.10.16" />
   <link rel="stylesheet" href="/assets/css/coupon.css?v=2026.10.16" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <!-- nav-seamless:v1 · 原生导航无缝化，由 shared/navigation 单一源注入，请勿手改本块 -->
-  <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*","and":[{"not":{"or":[{"href_matches":"/api/*"},{"href_matches":"/admin/*"},{"href_matches":"/login*"},{"href_matches":"*logout*"}]}}]},"eagerness":"moderate"}]}</script>
+  <script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"or":[{"href_matches":"/api/*"},{"href_matches":"/admin/*"},{"href_matches":"/login*"},{"href_matches":"*logout*"}]}}]},"eagerness":"moderate"}]}</script>
   <style>@view-transition{navigation:auto}</style>
 </head>
 <body data-mode="browse" data-kw="{{KW}}">

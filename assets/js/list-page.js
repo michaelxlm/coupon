@@ -166,10 +166,8 @@
     return list.filter(function (c) { return (c.platform || 'jd') === state.platform; });
   }
   function currentView() { return sortList(filterPlat(state.list).filter(matchPrice)); }
-  function maybeShowPlat(list) {
-    var bar = $('cpPlat');
-    if (bar && list && list.some(function (c) { return c && c.platform !== undefined; })) bar.hidden = false;
-  }
+  // 平台展示名（chip 标签用）
+  var PLATFORM_LABELS = { jd: '京东', taobao: '淘宝', pdd: '拼多多', douyin: '抖音', other: '其他' };
   function ensurePlatBar() {
     if ($('cpPlat')) return;
     var host = global.document.querySelector('.cp-toolbar');
@@ -179,8 +177,23 @@
     bar.setAttribute('role', 'group');
     bar.setAttribute('aria-label', '平台筛选');
     bar.hidden = true;
-    [ [ '', '全部' ], [ 'jd', '京东' ], [ 'taobao', '淘宝' ], [ 'pdd', '拼多多' ] ].forEach(function (o) {
-      var b = el('button', 'cp-plat-chip' + (o[0] === '' ? ' is-active' : ''), o[1]);
+    host.appendChild(bar);
+  }
+  // chip 按已加载数据里真实出现的平台生成：
+  // 旧实现写死 京东/淘宝/拼多多，数据单一平台时多数 chip 恒为 0 成「死入口」。
+  // 现在只渲染确有数据的平台；单一平台时整条收起（筛选无意义，避免假条目误导）。
+  function rebuildPlatBar() {
+    var bar = $('cpPlat');
+    if (!bar) return;
+    var seen = {};
+    state.list.forEach(function (c) { if (c) seen[c.platform || 'jd'] = 1; });
+    var plats = Object.keys(seen);
+    if (plats.length <= 1) { bar.hidden = true; bar.innerHTML = ''; return; }
+    if (state.platform && !seen[state.platform]) state.platform = ''; // 选中平台已不在数据里 → 回「全部」
+    bar.hidden = false;
+    bar.innerHTML = '';
+    [ [ '', '全部' ] ].concat(plats.map(function (p) { return [ p, PLATFORM_LABELS[p] || p ]; })).forEach(function (o) {
+      var b = el('button', 'cp-plat-chip' + (state.platform === o[0] ? ' is-active' : ''), o[1]);
       b.type = 'button';
       b.setAttribute('data-plat', o[0]);
       b.addEventListener('click', function () {
@@ -190,7 +203,6 @@
       });
       bar.appendChild(b);
     });
-    host.appendChild(bar);
   }
 
   function buildCard(c) {
@@ -310,7 +322,7 @@
   }
 
   function render(list, append) {
-    maybeShowPlat(list);
+    rebuildPlatBar();
     if (!append) grid.innerHTML = '';
     if (!list.length) {
       if (!append) { showStatus(state.price && state.list.length ? '已加载的券里没有符合该价格区间的，试试更大区间或加载更多。' : '暂无优惠券，换个关键词或稍后再试。'); }

@@ -425,7 +425,7 @@ ${grid}
   <script src="/assets/js/store.js"></script>
   <script src="/assets/js/list-page.js"></script>
   <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
-  <script src="https://antucao.oss-cn-beijing.aliyuncs.com/js/ad-slots.js" defer></script>
+  <script src="/assets/js/ad-slots.js" defer></script>
 </body>
 </html>
 `;

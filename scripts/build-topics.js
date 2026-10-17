@@ -20,7 +20,9 @@ topics.forEach(function (t) {
     .split('{{SLUG}}').join(t.slug)
     .split('{{KW}}').join(t.kw)
     .split('{{TITLE}}').join(t.title)
-    .split('{{DESC}}').join(t.desc || '');
+    .split('{{DESC}}').join(t.desc || '')
+    // 模板源件默认 noindex（防裸模板被收录）；生成的真实专题落地页恢复 index, follow 照常收录
+    .split('content="noindex, nofollow"').join('content="index, follow"');
   fs.writeFileSync(path.join(outDir, t.slug + '.html'), html, 'utf8');
   console.log('[build-topics] 生成 topic/' + t.slug + '.html');
   n++;

@@ -1,0 +1,26 @@
+# 小满券仓 · 领券中心
+
+> 实时聚合全网优惠券、满减券与品类券，支持分类、榜单与比价，先领券再下单更省。
+
+URL: https://coupon.zangeng.com
+Language: zh-CN
+
+## 浏览与发现
+
+- [首页](https://coupon.zangeng.com/index.html): 今日热门券与入口
+- [全部券](https://coupon.zangeng.com/browse.html): 按时间浏览全部优惠券
+- [分类](https://coupon.zangeng.com/category.html): 按品类筛选优惠券
+- [榜单](https://coupon.zangeng.com/rank.html): 热度/折扣排行
+- [大促专题](https://coupon.zangeng.com/double11.html): 双十一等大促聚合
+- [节日券](https://coupon.zangeng.com/holidays.html): 按节日整理的券
+
+## 工具与记录
+
+- [比价计算器](https://coupon.zangeng.com/calculator.html): 叠加优惠算实付
+- [收藏](https://coupon.zangeng.com/favorites.html): 关注的券与店铺
+- [领券攻略](https://coupon.zangeng.com/guide.html): 省钱方法与注意事项
+- [关于](https://coupon.zangeng.com/about.html): 数据来源与免责说明
+
+## Sitemap
+
+- [Full URL index](https://coupon.zangeng.com/sitemap.xml): 全部页面清单（约 17 条 URL）

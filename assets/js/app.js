@@ -264,7 +264,10 @@
     if (!dev) return;
     global.addEventListener('load', function () {
       global.navigator.serviceWorker.ready.then(function (reg) {
-        global.fetch('https://api.xuyiheng.com/api/v1/front/coupon/push/vapid', { cache: 'no-store' })
+        // 携带 mainUrl 过后端 sourceGuard 来源守卫（与 /coupon/jd/* 同一口径）；
+        // 不传会被守卫拦成空数据（pk 为空），使「降价提醒」静默不可用。
+        var mainUrl = (global.location && global.location.hostname) || 'coupon.zangeng.com';
+        global.fetch('https://api.xuyiheng.com/api/v1/front/coupon/push/vapid?mainUrl=' + encodeURIComponent(mainUrl), { cache: 'no-store' })
           .then(function (r) { return r.json(); }).then(function (j) {
             var pk = j && j.data && j.data.publicKey;
             if (!pk) return; // 未配置 VAPID：跳过订阅，仍可用「我的降价提醒」列表
@@ -275,7 +278,7 @@
                   var raw = s.toJSON ? s.toJSON() : s;
                   global.fetch('https://api.xuyiheng.com/api/v1/front/coupon/push/subscribe', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ deviceId: dev, subscription: raw }),
+                    body: JSON.stringify({ deviceId: dev, subscription: raw, mainUrl: mainUrl }),
                   }).catch(function () { /* 忽略 */ });
                 };
                 if (sub) { doSub(sub); return; }

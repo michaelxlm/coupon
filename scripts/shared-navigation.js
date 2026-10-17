@@ -44,8 +44,10 @@ function buildRules(opts) {
     prefetch: [
       {
         where: {
-          href_matches: '/*',
-          and: [{ not: { or: not } }],
+          and: [
+            { href_matches: '/*' },
+            { not: { or: not } },
+          ],
         },
         eagerness,
       },

@@ -236,14 +236,28 @@ function renderAdSlot(position, opts) {
 }
 
 /**
+ * 美图位占位（裸元素，参考优惠券位同构）：<div class="img-slot" data-img-slot="strip"></div>
+ * 运行时由自托管 img-slot.js 扫描渲染（数据源 /api/v1/front/antucao/image/sample）
+ * @param position
+ * @param opts
+ */
+function renderImgSlot(position, opts) {
+  const cls = (opts && opts.cls) ? `img-slot ${opts.cls}` : 'img-slot';
+  return `<div class="${cls}" data-img-slot="${escapeAttr(position)}"></div>`;
+}
+
+/**
  * 广告位整节（含 section + container 约束到内容宽度）
  * @param position
  * @param opts
  */
 function renderAdSlotSection(position, opts) {
-  const slot = (opts && opts.type === 'coupon')
+  const type = opts && opts.type;
+  const slot = type === 'coupon'
     ? `<div class="coupon-slot" data-coupon-slot="${escapeAttr(position)}"></div>`
-    : renderAdSlot(position, opts);
+    : type === 'img'
+      ? renderImgSlot(position, opts)
+      : renderAdSlot(position, opts);
   return `<section class="section-sm"><div class="container">${slot}</div></section>`;
 }
 
@@ -254,6 +268,7 @@ module.exports = {
   renderHeader,
   renderFooter,
   renderAdSlot,
+  renderImgSlot,
   renderAdSlotSection,
   SISTER_SITES,
   SPLIT_THRESHOLD,

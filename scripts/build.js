@@ -413,6 +413,7 @@ ${grid}
         </div>
 
         <p class="cp-note">优惠券展示与核销由各平台官方活动页完成，本站仅作内容聚合与跳转，不参与交易。</p>
+        <div class="img-slot" data-img-slot="strip"></div>
       </div>
     </section>
   </main>
@@ -426,6 +427,8 @@ ${grid}
   <script src="/assets/js/list-page.js"></script>
   <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
   <script src="/assets/js/ad-slots.js" defer></script>
+  <script>window.ImgSlotConfig={mainUrl:"coupon.zangeng.com",moreUrl:"https://img.fangkelianmeng.com/"};</script>
+  <script src="/assets/js/img-slot.js" defer></script>
 </body>
 </html>
 `;

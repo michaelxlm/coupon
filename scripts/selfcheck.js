@@ -71,5 +71,8 @@ for (const name of STATIC_PAGES) {
 if (vCount === 0) ok('未发现残留 ?v= 手工版本号（指纹已生效）');
 else warn('仍有 ' + vCount + ' 处 ?v= 手工版本号，fingerprint.js 可能未运行（不影响功能，仅缓存非最优）');
 
+// 4) WCAG accent 白字对比度门禁（审计 T4）
+for (const p of require('./check-wcag')()) err('WCAG: ' + p);
+
 console.log('[selfcheck] 完成：' + errors + ' 错误 / ' + warnings + ' 警告');
 process.exit(errors > 0 ? 1 : 0);

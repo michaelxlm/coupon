@@ -589,7 +589,11 @@
   background: var(--bg);
   color: var(--text-muted);
   font-size: 0.75rem;
-  padding: 2px 10px;
+  padding: 0 14px;
+  /* 触控目标 ≥44px（审计 T5）：降价提醒胶囊 */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border-radius: 999px;
   cursor: pointer;
   font-family: inherit;
@@ -605,8 +609,9 @@
   right: 18px;
   bottom: 22px;
   z-index: 50;
-  width: 42px;
-  height: 42px;
+  /* 触控目标 ≥44px（审计 T5） */
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--border-strong);
   border-radius: 50%;
   background: var(--surface);

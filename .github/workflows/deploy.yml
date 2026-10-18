@@ -26,22 +26,34 @@ jobs:
           mkdir -p /root/.ssh && chmod 700 /root/.ssh
           ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /root/.ssh/known_hosts 2>/dev/null
       - uses: actions/checkout@v4
-      - name: Setup Node (for prerender)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: Encoding gate (UTF-8 only)
+        shell: bash
+        run: |
+          # 八站统一编码门禁（静态网站字符编码规范）：非 UTF-8/带 BOM 即中断部署，防乱码上线
+          node scripts/check-encoding.js
       - name: Pre-render coupons (SEO / 百度可索引)
         shell: bash
+        # 八站统一 Node 口径：优先用服务器已装 Node，避免 setup-node 在 self-hosted 上重复下载
         # fail-soft：build.js 内部已捕获所有异常并 exit 0，取不到券/上游不可达时保持原 HTML，绝不阻断部署
-        run: node scripts/build.js
+        run: |
+          NODE=/www/server/nodejs/v20.18.3/bin/node
+          [ -x "$NODE" ] || NODE=node
+          echo "[info] node: $NODE ($($NODE -v))"
+          $NODE scripts/build.js
       # 内容哈希指纹：为静态资源生成 <name>.<hash>.<ext> 并改写 HTML/CSS 引用（配合服务器 immutable 长缓存）。须排在 build.js 之后
       - name: Content hash fingerprint
         shell: bash
-        run: node scripts/fingerprint.js
+        run: |
+          NODE=/www/server/nodejs/v20.18.3/bin/node
+          [ -x "$NODE" ] || NODE=node
+          $NODE scripts/fingerprint.js
       # 部署前质量门：chrome 标记 / 兜底快照 / 指纹生效校验（关键项失败则阻断 sync）
       - name: Self check
         shell: bash
-        run: node scripts/selfcheck.js
+        run: |
+          NODE=/www/server/nodejs/v20.18.3/bin/node
+          [ -x "$NODE" ] || NODE=node
+          $NODE scripts/selfcheck.js
       - name: Sync to /www/wwwroot/coupon.zangeng.com
         shell: bash
         run: |

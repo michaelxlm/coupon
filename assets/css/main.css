@@ -7,6 +7,11 @@
   --accent: #3b6cff;
   --accent-strong: #2b52d8;
   --accent-soft: rgba(59, 108, 255, 0.1);
+  /* 白字专用深阶：凡 background:accent + 白字 的载体一律用它，保 WCAG AA ≥4.5:1（审计 T4） */
+  --accent-solid: #2b52d8;
+  --accent-solid-hover: #3560e8;
+  /* 「即将失效」徽标文字色：浅底深字/深底亮字，替代硬编码 #b45309（对比 2.34） */
+  --expire-fg: #92400e;
 
   --bg: #ffffff;
   --bg-soft: #f6f8fc;
@@ -27,6 +32,9 @@
   --accent: #6b90ff;
   --accent-strong: #8aa6ff;
   --accent-soft: rgba(107, 144, 255, 0.16);
+  --accent-solid: #2563eb;
+  --accent-solid-hover: #3560e8;
+  --expire-fg: #fcd34d;
 
   --bg: #0d1119;
   --bg-soft: #121826;
@@ -53,12 +61,16 @@ body.theme-sale {
   --accent: #e0342d;
   --accent-strong: #b52320;
   --accent-soft: rgba(224, 52, 45, 0.1);
+  --accent-solid: #b52320;
+  --accent-solid-hover: #9c1d1a;
   --glow-1: rgba(255, 170, 90, .18);
 }
 [data-theme="dark"] body.theme-sale {
   --accent: #ff7062;
   --accent-strong: #ff9a90;
   --accent-soft: rgba(255, 112, 98, 0.16);
+  --accent-solid: #b52320;
+  --accent-solid-hover: #c62a25;
   --glow-1: rgba(255, 170, 90, .14);
 }
 
@@ -96,7 +108,7 @@ img { max-width: 100%; display: block; }
   transform: translate(-50%, -160%);
   padding: 10px 18px;
   border-radius: var(--radius-sm);
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
@@ -166,11 +178,11 @@ section[id] { scroll-margin-top: calc(var(--header-h) + 20px); }
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: none; }
 .btn-primary {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   box-shadow: 0 6px 18px rgba(59, 108, 255, .28);
 }
-.btn-primary:hover { background: var(--accent-strong); color: #fff; }
+.btn-primary:hover { background: var(--accent-solid-hover); color: #fff; }
 .btn-ghost {
   background: var(--surface);
   border-color: var(--border-strong);
@@ -223,7 +235,7 @@ section[id] { scroll-margin-top: calc(var(--header-h) + 20px); }
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 800;
@@ -389,7 +401,7 @@ section[id] { scroll-margin-top: calc(var(--header-h) + 20px); }
   left: 26px;
   padding: 3px 12px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 700;
@@ -517,11 +529,11 @@ details.faq .faq-body { padding: 0 16px 12px; color: var(--text-muted); font-siz
 .cta-band h2 { color: var(--text); }
 .cta-band p { margin-top: 12px; color: var(--text-muted); font-size: 1.0625rem; }
 .cta-band .btn-primary {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   box-shadow: 0 10px 26px var(--accent-soft);
 }
-.cta-band .btn-primary:hover { background: var(--accent-strong); color: #fff; }
+.cta-band .btn-primary:hover { background: var(--accent-solid-hover); color: #fff; }
 .cta-note { margin-top: 14px; color: var(--text-soft); font-size: 0.8125rem; }
 
 /* ---------------------------------- 联系 ---------------------------------- */

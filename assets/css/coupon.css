@@ -623,3 +623,332 @@
 }
 .cp-back-top[hidden] { display: none; }
 .cp-back-top:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------- W1 券详情页 /p/<id> ------------------------- */
+.pd-crumbs { font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 14px; }
+.pd-crumbs a { color: var(--text-muted); text-decoration: none; }
+.pd-crumbs a:hover { color: var(--accent); }
+.pd-grid { display: grid; grid-template-columns: 320px 1fr; gap: 28px; align-items: start; }
+@media (max-width: 720px) { .pd-grid { grid-template-columns: 1fr; } }
+.pd-media img { width: 100%; height: auto; border-radius: var(--radius, 12px); border: 1px solid var(--border); background: var(--surface); aspect-ratio: 1 / 1; object-fit: contain; }
+.pd-title { font-size: 1.375rem; line-height: 1.35; margin: 0 0 12px; }
+.pd-power {
+  display: inline-block;
+  background: var(--coupon-red);
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 800;
+  padding: 6px 18px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
+.pd-final { font-size: 1.0625rem; color: var(--text-muted); margin-bottom: 8px; }
+.pd-final strong { color: var(--coupon-red); font-size: 1.75rem; margin-left: 4px; }
+.pd-expire { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 14px; }
+.pd-expire.is-urgent { color: var(--coupon-red); font-weight: 700; }
+.pd-cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.pd-claim { flex: 1 1 200px; text-align: center; }
+.pd-alert.is-on { background: var(--coupon-red); border-color: var(--coupon-red); color: #fff; }
+.pd-note { font-size: 0.8125rem; color: var(--text-muted); line-height: 1.7; }
+.pd-trend { min-height: 168px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius, 12px); padding: 12px; display: flex; align-items: center; }
+.pd-trend svg { display: block; width: 100%; height: auto; }
+
+/* ------------------------- W2 降价热榜 /drops.html ------------------------- */
+.dp-drop {
+  display: inline-flex;
+  align-items: center;
+  background: #16a34a;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  margin-left: 6px;
+}
+
+/* ------------------------- W4 首页情报条 / Top10 / 氛围条 ------------------------- */
+.cp-intel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 18px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  width: fit-content;
+  max-width: 100%;
+}
+.cp-intel b { color: var(--coupon-red); font-size: 1.0625rem; font-variant-numeric: tabular-nums; }
+.cp-intel-sep { color: var(--border-strong); }
+.cp-intel-link { margin-left: auto; color: var(--accent); text-decoration: none; font-weight: 600; white-space: nowrap; }
+.cp-intel-link:hover { text-decoration: underline; }
+.cp-mood { margin-top: 12px; font-size: 0.875rem; }
+.cp-mood a {
+  display: inline-block;
+  background: var(--coupon-red-soft);
+  color: var(--coupon-red);
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  animation: cp-mood-blink 2.4s ease-in-out infinite;
+}
+.cp-mood a:hover { text-decoration: none; filter: brightness(0.95); }
+@keyframes cp-mood-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+@media (prefers-reduced-motion: reduce) { .cp-mood a { animation: none; } }
+.cp-top10 {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.cp-top-chip {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.cp-top-chip:hover { border-color: var(--coupon-red); transform: translateY(-2px); }
+.cp-top-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--coupon-red-soft);
+  color: var(--coupon-red);
+  font-weight: 800;
+  font-size: 0.75rem;
+  flex: 0 0 auto;
+}
+.cp-top-chip:nth-child(-n+3) .cp-top-rank { background: var(--coupon-red); color: #fff; }
+.cp-top-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-top-off { color: var(--coupon-red); font-weight: 700; white-space: nowrap; }
+
+/* ------------------------- W5 推送底部引导条（app.js initPushGuide） ------------------------- */
+.pg-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 96;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  max-width: min(680px, calc(100vw - 24px));
+  padding: 12px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .14);
+  font-size: 0.875rem;
+  color: var(--text);
+}
+.pg-text { flex: 1 1 220px; min-width: 0; line-height: 1.5; }
+.pg-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.pg-btn--go { background: var(--coupon-red); border-color: var(--coupon-red); color: #fff; }
+.pg-btn--go:hover { filter: brightness(.95); text-decoration: none; color: #fff; }
+.pg-btn--later { color: var(--text-muted); }
+.pg-btn--later:hover { border-color: var(--text-muted); }
+@media (max-width: 640px) {
+  .pg-banner { bottom: 10px; padding: 10px 12px; }
+  .pg-btn--later { display: none; } /* 拇指区只留主 CTA，关闭由「以后再说」以外手势退出 */
+}
+
+/* ------------------------- W5 降价提醒中心 /my-alerts.html ------------------------- */
+.ma-push { border: 1px solid var(--border); border-radius: var(--radius, 12px); background: var(--surface); padding: 16px; }
+.ma-push-row { display: flex; align-items: center; gap: 12px; }
+.ma-push-icon { font-size: 1.5rem; flex: 0 0 auto; }
+.ma-push-row > div { flex: 1 1 auto; min-width: 0; }
+.ma-push-status { margin: 4px 0 0; font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
+.ma-push-btn { flex: 0 0 auto; }
+.ma-ios {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius, 12px);
+  background: var(--coupon-red-soft, rgba(220, 38, 38, .06));
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.ma-ios ol { margin: 6px 0 8px; padding-left: 22px; }
+.ma-ios b { color: var(--coupon-red); }
+.ma-cell {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  background: var(--surface);
+}
+.ma-cell.is-hit { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, .12); }
+.ma-img { flex: 0 0 84px; width: 84px; height: 84px; border-radius: 10px; overflow: hidden; background: var(--surface-2, #f3f4f6); }
+.ma-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ma-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.ma-title { font-weight: 700; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ma-cmp { font-size: 0.8125rem; color: var(--text-muted); line-height: 1.7; }
+.ma-cmp b { font-weight: 700; }
+.ma-hit-txt { color: #16a34a; }
+.ma-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.btn-sm { padding: 5px 12px; font-size: 0.8125rem; border-radius: 8px; }
+.ma-claim { background: var(--coupon-red); border-color: var(--coupon-red); color: #fff; text-decoration: none; }
+.ma-claim:hover { filter: brightness(.95); color: #fff; text-decoration: none; }
+.ma-unsub { color: var(--text-muted); }
+@media (max-width: 640px) {
+  .ma-cell { padding: 12px; }
+  .ma-img { flex-basis: 64px; width: 64px; height: 64px; }
+  .ma-push-row { flex-wrap: wrap; }
+  .ma-push-btn { width: 100%; }
+}
+
+/* ------------------------- W5 今日省钱挑战条（challenge.js） ------------------------- */
+.ch-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--coupon-red-soft, rgba(228, 57, 60, .06));
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.ch-bar.is-new { border-color: var(--coupon-red); box-shadow: 0 0 0 3px var(--coupon-red-soft, rgba(228, 57, 60, .12)); }
+.ch-fire { font-size: 1.25rem; flex: 0 0 auto; }
+.ch-text { flex: 1 1 240px; min-width: 0; color: var(--text); }
+.ch-text b { color: var(--coupon-red); font-variant-numeric: tabular-nums; }
+.ch-share {
+  flex: 0 0 auto;
+  padding: 7px 16px;
+  border: none;
+  border-radius: 10px;
+  background: var(--coupon-red);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ch-share:hover { filter: brightness(.95); }
+
+/* ------------------------- W3 长文导购页 /guides/*（build.js guide*Shell） ------------------------- */
+/* 索引页卡列表 */
+.gd-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.gd-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+}
+.gd-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow, 0 6px 24px rgba(0, 0, 0, .08)); transform: translateY(-2px); text-decoration: none; }
+.gd-item img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 10px; background: var(--surface-2, #f3f4f6); }
+.gd-item-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.gd-item-body h3 { margin: 0; font-size: 1.0625rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gd-item-body p { margin: 0; font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.gd-date { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+/* 文章页 */
+.gd-article .container { max-width: 760px; }
+.gd-crumb { font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 12px; }
+.gd-crumb a { color: var(--text-muted); text-decoration: none; }
+.gd-crumb a:hover { color: var(--coupon-red); }
+.gd-article h1 { font-size: 1.6rem; line-height: 1.35; margin: 0 0 8px; }
+.gd-meta { font-size: 0.8125rem; color: var(--text-muted); margin: 0 0 18px; }
+.gd-img { width: 100%; border-radius: 12px; margin: 0 0 16px; background: var(--surface-2, #f3f4f6); }
+.gd-body { font-size: 1rem; line-height: 1.85; color: var(--text); word-break: break-word; }
+.gd-body h2 { font-size: 1.25rem; line-height: 1.5; margin: 26px 0 10px; padding-left: 10px; border-left: 4px solid var(--coupon-red); }
+.gd-body h3 { font-size: 1.0625rem; margin: 20px 0 8px; }
+.gd-body h4 { font-size: 1rem; margin: 16px 0 6px; }
+.gd-body p { margin: 0 0 14px; }
+.gd-body ul { margin: 0 0 14px; padding-left: 22px; }
+.gd-body li { margin: 4px 0; }
+.gd-body a { color: var(--coupon-red); text-decoration: none; }
+.gd-body a:hover { text-decoration: underline; }
+.gd-body strong { color: var(--coupon-red); }
+.gd-body hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+.gd-coupon-cta { margin: 22px 0; }
+.gd-coupon-cta .btn { display: inline-flex; }
+.gd-note {
+  margin: 20px 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius, 12px);
+  background: var(--coupon-red-soft, rgba(220, 38, 38, .06));
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+.gd-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.gd-tag {
+  display: inline-flex;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+.gd-tag:hover { border-color: var(--coupon-red); color: var(--coupon-red); text-decoration: none; }
+.gd-related { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); }
+.gd-related h2 { font-size: 1.125rem; margin: 0 0 12px; }
+.gd-more-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.gd-more {
+  display: block;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.gd-more:hover { border-color: var(--coupon-red); color: var(--coupon-red); text-decoration: none; }
+@media (max-width: 640px) {
+  .gd-article h1 { font-size: 1.35rem; }
+  .gd-more-list { grid-template-columns: 1fr; }
+}
+
+

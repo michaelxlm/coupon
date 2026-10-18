@@ -3,12 +3,15 @@
    —— 导航请求：网络优先，失败回退缓存首页 / 快照，断网也能浏览已缓存券。
       静态资源：缓存优先，后台更新。不拦截 API（/api/）请求，保证数据实时。
    ========================================================================== */
-const CACHE = 'coupon-v1';
+const CACHE = 'coupon-v2';
 const CORE = [
   '/', '/index.html',
   '/assets/css/tokens.css', '/assets/css/main.css', '/assets/css/coupon.css',
   '/assets/js/tracker.js', '/assets/js/app.js', '/assets/js/store.js',
-  '/assets/js/share.js', '/assets/js/coupon-page.js', '/assets/js/activities.js',
+  '/assets/js/share.js', '/assets/js/qrcode.js', '/assets/js/coupon-page.js', '/assets/js/activities.js',
+  '/assets/js/challenge.js',
+  '/assets/js/detail-page.js', '/assets/js/drops-page.js', '/assets/js/my-alerts.js',
+  '/drops.html', '/my-alerts.html',
   '/data/coupon-snapshot.json'
 ];
 

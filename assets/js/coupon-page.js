@@ -31,6 +31,7 @@
   // 竞态令牌：每次触发一次「视图级」加载就自增，回调仅当令牌仍为最新时才落 DOM
   var viewToken = 0;
 
+  var doc = global.document; // 本模块多处用裸 doc 建 DOM（Top10/热搜词/氛围条/sparkline），口径同 drops-page.js/detail-page.js
   function $(id) { return global.document.getElementById(id); }
 
   // 构建期快照：后端不可达时回退渲染最近一次成功取到的券（data/coupon-snapshot.json，nginx 已放行）
@@ -421,6 +422,93 @@
     }, 1000);
   }
 
+  /* ---------------- W4 情报条 / 今日必抢 Top10 / 失效氛围条（本地对已加载数据估算，无埋点无 PII） ---------------- */
+  var intel = { top10Done: false, moodTimer: 0 };
+
+  function money(v) {
+    v = Number(v) || 0;
+    return v >= 10000 ? (Math.round(v / 100) / 100) + ' 万' : String(Math.round(v));
+  }
+
+  function renderIntelBar() {
+    var bar = $('cpIntelBar');
+    if (!bar || !state.list.length) return;
+    var sum = 0;
+    state.list.forEach(function (c) { sum += Number(c.couponDiscount) || 0; });
+    var n1 = $('cpIntelCount'), n2 = $('cpIntelSave');
+    if (n1) n1.textContent = String(state.list.length);
+    if (n2) n2.textContent = money(sum);
+    bar.hidden = false;
+  }
+
+  // 与券卡同口径的跳转链（clickURL → couponUrl → item_url）
+  function linkOf(c) {
+    return safeUrl(c.clickURL) || safeUrl(c.couponUrl) || safeUrl(c.item_url) || '';
+  }
+
+  // Top10 分数：省钱力度 + 新鲜度加权（今日新增 +50），与 saveScore/build.js 同口径基础上叠加
+  function topScore(c) {
+    var s = saveScore(c);
+    var ct = Number(c.createTime) || 0;
+    if (ct && Date.now() - ct < 86400000) s += 50;
+    return s;
+  }
+
+  function renderTop10() {
+    var wrap = $('cpTop10Wrap'), box = $('cpTop10');
+    if (!wrap || !box || intel.top10Done || state.list.length < 3) return;
+    var top = state.list.slice().sort(function (a, b) { return topScore(b) - topScore(a); }).slice(0, 10);
+    intel.top10Done = true;
+    box.innerHTML = '';
+    top.forEach(function (c, i) {
+      var link = linkOf(c);
+      if (!link) return;
+      var a = doc.createElement('a');
+      a.className = 'cp-top-chip';
+      a.href = link;
+      a.target = '_blank';
+      a.rel = 'sponsored noopener';
+      a.setAttribute('role', 'listitem');
+      a.setAttribute('data-track', 'top10_click');
+      a.setAttribute('data-track-props', JSON.stringify({ pos: i + 1, coupon_id: String(c.tao_id || c._id || '') }));
+      var off = Number(c.couponDiscount) || 0, quota = Number(c.couponQuota) || 0;
+      var rank = el('span', 'cp-top-rank', String(i + 1));
+      var name = el('span', 'cp-top-name', String(c.title || '优惠券').slice(0, 18));
+      a.appendChild(rank); a.appendChild(name);
+      if (off > 0) a.appendChild(el('span', 'cp-top-off', quota > 0 ? ('满' + quota + '减' + off) : ('¥' + off)));
+      box.appendChild(a);
+    });
+    if (box.children.length) wrap.hidden = false;
+  }
+
+  // 临近失效氛围条：48h 内到期的券轮播（每 5s 一换），营造实时紧迫感；无则隐藏
+  function renderMoodBar() {
+    var bar = $('cpMoodBar');
+    if (!bar) return;
+    var soon = state.list.filter(function (c) {
+      var ms = endMs(c.couponEndTime);
+      return ms > Date.now() && ms - Date.now() < 48 * 3600000;
+    }).sort(function (a, b) { return endMs(a.couponEndTime) - endMs(b.couponEndTime); }).slice(0, 8);
+    clearInterval(intel.moodTimer);
+    if (!soon.length) { bar.hidden = true; return; }
+    var idx = 0;
+    function show() {
+      var c = soon[idx % soon.length];
+      var hrs = Math.max(1, Math.round((endMs(c.couponEndTime) - Date.now()) / 3600000));
+      bar.innerHTML = '';
+      var a = doc.createElement('a');
+      a.href = linkOf(c) || '#';
+      if (linkOf(c)) { a.target = '_blank'; a.rel = 'sponsored noopener'; }
+      a.setAttribute('data-track', 'mood_click');
+      a.textContent = '⏰ 即将失效：' + String(c.title || '优惠券').slice(0, 20) + ' · 剩 ' + hrs + ' 小时';
+      bar.appendChild(a);
+      idx++;
+    }
+    show();
+    bar.hidden = false;
+    intel.moodTimer = setInterval(show, 5000);
+  }
+
   function render(list, append) {
     rebuildPlatBar();
     if (!append) grid.innerHTML = '';
@@ -432,6 +520,8 @@
     list.forEach(function (c) { var card = buildCard(c); grid.appendChild(card); attachStar(card, c); });
     // 动态新增的券卡带 data-case，通知归因层补观察（否则首屏 boot 时的 observer 覆盖不到）
     if (global.Conv && global.Conv.reobserve) global.Conv.reobserve();
+    // W4：情报条 / Top10 / 氛围条（基于当前已加载集合，静默降级）
+    try { renderIntelBar(); renderTop10(); renderMoodBar(); } catch (e) { /* 忽略 */ }
   }
 
   // 状态区（aria-live 已在 index.html 上声明），带错误态重试按钮

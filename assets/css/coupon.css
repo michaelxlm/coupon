@@ -110,6 +110,40 @@
 }
 .cp-search button:hover { background: var(--accent-strong); }
 
+/* 输入联想下拉（需求 4）：锁定定位到 .cp-search（JS 置 position:relative），候选项复用主题 token，明暗自适应 */
+.cp-suggest {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: var(--z-dropdown);
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+.cp-suggest[hidden] { display: none; }
+.cp-suggest-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.cp-suggest-item:hover { background: var(--accent-soft); color: var(--accent); }
+
 /* ---------------------------------- 优惠券网格 ---------------------------------- */
 .cp-grid {
   display: grid;

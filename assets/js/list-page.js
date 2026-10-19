@@ -85,6 +85,13 @@
     return d <= 1 ? '即将到期' : (d + '天后失效');
   }
 
+  // 即将失效排序权重（需求 4）：有未来到期时间者按到期早晚升序（越早越前）；无到期/已过期一律排最后。
+  // 与 coupon-page.js 同口径。
+  function expireRank(c) {
+    var ms = endMs(c && c.couponEndTime);
+    return (ms && ms > Date.now()) ? ms : Number.MAX_SAFE_INTEGER;
+  }
+
   function safeUrl(u) {
     if (typeof u !== 'string') return '';
     var v = u.trim();
@@ -154,7 +161,7 @@
     var arr = list.slice();
     if (state.sort === 'value') arr.sort(function (a, b) { var d = saveScore(b) - saveScore(a); return d !== 0 ? d : ((Number(a.price) || 0) - (Number(b.price) || 0)); });
     else if (state.sort === 'discount') arr.sort(function (a, b) { return (Number(b.couponDiscount) || 0) - (Number(a.couponDiscount) || 0); });
-    else if (state.sort === 'expire') arr.sort(function (a, b) { return endMs(a.couponEndTime) - endMs(b.couponEndTime); });
+    else if (state.sort === 'expire') arr.sort(function (a, b) { return expireRank(a) - expireRank(b); });
     else if (state.sort === 'priceAsc') arr.sort(function (a, b) { return (Number(a.price) || 0) - (Number(b.price) || 0); });
     else if (state.sort === 'priceDesc') arr.sort(function (a, b) { return (Number(b.price) || 0) - (Number(a.price) || 0); });
     return arr;

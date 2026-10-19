@@ -30,6 +30,8 @@
   var memCache = {};
   // 竞态令牌：每次触发一次「视图级」加载就自增，回调仅当令牌仍为最新时才落 DOM
   var viewToken = 0;
+  // 已缓存热搜词（loadHotWords 填充），供输入联想子串匹配
+  var hotWords = [];
 
   var doc = global.document; // 本模块多处用裸 doc 建 DOM（Top10/热搜词/氛围条/sparkline），口径同 drops-page.js/detail-page.js
   function $(id) { return global.document.getElementById(id); }
@@ -77,6 +79,13 @@
     if (diff <= 0) return '';
     var d = Math.ceil(diff / 86400000);
     return d <= 1 ? '即将到期' : (d + '天后失效');
+  }
+
+  // 即将失效排序权重（需求 4）：有未来到期时间者按到期早晚升序（越早越前）；无到期/已过期一律排最后。
+  // 与 list-page.js 同口径。
+  function expireRank(c) {
+    var ms = endMs(c && c.couponEndTime);
+    return (ms && ms > Date.now()) ? ms : Number.MAX_SAFE_INTEGER;
   }
 
   function safeUrl(u) {
@@ -156,6 +165,7 @@
     var arr = list.slice();
     if (state.sort === 'value') arr.sort(function (a, b) { var d = saveScore(b) - saveScore(a); return d !== 0 ? d : ((Number(a.price) || 0) - (Number(b.price) || 0)); });
     else if (state.sort === 'discount') arr.sort(function (a, b) { return (Number(b.couponDiscount) || 0) - (Number(a.couponDiscount) || 0); });
+    else if (state.sort === 'expire') arr.sort(function (a, b) { return expireRank(a) - expireRank(b); });
     else if (state.sort === 'priceAsc') arr.sort(function (a, b) { return (Number(a.price) || 0) - (Number(b.price) || 0); });
     else if (state.sort === 'priceDesc') arr.sort(function (a, b) { return (Number(b.price) || 0) - (Number(a.price) || 0); });
     return arr;
@@ -221,30 +231,94 @@
     }, { cache: true });
   }
 
-  // 热搜词（M6）：服务端 Redis zset 计数 TopN，渲染「大家都在搜」
+  // 热搜词（M6）：服务端 Redis zset 计数 TopN，渲染「大家都在搜」+ 供输入联想复用
+  // 取 30 条缓存进 hotWords（联想用），「大家都在搜」仅展示前 12 条
   function loadHotWords() {
     var box = $('cpHotWords');
-    if (!box) return;
-    var url = buildUrl('/hotwords', [ [ 'limit', 12 ] ]);
+    var url = buildUrl('/hotwords', [ [ 'limit', 30 ] ]);
     request(url, function (err, d) {
       if (err) return;
       var list = (d && d.list) || [];
-      if (!list.length) { box.hidden = true; return; }
+      hotWords = list.map(function (h) { return (h && h.word) || ''; }).filter(Boolean);
+      if (!box) return;
+      if (!hotWords.length) { box.hidden = true; return; }
       box.hidden = false;
       box.innerHTML = '';
-      list.forEach(function (h) {
+      hotWords.slice(0, 12).forEach(function (word) {
         var a = doc.createElement('button');
         a.type = 'button'; a.className = 'cp-his-chip';
-        a.textContent = h.word;
+        a.textContent = word;
         a.setAttribute('data-track', 'coupon_search');
-        a.setAttribute('data-track-props', JSON.stringify({ type: 'hotword', word: h.word }));
-        a.addEventListener('click', function () {
-          if (global.CouponStore) global.CouponStore.pushSearch(h.word);
-          loadSearch(h.word);
-        });
+        a.setAttribute('data-track-props', JSON.stringify({ type: 'hotword', word: word }));
+        a.addEventListener('click', function () { applySearch(word); });
         box.appendChild(a);
       });
     }, { cache: true });
+  }
+
+  // 统一「选词即搜」入口：回填输入框 + 记历史 + 触发搜索（热搜词 chip / 输入联想 / URL 直达共用）
+  function applySearch(word) {
+    word = String(word || '').trim();
+    if (!word) return;
+    state.search = word;
+    if (searchInput) searchInput.value = word;
+    setActiveTab('');
+    if (global.CouponStore) global.CouponStore.pushSearch(word);
+    loadSearch(true);
+    renderHistory();
+    hideSuggest();
+  }
+
+  /* ---------------- 输入联想（需求 4）：输入时按子串匹配已缓存热搜词，下拉候选可点选 ---------------- */
+  var suggestBox = null;
+  function ensureSuggestBox() {
+    if (suggestBox || !searchForm) return suggestBox;
+    suggestBox = el('div', 'cp-suggest');
+    suggestBox.setAttribute('role', 'listbox');
+    suggestBox.setAttribute('aria-label', '搜索联想');
+    suggestBox.hidden = true;
+    // 相对定位挂到搜索表单下（表单已有 .cp-search 样式；无则退回 body 末尾）
+    searchForm.style.position = 'relative';
+    searchForm.appendChild(suggestBox);
+    // mousedown 早于 input blur，用 mousedown 选中避免下拉先收起
+    suggestBox.addEventListener('mousedown', function (e) {
+      var b = e.target.closest ? e.target.closest('.cp-suggest-item') : null;
+      if (b) { e.preventDefault(); applySearch(b.getAttribute('data-word')); }
+    });
+    return suggestBox;
+  }
+
+  function hideSuggest() { if (suggestBox) suggestBox.hidden = true; }
+
+  function renderSuggest(term) {
+    var box = ensureSuggestBox();
+    if (!box) return;
+    term = String(term || '').trim().toLowerCase();
+    if (!term || !hotWords.length) { box.hidden = true; box.innerHTML = ''; return; }
+    // 子串匹配优先（含输入即命中），不足再补前缀无关的热词，最多 8 条
+    var hits = hotWords.filter(function (w) { return w.toLowerCase().indexOf(term) >= 0 && w.toLowerCase() !== term; });
+    if (!hits.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.innerHTML = '';
+    hits.slice(0, 8).forEach(function (w) {
+      var it = el('button', 'cp-suggest-item', w);
+      it.type = 'button';
+      it.setAttribute('data-word', w);
+      box.appendChild(it);
+    });
+    box.hidden = false;
+  }
+
+  function initSuggest() {
+    if (!searchInput) return;
+    ensureSuggestBox();
+    var deb;
+    searchInput.addEventListener('input', function () {
+      global.clearTimeout(deb);
+      deb = global.setTimeout(function () { renderSuggest(searchInput.value); }, 120);
+    });
+    searchInput.addEventListener('focus', function () { renderSuggest(searchInput.value); });
+    searchInput.addEventListener('blur', function () { global.setTimeout(hideSuggest, 120); });
+    searchInput.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideSuggest(); });
   }
 
   function parseProps(el) {
@@ -743,6 +817,7 @@
 
     searchForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      hideSuggest();
       state.search = (searchInput.value || '').trim();
       setActiveTab('');
       if (!state.search) { loadFeatured(); return; }
@@ -773,6 +848,7 @@
 
     renderHistory();
     loadHotWords();
+    initSuggest();
     // 猜你喜欢（M1）：本地有浏览/搜索信号才拉取并展示
     recGrid = $('cpRecGrid'); recSection = $('cpRecSection');
     loadRecommend();

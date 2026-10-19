@@ -29,6 +29,9 @@ const CONFIG = {
     '.brand-mark',
     '.plan-badge',
     '.cp-plat-chip.is-active',
+    // 10-19 线上 browser-use 复验补录：以下白字载体原不在白名单，本地门禁恒绿但线上实测 4.4:1（审计 T4/WO-105）
+    '.cp-tab.is-active',
+    '.cp-search button',
   ],
   minContrast: 4.5,
 };

@@ -92,7 +92,8 @@
 .cp-search input {
   width: 260px;
   max-width: 60vw;
-  height: 42px;
+  /* 触控目标 ≥44px（WO-114：原 42px，与右侧搜索按钮同高对齐） */
+  height: 44px;
   padding: 0 14px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);

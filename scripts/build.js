@@ -133,7 +133,7 @@ async function fetchList(p) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 15000);
   try {
-    const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'coupon-build/1.0' } });
+    const res = await pacedFetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'coupon-build/1.0' } });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     const d = (json && json.data) || {};
@@ -141,6 +141,57 @@ async function fetchList(p) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/* ---------------------- 同源自击限流与错峰（2026-10-20 生产排查） ----------------------
+ * 本脚本跑在 39.107 的 self-hosted runner 上直打本机中台 API：
+ * 旧版 Promise.all 把全部类目 paging 同时扇出，又逢 GitHub cron 排队延迟使构建落在
+ * 北京 05 时档（与 05:10~05:50 内容生成/采集任务撞车），共享 mongod 被瞬时并发挤到
+ * 单请求 7~35s（实测 05:09 一分钟 21 条 avg 31s），构建自身与真实用户互相拖慢。
+ * 两道闸：
+ *   1) 全局并发上限 + 起跑间隔：所有取数（fetchList/fetchJson）经同一个令牌位排队，
+ *      把 ~30 个请求从瞬时扇出摊成平缓小流（命中搜索缓存后单请求也就百毫秒级）；
+ *   2) 错峰：落入繁忙档（北京 05:00~07:00，后接 06:30 gather.history.scrapeAll）时，
+ *      先把取数推迟到档尾 + 0~8 分钟随机抖动；四小时一构建，晚 1~2 小时不影响时效承诺。
+ * 应急手动重建可置 COUPON_BUILD_NO_DEPEAK=1 跳过错峰；并发可经 COUPON_BUILD_CONCURRENCY 调。*/
+const FETCH_CONCURRENCY = Math.max(1, Number(process.env.COUPON_BUILD_CONCURRENCY) || 2);
+const FETCH_MIN_INTERVAL_MS = 400;
+let _fetchActive = 0;
+let _fetchLastStart = 0;
+const _fetchWaiters = [];
+
+function fetchSlotAcquire() {
+  return new Promise(resolve => {
+    const grant = () => {
+      if (_fetchActive >= FETCH_CONCURRENCY) { _fetchWaiters.push(grant); return; }
+      const wait = Math.max(0, _fetchLastStart + FETCH_MIN_INTERVAL_MS - Date.now());
+      _fetchActive++;
+      _fetchLastStart = Date.now() + wait; // 预占未来起跑时刻，后续排队者据此算下一格
+      if (wait > 0) setTimeout(resolve, wait); else resolve();
+    };
+    grant();
+  });
+}
+
+function fetchSlotRelease() {
+  _fetchActive--;
+  const next = _fetchWaiters.shift();
+  if (next) next();
+}
+
+async function pacedFetch(url, opts) {
+  await fetchSlotAcquire();
+  try { return await fetch(url, opts); } finally { fetchSlotRelease(); }
+}
+
+async function depeakBusyWindow() {
+  if (process.env.COUPON_BUILD_NO_DEPEAK === '1') return;
+  const cst = new Date(Date.now() + 8 * 3600 * 1000);
+  const minutes = cst.getUTCHours() * 60 + cst.getUTCMinutes();
+  if (minutes < 5 * 60 || minutes >= 7 * 60) return;
+  const waitMin = Math.max(1, Math.round(7 * 60 - minutes + Math.random() * 8));
+  console.log('[build] 北京 05:00~07:00 为服务端采集/内容任务繁忙档，取数推迟 ' + waitMin + ' 分钟（错峰；急需立即构建置 COUPON_BUILD_NO_DEPEAK=1）');
+  await new Promise(r => setTimeout(r, waitMin * 60 * 1000));
 }
 
 // 单个拉取失败不阻断，返回空数组（券网格留空态，页面壳仍写盘）
@@ -723,13 +774,13 @@ ${grid}
 
 /* ---------------------- W3 长文导购页 /guides/<slug>.html ---------------------- */
 
-// 非 jd 前缀的 front 接口拉取（content/list 等），口径同 safeList：失败给空值不阻断
+// 非 jd 前缀的 front 接口拉取（content/list 等），口径同 safeList：失败给空值不阻断（同样经 pacedFetch 限流）
 async function fetchJson(pathWithQuery, fallback) {
   const url = API_BASE + '/api/v1/front/coupon' + pathWithQuery + (pathWithQuery.includes('?') ? '&' : '?') + 'mainUrl=' + encodeURIComponent(MAIN_URL);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 15000);
   try {
-    const res = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'coupon-build/1.0' } });
+    const res = await pacedFetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'coupon-build/1.0' } });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     return (json && json.data) || fallback;
@@ -995,6 +1046,9 @@ async function run() {
     const raw = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'categories.json'), 'utf8'));
     categories = Array.isArray(raw.categories) ? raw.categories : [];
   } catch (e) { console.warn('[build] 读 categories.json 失败（跳过品类页）：', e.message); }
+
+  // 错峰：避开本机凌晨采集/内容任务档（本地步骤已先执行，纯等网络）
+  await depeakBusyWindow();
 
   // 并发拉各页数据（各自 fail-soft）
   const [ featured, week, browseList, rankList, dayRank ] = await Promise.all([

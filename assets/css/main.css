@@ -135,16 +135,16 @@ p:last-child { margin-bottom: 0; }
   padding: 0 24px;
 }
 
-.section { padding: 40px 0; }
-.section-sm { padding: 26px 0; }
+.section { padding: 28px 0; }
+.section-sm { padding: 16px 0; }
 .section-soft { background: var(--bg-soft); }
 section[id] { scroll-margin-top: calc(var(--header-h) + 20px); }
-.section-head { max-width: 860px; margin: 0 auto 26px; text-align: center; }
+.section-head { max-width: 860px; margin: 0 auto 16px; text-align: center; }
 .section-head.left { margin-left: 0; text-align: left; }
 .eyebrow {
   display: inline-block;
-  margin-bottom: 12px;
-  padding: 4px 12px;
+  margin-bottom: 8px;
+  padding: 3px 10px;
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
   color: var(--accent-strong);
@@ -152,7 +152,7 @@ section[id] { scroll-margin-top: calc(var(--header-h) + 20px); }
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-.section-desc { margin-top: 12px; color: var(--text-muted); font-size: 1.0625rem; }
+.section-desc { margin-top: 6px; color: var(--text-muted); font-size: 0.9375rem; }
 
 .muted { color: var(--text-muted); }
 .center { text-align: center; }
@@ -275,7 +275,7 @@ section[id] { scroll-margin-top: calc(var(--header-h) + 20px); }
 /* ---------------------------------- Hero ---------------------------------- */
 .hero {
   position: relative;
-  padding: 46px 0 36px;
+  padding: 24px 0 24px;
   overflow: hidden;
   background:
     radial-gradient(900px 420px at 12% -8%, var(--accent-soft), transparent 62%),
@@ -283,8 +283,8 @@ section[id] { scroll-margin-top: calc(var(--header-h) + 20px); }
   border-bottom: 1px solid var(--border);
 }
 .hero-inner { max-width: 100%; }
-.hero h1 { margin-bottom: 12px; }
-.hero-sub { font-size: 1.05rem; color: var(--text-muted); max-width: 640px; }
+.hero h1 { margin-bottom: 8px; }
+.hero-sub { font-size: 0.975rem; color: var(--text-muted); max-width: 760px; }
 .hero .btn-row { margin-top: 20px; }
 .hero-bullets {
   display: flex;
@@ -702,8 +702,10 @@ details.faq .faq-body { padding: 0 16px 12px; color: var(--text-muted); font-siz
 }
 
 @media (max-width: 720px) {
-  .section { padding: 32px 0; }
-  .hero { padding: 34px 0 26px; }
+  .section { padding: 20px 0; }
+  .hero { padding: 16px 0 18px; }
+  .hero h1 { font-size: 1.5rem; }
+  .hero-sub { font-size: 0.875rem; }
   .nav {
     position: absolute;
     top: var(--header-h);

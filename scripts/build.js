@@ -72,7 +72,6 @@ const COUPON_SITE = {
     { label: '场景导购', url: '/topic/index.html' },
     { label: '攻略', url: '/guide.html' },
     { label: '长文导购', url: '/guides.html' },
-    { label: '小满手记', url: 'https://zangeng.com/', external: true },
   ],
   footer_nav: [
     { title: '导航', links: [

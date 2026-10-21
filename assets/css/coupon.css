@@ -16,7 +16,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 .cp-tabs {
   display: inline-flex;
@@ -154,11 +154,17 @@
 }
 .cp-suggest-item:hover { background: var(--accent-soft); color: var(--accent); }
 
+/* 首页首屏紧凑：压缩 hero / 搜索 / 品类区间距，让券卡尽量前移到首屏 */
+body[data-page="coupon"] .hero { padding: 16px 0 18px; }
+body[data-page="coupon"] .hero-sub { font-size: 0.9375rem; }
+body[data-page="coupon"] .cp-search { margin-top: 14px; }
+body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
+
 /* ---------------------------------- 优惠券网格 ---------------------------------- */
 .cp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
 }
 .cp-card {
   display: flex;
@@ -195,6 +201,7 @@
 .cp-card.is-dead:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
 .cp-card img {
   width: 100%;
+  height: auto;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   background: var(--surface-2);
@@ -204,28 +211,28 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  padding: 12px 12px 0;
+  padding: 8px 10px 0;
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 .cp-price {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px;
-  padding: 10px 12px 14px;
+  gap: 6px;
+  padding: 6px 10px 10px;
 }
 /* 立减大角标：渐变红 pill，放大加粗，一眼可见力度 */
 .cp-off {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 3px 9px;
   border-radius: var(--radius-pill);
   background: linear-gradient(135deg, #ff6a3d, #e4393c);
   color: #fff;
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.875rem;
   line-height: 1.3;
   letter-spacing: .01em;
   box-shadow: 0 4px 14px rgba(228, 57, 60, .32);
@@ -312,8 +319,8 @@
 .cp-cats {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 0 0 22px;
+  gap: 8px;
+  margin: 0 0 12px;
 }
 .cp-cat-chip {
   display: inline-flex;
@@ -361,12 +368,7 @@
   font-size: 0.8125rem;
 }
 
-@media (max-width: 720px) {
-  .cp-toolbar { flex-direction: column; align-items: stretch; }
-  .cp-search { width: 100%; }
-  .cp-search input { flex: 1; max-width: none; width: auto; }
-  .cp-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-}
+/* 移动端样式统一追加到文件末尾，避免被后置基础规则覆盖 */
 
 /* ---------------------------------- 券卡单元（收藏星标包裹层） ---------------------------------- */
 /* 星标按钮不能嵌在 <a> 内（非法嵌套），改用 .cp-cell 包裹层承载绝对定位 */
@@ -443,10 +445,10 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 8px;
 }
 .cp-his[hidden] { display: none; }
-.cp-his-label { color: var(--text-soft); font-size: 0.8125rem; }
+.cp-his-label { color: var(--text-soft); font-size: 0.8125rem; white-space: nowrap; flex-shrink: 0; }
 .cp-his-chip {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
@@ -1077,5 +1079,23 @@
 .cp-faq { margin: 8px 0 0; }
 .cp-faq dt { font-weight: 600; margin-top: 14px; }
 .cp-faq dd { margin: 6px 0 0; color: var(--muted, #6b7280); line-height: 1.6; }
+
+/* 移动端首屏优先：chip 行单行横滑、压缩 hero 与券区，保证首屏可见券卡 */
+@media (max-width: 720px) {
+  .cp-toolbar { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; }
+  .cp-tabs { flex-shrink: 0; }
+  .cp-tab { padding: 8px 12px; font-size: 0.875rem; }
+  .cp-sort select { max-width: 126px; }
+  .cp-search { width: 100%; }
+  .cp-search input { flex: 1; max-width: none; width: auto; }
+  .cp-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .cp-his, .cp-cats { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .cp-his::-webkit-scrollbar, .cp-cats::-webkit-scrollbar { display: none; }
+  .cp-his-chip, .cp-cat-chip { flex-shrink: 0; }
+  /* 首屏让位商品：隐藏说明文案与实时情报条（PC 仍保留） */
+  .hero-sub, .section-desc, #cpIntelBar { display: none; }
+  .section { padding: 14px 0; }
+  .hero { padding: 12px 0 12px; }
+}
 
 

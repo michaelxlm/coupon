@@ -34,4 +34,4 @@ Language: zh-CN
 
 ## Sitemap
 
-- [Full URL index](https://coupon.zangeng.com/sitemap.xml): 全部页面清单（约 152 条 URL）
+- [Full URL index](https://coupon.zangeng.com/sitemap.xml): 全部页面清单（约 160 条 URL）

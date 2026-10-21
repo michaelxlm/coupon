@@ -17,10 +17,12 @@
   var MAIN_URL = 'coupon.zangeng.com';
   var PREFIX = '/api/v1/front/coupon/jd';
   var PAGE_SIZE = 20;
+  // 榜单后端单次上限 100（服务端 cap），一次取满后前端本地分页，避免依赖后端不存在的 page 参数
+  var RANK_LIMIT = 100;
   var TIMEOUT_MS = 12000;   // 单请求超时，超时中断并给出可重试错误态
   var CACHE_TTL = 30000;    // 同参结果短时内存缓存（切 tab 回来不重复打后端）
 
-  var state = { mode: 'featured', period: 'week', search: '', page: 1, hasMore: false, loading: false, sort: '', platform: '', list: [] };
+  var state = { mode: 'rank', period: 'week', search: '', page: 1, hasMore: false, loading: false, sort: '', platform: '', list: [], rankAll: [], rankShown: 0 };
 
   var grid, statusEl, moreBtn, tabs, searchForm, searchInput, sortSelect;
   var recGrid, recSection;
@@ -232,7 +234,7 @@
   }
 
   // 热搜词（M6）：服务端 Redis zset 计数 TopN，渲染「大家都在搜」+ 供输入联想复用
-  // 取 30 条缓存进 hotWords（联想用），「大家都在搜」仅展示前 12 条
+  // 取 30 条缓存进 hotWords（联想用），「大家都在搜」仅展示前 8 条
   function loadHotWords() {
     var box = $('cpHotWords');
     var url = buildUrl('/hotwords', [ [ 'limit', 30 ] ]);
@@ -244,7 +246,7 @@
       if (!hotWords.length) { box.hidden = true; return; }
       box.hidden = false;
       box.innerHTML = '';
-      hotWords.slice(0, 12).forEach(function (word) {
+      hotWords.slice(0, 8).forEach(function (word) {
         var a = doc.createElement('button');
         a.type = 'button'; a.className = 'cp-his-chip';
         a.textContent = word;
@@ -407,7 +409,15 @@
       b.addEventListener('click', function () {
         state.platform = o[0];
         Array.prototype.forEach.call(bar.children, function (x) { x.classList.toggle('is-active', x.getAttribute('data-plat') === o[0]); });
-        if (state.list.length) render(currentView(), false);
+        if (!state.list.length) return;
+        // 榜单：筛选后回到第一页（rankView 自带 slice，避免把 100 条一次铺满）
+        if (state.mode === 'rank') {
+          state.rankShown = Math.min(PAGE_SIZE, rankFiltered().length);
+          render(rankView(), false);
+          updateRankMore();
+          return;
+        }
+        render(currentView(), false);
       });
       bar.appendChild(b);
     });
@@ -506,11 +516,13 @@
 
   function renderIntelBar() {
     var bar = $('cpIntelBar');
-    if (!bar || !state.list.length) return;
+    // 榜单走本地分页，情报条按全量统计（不受已展示条数影响）
+    var src = (state.mode === 'rank' && state.rankAll.length) ? state.rankAll : state.list;
+    if (!bar || !src.length) return;
     var sum = 0;
-    state.list.forEach(function (c) { sum += Number(c.couponDiscount) || 0; });
+    src.forEach(function (c) { sum += Number(c.couponDiscount) || 0; });
     var n1 = $('cpIntelCount'), n2 = $('cpIntelSave');
-    if (n1) n1.textContent = String(state.list.length);
+    if (n1) n1.textContent = String(src.length);
     if (n2) n2.textContent = money(sum);
     bar.hidden = false;
   }
@@ -528,6 +540,7 @@
     return s;
   }
 
+  // 今日必抢 Top10：两列榜单列表（排名徽章 + 标题 + 券力度 + 到手价），替代原先的横滑 chips
   function renderTop10() {
     var wrap = $('cpTop10Wrap'), box = $('cpTop10');
     if (!wrap || !box || intel.top10Done || state.list.length < 3) return;
@@ -538,18 +551,24 @@
       var link = linkOf(c);
       if (!link) return;
       var a = doc.createElement('a');
-      a.className = 'cp-top-chip';
+      a.className = 'cp-top-item';
       a.href = link;
       a.target = '_blank';
       a.rel = 'sponsored noopener';
       a.setAttribute('role', 'listitem');
       a.setAttribute('data-track', 'top10_click');
       a.setAttribute('data-track-props', JSON.stringify({ pos: i + 1, coupon_id: String(c.tao_id || c._id || '') }));
+      a.appendChild(el('span', 'cp-top-rank' + (i < 3 ? ' is-top' : ''), String(i + 1)));
+      var body = el('span', 'cp-top-body');
+      body.appendChild(el('span', 'cp-top-name', String(c.title || '优惠券')));
+      var meta = el('span', 'cp-top-meta');
       var off = Number(c.couponDiscount) || 0, quota = Number(c.couponQuota) || 0;
-      var rank = el('span', 'cp-top-rank', String(i + 1));
-      var name = el('span', 'cp-top-name', String(c.title || '优惠券').slice(0, 18));
-      a.appendChild(rank); a.appendChild(name);
-      if (off > 0) a.appendChild(el('span', 'cp-top-off', quota > 0 ? ('满' + quota + '减' + off) : ('¥' + off)));
+      if (off > 0) meta.appendChild(el('span', 'cp-top-off', quota > 0 ? ('满' + quota + '减' + off) : ('立减¥' + off)));
+      var price = Number(c.price) || 0;
+      if (price > 0) meta.appendChild(el('span', 'cp-top-final', '¥' + price));
+      body.appendChild(meta);
+      a.appendChild(body);
+      a.appendChild(el('span', 'cp-top-go', '›'));
       box.appendChild(a);
     });
     if (box.children.length) wrap.hidden = false;
@@ -666,6 +685,7 @@
     var token = ++viewToken;
     state.mode = 'featured';
     moreBtn.hidden = true;
+    moreBtn.textContent = '加载更多';
     showSkeleton(8);
     setLoading(true, true);
     var action = loadActions.featured = function () { loadFeatured(); };
@@ -692,16 +712,41 @@
     }, { cache: true });
   }
 
+  // 榜单本地分页：一次取满 RANK_LIMIT 条存 rankAll，rankShown 控制已展示条数（筛选/排序作用于全量后截断）
+  function rankFiltered() { return sortList(filterPlat(state.rankAll)); }
+  function rankView() { return rankFiltered().slice(0, state.rankShown); }
+  function updateRankMore() {
+    if (!moreBtn || state.mode !== 'rank') return;
+    var left = rankFiltered().length - state.rankShown;
+    if (left > 0) {
+      moreBtn.hidden = false;
+      moreBtn.textContent = '加载更多（还有 ' + left + ' 条）';
+    } else {
+      moreBtn.hidden = true;
+      moreBtn.textContent = '加载更多';
+    }
+  }
+  function setRankData(list) {
+    state.rankAll = list || [];
+    state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
+    state.list = state.rankAll;
+    render(rankView(), false);
+    updateRankMore();
+  }
+
   // 榜单：日/周/月
   function loadRank(period) {
     var token = ++viewToken;
     state.mode = 'rank';
     state.period = period;
+    state.rankAll = [];
+    state.rankShown = 0;
+    intel.top10Done = false;
     moreBtn.hidden = true;
     showSkeleton(8);
     setLoading(true, true);
     var action = loadActions.rank = function () { loadRank(period); };
-    var url = buildUrl('/rank', [ [ 'period', period ], [ 'limit', 20 ] ]);
+    var url = buildUrl('/rank', [ [ 'period', period ], [ 'limit', RANK_LIMIT ] ]);
     markStale(false);
     request(url, function (err, d) {
       if (token !== viewToken) return;
@@ -710,8 +755,7 @@
         loadSnapshot(function (snap) {
           var arr = snap && snap.rank && (snap.rank[period] || []);
           if (arr && arr.length) {
-            state.list = arr;
-            render(currentView(), false);
+            setRankData(arr);
             markStale(true);
             showStatus('⚠ 实时数据暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '）的' + ({ day: '日', week: '周', month: '月' }[period] || '') + '榜，券可能已失效，下单前请核对。');
           } else {
@@ -720,8 +764,7 @@
         });
         return;
       }
-      state.list = pickList(d);
-      render(currentView(), false);
+      setRankData(pickList(d));
     }, { cache: true });
   }
 
@@ -762,6 +805,7 @@
       var count = Number(d && d.count) || 0;
       state.hasMore = state.page * PAGE_SIZE < count;
       moreBtn.hidden = !(state.hasMore && list.length);
+      moreBtn.textContent = '加载更多';
     }, { cache: false });
   }
 
@@ -810,8 +854,16 @@
     if (sortSelect) {
       sortSelect.addEventListener('change', function () {
         state.sort = sortSelect.value;
-        // 已有数据则按新规则重排当前视图（搜索态保留已累计的分页结果；尊重平台筛选）
-        if (state.list.length) render(currentView(), false);
+        if (!state.list.length) return;
+        // 榜单切换到新排序时回到第一页，避免已展开条数显得「越排越少」
+        if (state.mode === 'rank') {
+          state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
+          render(rankView(), false);
+          updateRankMore();
+          return;
+        }
+        // 搜索态保留已累计的分页结果；尊重平台筛选
+        render(currentView(), false);
       });
     }
 
@@ -827,7 +879,18 @@
     });
 
     moreBtn.addEventListener('click', function () {
-      if (state.loading || !state.hasMore) return;
+      if (state.loading) return;
+      // 榜单：本地分页追加（不再请求后端）
+      if (state.mode === 'rank') {
+        var total = rankFiltered().length;
+        if (state.rankShown >= total) return;
+        var prev = state.rankShown;
+        state.rankShown = Math.min(prev + PAGE_SIZE, total);
+        render(rankView().slice(prev), true);
+        updateRankMore();
+        return;
+      }
+      if (!state.hasMore) return;
       state.page += 1;
       loadSearch(false);
     });
@@ -843,7 +906,9 @@
       setActiveTab('');
       loadSearch(true);
     } else {
-      loadFeatured();
+      // 默认展示周榜：与 HTML 中默认高亮的「周榜」tab 保持一致（此前加载精选导致 UI 与数据不符）
+      setActiveTab('week');
+      loadRank('week');
     }
 
     renderHistory();

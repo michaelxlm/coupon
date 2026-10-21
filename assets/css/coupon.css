@@ -16,7 +16,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .cp-tabs {
   display: inline-flex;
@@ -155,10 +155,10 @@
 .cp-suggest-item:hover { background: var(--accent-soft); color: var(--accent); }
 
 /* 首页首屏紧凑：压缩 hero / 搜索 / 品类区间距，让券卡尽量前移到首屏 */
-body[data-page="coupon"] .hero { padding: 16px 0 18px; }
+body[data-page="coupon"] .hero { padding: 12px 0 12px; }
 body[data-page="coupon"] .hero-sub { font-size: 0.9375rem; }
 body[data-page="coupon"] .cp-search { margin-top: 14px; }
-body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
+body[data-page="coupon"] .cp-cats { margin-bottom: 6px; }
 
 /* ---------------------------------- 优惠券网格 ---------------------------------- */
 .cp-grid {
@@ -227,15 +227,15 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
 /* 立减大角标：渐变红 pill，放大加粗，一眼可见力度 */
 .cp-off {
   display: inline-block;
-  padding: 3px 9px;
+  padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: linear-gradient(135deg, #ff6a3d, #e4393c);
   color: #fff;
   font-weight: 800;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.3;
   letter-spacing: .01em;
-  box-shadow: 0 4px 14px rgba(228, 57, 60, .32);
+  box-shadow: 0 2px 8px rgba(228, 57, 60, .28);
 }
 .cp-final {
   color: var(--text-muted);
@@ -289,13 +289,13 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
 /* 今日新增小徽标（createTime 24h 内） */
 .cp-fresh {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 2px 8px;
+  top: 6px;
+  left: 6px;
+  padding: 1px 6px;
   border-radius: var(--radius-pill);
   background: var(--coupon-red);
   color: #fff;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 700;
   line-height: 1.5;
   box-shadow: var(--shadow-sm);
@@ -304,11 +304,11 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
 /* 即将失效小徽标（couponEndTime 3 天内，行内贴在手价旁，避免与 cp-fresh / 星标争位） */
 .cp-expire {
   align-self: center;
-  padding: 1px 8px;
+  padding: 1px 6px;
   border-radius: var(--radius-pill);
   background: rgba(245, 158, 11, 0.16);
   color: var(--expire-fg);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1.5;
   white-space: nowrap;
@@ -319,21 +319,21 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
 .cp-cats {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 12px;
+  gap: 6px;
+  margin: 0 0 6px;
 }
 .cp-cat-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  /* 触控目标 ≥44px（审计 T5 漏项 · WO-106 线上全页实测）：原高 40px */
-  min-height: 44px;
-  padding: 7px 16px;
+  gap: 4px;
+  /* 桌面紧凑；移动端在文件末尾媒体查询恢复 44px 触控目标 */
+  min-height: 32px;
+  padding: 4px 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--text);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-decoration: none;
   transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease, background var(--dur-fast) ease;
@@ -399,8 +399,8 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   transform: translate(-50%, -50%);
   border-radius: var(--radius-full);
   background: rgba(0, 0, 0, 0.42);
@@ -444,8 +444,8 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 6px;
 }
 .cp-his[hidden] { display: none; }
 .cp-his-label { color: var(--text-soft); font-size: 0.8125rem; white-space: nowrap; flex-shrink: 0; }
@@ -455,12 +455,12 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
   background: transparent;
   color: var(--text-muted);
   text-decoration: none;
-  /* 触控目标 ≥44px（审计 T5 漏项 · WO-106 线上全页实测）：原高 28–31px */
+  /* 桌面紧凑；移动端在文件末尾媒体查询恢复 44px 触控目标 */
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding: 0 14px;
-  font-size: 0.8125rem;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.75rem;
   cursor: pointer;
   font-family: inherit;
   transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease;
@@ -657,8 +657,8 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   transform: translate(-50%, -50%);
   border-radius: var(--radius-full);
   background: rgba(0, 0, 0, 0.42);
@@ -758,18 +758,18 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 14px;
-  margin-top: 18px;
-  padding: 10px 16px;
+  gap: 4px 10px;
+  margin-top: 8px;
+  padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   background: var(--surface);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--text-muted);
   width: fit-content;
   max-width: 100%;
 }
-.cp-intel b { color: var(--coupon-red); font-size: 1.0625rem; font-variant-numeric: tabular-nums; }
+.cp-intel b { color: var(--coupon-red); font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
 .cp-intel-sep { color: var(--border-strong); }
 .cp-intel-link { margin-left: auto; color: var(--accent); text-decoration: none; font-weight: 600; white-space: nowrap; }
 .cp-intel-link:hover { text-decoration: underline; }
@@ -787,46 +787,50 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
 .cp-mood a:hover { text-decoration: none; filter: brightness(0.95); }
 @keyframes cp-mood-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
 @media (prefers-reduced-motion: reduce) { .cp-mood a { animation: none; } }
+/* 今日必抢：两列榜单列表（参考热门榜单站：名次 + 标题 + 券力度 + 到手价） */
 .cp-top10 {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 4px 2px 12px;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
 }
-.cp-top-chip {
-  flex: 0 0 auto;
-  scroll-snap-align: start;
-  display: inline-flex;
+.cp-top-item {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  max-width: 260px;
-  padding: 10px 14px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
   text-decoration: none;
-  font-size: 0.8125rem;
-  transition: border-color var(--dur-fast) ease, transform var(--dur-fast) ease;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
-.cp-top-chip:hover { border-color: var(--coupon-red); transform: translateY(-2px); }
+.cp-top-item:hover { border-color: var(--coupon-red); box-shadow: var(--shadow-sm); }
 .cp-top-rank {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px; height: 22px;
-  border-radius: var(--radius-sm);
-  background: var(--coupon-red-soft);
-  color: var(--coupon-red);
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-muted);
   font-weight: 800;
   font-size: 0.75rem;
-  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
 }
-.cp-top-chip:nth-child(-n+3) .cp-top-rank { background: var(--coupon-red); color: #fff; }
-.cp-top-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cp-top-off { color: var(--coupon-red); font-weight: 700; white-space: nowrap; }
+.cp-top-rank.is-top { background: linear-gradient(135deg, #ff8a3d, #e4393c); color: #fff; }
+.cp-top-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.cp-top-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8125rem; font-weight: 600; line-height: 1.3; }
+.cp-top-meta { display: flex; align-items: center; gap: 8px; }
+.cp-top-off { color: var(--coupon-red); background: var(--coupon-red-soft); padding: 0 6px; border-radius: var(--radius-pill); font-size: 0.6875rem; font-weight: 700; line-height: 1.6; white-space: nowrap; }
+.cp-top-final { color: var(--coupon-red); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+.cp-top-go { flex: 0 0 auto; color: var(--text-soft); font-size: 1rem; line-height: 1; }
+/* 榜单标题行右侧「完整榜单」入口 */
+.cp-top-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; max-width: none; }
+.cp-top-more { flex-shrink: 0; margin-bottom: 4px; color: var(--accent); font-size: 0.8125rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.cp-top-more:hover { text-decoration: underline; }
 
 /* ------------------------- W5 推送底部引导条（app.js initPushGuide） ------------------------- */
 .pg-banner {
@@ -1038,6 +1042,14 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
 }
 
 /* ---------------------- WO-125 场景导购：实时比价表 + FAQ ---------------------- */
+/* 场景页标题：左对齐 + 收字号，hero 不再占半屏 */
+#topicTitle { margin: 0 0 10px; text-align: left; font-size: clamp(24px, 3vw, 32px); }
+body[data-page="topic"] .hero { padding: 20px 0 20px; }
+body[data-page="topic"] .hero-sub { font-size: 0.9375rem; max-width: 900px; }
+/* 场景页简化导航：小号右对齐，避免品牌与菜单挤在一行 */
+body[data-page="topic"] .nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-left: auto; }
+body[data-page="topic"] .nav-links a { padding: 6px 10px; border-radius: var(--radius-sm); color: var(--text-muted); font-size: 0.875rem; text-decoration: none; }
+body[data-page="topic"] .nav-links a:hover { background: var(--surface-2); color: var(--text); }
 .cp-compare {
   width: 100%;
   border-collapse: collapse;
@@ -1046,17 +1058,17 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
 }
 .cp-compare caption {
   text-align: left;
-  padding: 10px 14px;
+  padding: 6px 12px;
   color: var(--muted, #6b7280);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   caption-side: top;
 }
 .cp-compare th, .cp-compare td {
-  padding: 10px 14px;
+  padding: 8px 12px;
   text-align: left;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
@@ -1070,7 +1082,18 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
 .cp-compare .cp-rank { width: 2.2em; text-align: center; color: var(--muted, #6b7280); }
 .cp-compare .cp-cname a { color: var(--text); text-decoration: none; }
 .cp-compare .cp-cname a:hover { color: var(--coupon-red); text-decoration: underline; }
-.cp-compare .cp-off { color: var(--coupon-red); font-weight: 600; white-space: nowrap; }
+.cp-compare .cp-off {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--coupon-red-soft);
+  color: var(--coupon-red);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.6;
+  box-shadow: none;
+  white-space: nowrap;
+}
 .cp-compare .cp-final { white-space: nowrap; }
 @media (max-width: 640px) {
   .cp-compare { font-size: 0.875rem; }
@@ -1082,20 +1105,32 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 10px; }
 
 /* 移动端首屏优先：chip 行单行横滑、压缩 hero 与券区，保证首屏可见券卡 */
 @media (max-width: 720px) {
-  .cp-toolbar { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; }
+  .cp-toolbar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
   .cp-tabs { flex-shrink: 0; }
   .cp-tab { padding: 8px 12px; font-size: 0.875rem; }
+  .cp-sort { margin-left: auto; }
   .cp-sort select { max-width: 126px; }
+  .cp-plat { flex: 1 1 100%; overflow-x: auto; scrollbar-width: none; }
+  .cp-plat::-webkit-scrollbar { display: none; }
   .cp-search { width: 100%; }
   .cp-search input { flex: 1; max-width: none; width: auto; }
   .cp-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
   .cp-his, .cp-cats { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .cp-his::-webkit-scrollbar, .cp-cats::-webkit-scrollbar { display: none; }
-  .cp-his-chip, .cp-cat-chip { flex-shrink: 0; }
+  .cp-his-chip, .cp-cat-chip { min-height: 44px; flex-shrink: 0; }
   /* 首屏让位商品：隐藏说明文案与实时情报条（PC 仍保留） */
   .hero-sub, .section-desc, #cpIntelBar { display: none; }
   .section { padding: 14px 0; }
   .hero { padding: 12px 0 12px; }
+  body[data-page="topic"] .nav-links { flex-wrap: nowrap; overflow-x: auto; min-width: 0; scrollbar-width: none; }
+  body[data-page="topic"] .nav-links::-webkit-scrollbar { display: none; }
+  body[data-page="topic"] .nav-links a { flex-shrink: 0; padding: 6px 8px; font-size: 0.8125rem; }
+  /* 必抢榜单移动端：保持两列，压缩内边距与字号 */
+  .cp-top10 { gap: 6px; }
+  .cp-top-item { padding: 6px 8px; gap: 6px; }
+  .cp-top-rank { width: 20px; height: 20px; font-size: 0.6875rem; }
+  .cp-top-name { font-size: 0.75rem; }
+  .cp-top-go { display: none; }
 }
 
 

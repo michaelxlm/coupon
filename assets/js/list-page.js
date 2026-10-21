@@ -2,7 +2,7 @@
    list-page.js · 小满券仓通用券列表页交互（browse / rank / category 三模式）
    —— 依 <body data-mode> 分支驱动，复用中台优惠券前台接口（当前数据源京东，后续可接多平台），纯静态、静默失败。
      · browse   ：paging 无关键词，无限「加载更多」分页浏览全部好物。
-     · rank     ：日 / 周 / 月榜单 tab，limit=50（比首页更多）。
+     · rank     ：日 / 周 / 月榜单 tab，一次取 RANK_LIMIT=100 条后前端本地分页（后端无 page 参数）。
      · category ：paging?search=<data-kw>，关键词映射品类 + 加载更多。
    健壮性对齐 coupon-page.js：AbortController 超时 + 自增 token 丢弃过期响应 + 同参短时内存缓存。
    曝光埋点：券卡带 data-case，由 conversion.js 观察视口产出「曝光→点击」归因。
@@ -17,7 +17,7 @@
   var MAIN_URL = 'coupon.zangeng.com';
   var PREFIX = '/api/v1/front/coupon/jd';
   var PAGE_SIZE = 20;
-  var RANK_LIMIT = 50;
+  var RANK_LIMIT = 100;
   var TIMEOUT_MS = 12000;
   var CACHE_TTL = 30000;
 
@@ -31,7 +31,7 @@
     var tt = $('topicTitle'); if (tt) tt.textContent = global.__TOPIC__.title || '';
   }
 
-  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', list: [] };
+  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', list: [], rankAll: [], rankShown: 0 };
 
   var grid, statusEl, moreBtn, tabs, sortSelect, priceSelect;
   var loadActions = {};
@@ -206,7 +206,15 @@
       b.addEventListener('click', function () {
         state.platform = o[0];
         Array.prototype.forEach.call(bar.children, function (x) { x.classList.toggle('is-active', x.getAttribute('data-plat') === o[0]); });
-        if (state.list.length) render(currentView(), false);
+        if (!state.list.length) return;
+        // 榜单：筛选后回到第一页（rankView 自带 slice，避免把 100 条一次铺满）
+        if (mode === 'rank') {
+          state.rankShown = Math.min(PAGE_SIZE, rankFiltered().length);
+          render(rankView(), false);
+          updateRankMore();
+          return;
+        }
+        render(currentView(), false);
       });
       bar.appendChild(b);
     });
@@ -376,10 +384,34 @@
     if (on && !quiet) showStatus('加载中…');
   }
 
+  // 榜单本地分页：一次取满 RANK_LIMIT 条存 rankAll，rankShown 控制已展示条数（筛选/排序作用于全量后截断）
+  function rankFiltered() { return sortList(filterPlat(state.rankAll).filter(matchPrice)); }
+  function rankView() { return rankFiltered().slice(0, state.rankShown); }
+  function updateRankMore() {
+    if (!moreBtn || mode !== 'rank') return;
+    var left = rankFiltered().length - state.rankShown;
+    if (left > 0) {
+      moreBtn.hidden = false;
+      moreBtn.textContent = '加载更多（还有 ' + left + ' 条）';
+    } else {
+      moreBtn.hidden = true;
+      moreBtn.textContent = '加载更多';
+    }
+  }
+  function setRankData(list) {
+    state.rankAll = list || [];
+    state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
+    state.list = state.rankAll;
+    render(rankView(), false);
+    updateRankMore();
+  }
+
   // rank：日 / 周 / 月榜单
   function loadRank(period) {
     var token = ++viewToken;
     state.period = period;
+    state.rankAll = [];
+    state.rankShown = 0;
     if (moreBtn) moreBtn.hidden = true;
     showSkeleton(8);
     setLoading(true, true);
@@ -393,8 +425,7 @@
         loadSnapshot(function (snap) {
           var arr = snap && snap.rank && (snap.rank[period] || []);
           if (arr && arr.length) {
-            state.list = arr;
-            render(currentView(), false);
+            setRankData(arr);
             markStale(true);
             showStatus('⚠ 实时数据暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '）的' + ({ day: '日', week: '周', month: '月' }[period] || '') + '榜，券可能已失效，下单前请核对。');
           } else {
@@ -403,8 +434,7 @@
         });
         return;
       }
-      state.list = pickList(d);
-      render(currentView(), false);
+      setRankData(pickList(d));
     }, { cache: true });
   }
 
@@ -478,14 +508,29 @@
     if (sortSelect) {
       sortSelect.addEventListener('change', function () {
         state.sort = sortSelect.value;
-        if (state.list.length) render(currentView(), false);
+        if (!state.list.length) return;
+        // 榜单排序变化回到第一页，避免已展开条数显得「越排越少」
+        if (mode === 'rank') {
+          state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
+          render(rankView(), false);
+          updateRankMore();
+          return;
+        }
+        render(currentView(), false);
       });
     }
 
     if (priceSelect) {
       priceSelect.addEventListener('change', function () {
         state.price = priceSelect.value;
-        if (state.list.length) render(currentView(), false);
+        if (!state.list.length) return;
+        if (mode === 'rank') {
+          state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
+          render(rankView(), false);
+          updateRankMore();
+          return;
+        }
+        render(currentView(), false);
       });
     }
 
@@ -507,6 +552,18 @@
           items[next].focus();
           items[next].click();
           e.preventDefault();
+        });
+      }
+      // 榜单加载更多：本地分页追加（后端无 page 参数，已一次取满 RANK_LIMIT 条）
+      if (moreBtn) {
+        moreBtn.addEventListener('click', function () {
+          if (state.loading) return;
+          var total = rankFiltered().length;
+          if (state.rankShown >= total) return;
+          var prev = state.rankShown;
+          state.rankShown = Math.min(prev + PAGE_SIZE, total);
+          render(rankView().slice(prev), true);
+          updateRankMore();
         });
       }
       var initial = 'week';

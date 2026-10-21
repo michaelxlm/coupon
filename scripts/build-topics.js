@@ -5,7 +5,7 @@
  * 背景：coupon 为纯静态站，主入口是百度等弱 JS 爬虫 → 场景页券内容需构建期落进 HTML 才被索引。
  * 本脚本读 data/coupon-snapshot.json（build.js 写盘的同一次取数结果，无需再打后端），
  * 按 scripts/topics.json 场景条目，把
- *   · AI 场景导语（TOPIC:INTRO）
+ *   · AI 场景导语（TOPIC:INTRO · build.js 传入 content/topicIntro 结果，缺失回落 topics.json）
  *   · 实时比价表（TOPIC:COMPARE · 按省钱力度排序，复用 browse/list 同口径）
  *   · 在券好物卡片网格（TOPIC:GRID · 保留 CPS data-track="coupon_click"）
  *   · ItemList + FAQPage 结构化数据（TOPIC:JSONLD / TOPIC:FAQ）
@@ -16,8 +16,10 @@
  * fail-soft：快照缺失/异常不抛出，页壳仍写盘（空态），绝不阻断部署。
  *
  * 用法：
- *   node scripts/build-topics.js                                   # 独立跑（读 data/coupon-snapshot.json）
- *   require('./build-topics').buildTopics(snapshot, SITE_URL)      # build.js 内联调用（复用同次快照对象）
+ *   node scripts/build-topics.js                                   # 独立跑（读 data/coupon-snapshot.json，导语走静态兜底）
+ *   require('./build-topics').buildTopics(snapshot, SITE_URL, {    # build.js 内联调用（复用同次快照对象）
+ *     intros: { <slug>: '<AI 导语>' }                             #   有 AI 导语用 AI，无则回落 topics.json
+ *   })
  * ========================================================================== */
 
 'use strict';
@@ -219,7 +221,7 @@ function renderFaq(kw) {
   return `<dl class="cp-faq">\n          ` + items.map(f => `<dt>${esc(f.q)}</dt><dd>${esc(f.a)}</dd>`).join('\n          ') + '\n        </dl>';
 }
 
-function jsonLdBlock(list, scene, url, siteUrl) {
+function jsonLdBlock(list, scene, url, siteUrl, sceneIntro) {
   const items = list.slice(0, 20).map((c, i) => ({
     '@type': 'ListItem',
     position: i + 1,
@@ -244,7 +246,7 @@ function jsonLdBlock(list, scene, url, siteUrl) {
     acceptedAnswer: { '@type': 'Answer', text: f.a },
   }));
   const graph = [
-    { '@context': 'https://schema.org', '@type': 'CollectionPage', name: scene.title, description: scene.desc || scene.intro || '', url: url, inLanguage: 'zh-CN', isPartOf: { '@type': 'WebSite', name: '小满券仓', url: siteUrl || SITE_URL_DEFAULT } },
+    { '@context': 'https://schema.org', '@type': 'CollectionPage', name: scene.title, description: sceneIntro || scene.desc || '', url: url, inLanguage: 'zh-CN', isPartOf: { '@type': 'WebSite', name: '小满券仓', url: siteUrl || SITE_URL_DEFAULT } },
     { '@context': 'https://schema.org', '@type': 'ItemList', name: scene.title, url: url, itemListElement: items },
     { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq },
   ];
@@ -262,9 +264,10 @@ function replaceBlock(html, pair, inner) {
 }
 
 /* ---------------- 主流程 ---------------- */
-function buildTopics(snapshot, siteUrlOpt) {
+function buildTopics(snapshot, siteUrlOpt, options) {
   const SITE_URL = String(siteUrlOpt || SITE_URL_DEFAULT).replace(/\/+$/, '');
   const root = ROOT;
+  const aiIntros = (options && options.intros) || {};
   const topics = JSON.parse(fs.readFileSync(path.join(root, 'scripts/topics.json'), 'utf8'));
   const tpl = fs.readFileSync(path.join(root, 'topic-template.html'), 'utf8');
   const snap = snapshot || {};
@@ -277,6 +280,10 @@ function buildTopics(snapshot, siteUrlOpt) {
   const slugs = [];
   topics.forEach(function (t) {
     const list = sceneList(pool, buckets, hot, t);
+    // AI 导语优先（content/topicIntro 构建期拉取）；未命中/生成失败回落 topics.json 场景导语
+    const aiIntro = String(aiIntros[t.slug] || '').trim();
+    const sceneIntro = aiIntro || String(t.intro || t.desc || '').trim();
+    const introSource = aiIntro ? 'ai' : 'fallback';
     const canonical = SITE_URL + '/topic/' + t.slug + '.html';
     let html = tpl
       .split('{{SLUG}}').join(t.slug)
@@ -287,13 +294,13 @@ function buildTopics(snapshot, siteUrlOpt) {
       // 模板源件默认 noindex（防裸模板泄漏被收录）；生成的真实专题落地页恢复 index, follow 照常收录
       .split('content="noindex, nofollow"').join('content="index, follow"');
     // 结构化数据 / 导语 / 比价表 / 卡片网格 / FAQ —— 标记内整段覆盖，幂等
-    html = replaceBlock(html, BLOCKS.jsonld, jsonLdBlock(list, t, canonical, SITE_URL));
-    html = replaceBlock(html, BLOCKS.intro, `<p class="hero-sub">${esc(t.intro || t.desc || '')}</p>`);
+    html = replaceBlock(html, BLOCKS.jsonld, jsonLdBlock(list, t, canonical, SITE_URL, sceneIntro));
+    html = replaceBlock(html, BLOCKS.intro, `<p class="hero-sub" data-intro-source="${introSource}">${esc(sceneIntro)}</p>`);
     html = replaceBlock(html, BLOCKS.compare, list.length ? renderCompare(list, t.kw) : '<p class="cp-empty">该场景实时比价正在上新，稍后再来。</p>');
     html = replaceBlock(html, BLOCKS.grid, renderGrid(list));
     html = replaceBlock(html, BLOCKS.faq, renderFaq(t.kw));
     fs.writeFileSync(path.join(outDir, t.slug + '.html'), html, 'utf8');
-    console.log('[build-topics] topic/' + t.slug + '.html：比价 ' + Math.min(list.length, TOP_N) + ' 行 / 卡片 ' + Math.min(list.length, GRID_TOP) + ' 张');
+    console.log('[build-topics] topic/' + t.slug + '.html：比价 ' + Math.min(list.length, TOP_N) + ' 行 / 卡片 ' + Math.min(list.length, GRID_TOP) + ' 张 / 导语 ' + (introSource === 'ai' ? 'AI' : '静态兜底'));
     slugs.push(t.slug);
   });
   console.log('[build-topics] 完成，共 ' + slugs.length + ' 个场景导购页');

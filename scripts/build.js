@@ -795,6 +795,35 @@ async function safeGuides() {
   } catch (e) { console.warn('[build] 拉取长文列表失败（跳过 /guides 生成）：', e.message); return []; }
 }
 
+// WO-125 场景导购 AI 导语：按 topics.json 逐个拉 /content/topicIntro（服务端 TTL 缓存，命中不产生模型调用）
+// fail-soft：单个失败不阻断，build-topics 回落 topics.json 静态导语
+async function safeTopicIntros() {
+  const out = {};
+  let topics = [];
+  try { topics = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts', 'topics.json'), 'utf8')); } catch (e) {
+    console.warn('[build] 读 topics.json 失败（场景导语走静态兜底）：', e.message);
+    return out;
+  }
+  if (!Array.isArray(topics)) return out;
+  let ok = 0;
+  for (const t of topics) {
+    if (!t || !t.slug) continue;
+    try {
+      const q = '/content/topicIntro?slug=' + encodeURIComponent(t.slug)
+        + '&kw=' + encodeURIComponent(t.kw || '')
+        + '&title=' + encodeURIComponent(t.title || '')
+        + '&desc=' + encodeURIComponent(t.desc || '');
+      const d = await fetchJson(q, null);
+      const intro = d && typeof d.intro === 'string' ? d.intro.trim() : '';
+      if (intro.length >= 20) { out[t.slug] = intro; ok++; }
+    } catch (e) {
+      console.warn('[build] 拉取场景导语失败（' + t.slug + '，回落静态导语）：', e.message);
+    }
+  }
+  console.log('[build] 场景 AI 导语：' + ok + '/' + topics.length + (ok < topics.length ? '（未命中回落 topics.json 导语）' : ''));
+  return out;
+}
+
 // 正文→HTML：AI 产文为纯文本/简版 markdown，先整体转义再行级变换（无裸 HTML）
 function articleToHtml(text) {
   const lines = String(text || '').replace(/\r/g, '').split('\n');
@@ -1153,11 +1182,12 @@ async function run() {
   } catch (e) { console.warn('[build] 写快照失败（忽略）：', e.message); }
 
   // 2.7) WO-125：AI 场景导购 + 实时比价落地页 topic/<slug>.html
-  //      复用同一次快照对象预渲染（不再打后端）；全页免费无解锁门槛，
-  //      ad-slot / img-slot 与 CPS data-track="coupon_click" 原样保留。
+  //      复用同一次快照对象预渲染（不再打后端）；AI 导语由 content/topicIntro 构建期拉取，
+  //      全页免费无解锁门槛，ad-slot / img-slot 与 CPS data-track="coupon_click" 原样保留。
   let topicSlugs = [];
   try {
-    topicSlugs = buildTopics(snapObj || {}, SITE_URL);
+    const topicIntros = await safeTopicIntros();
+    topicSlugs = buildTopics(snapObj || {}, SITE_URL, { intros: topicIntros });
   } catch (e) { console.warn('[build] 生成场景导购页异常（忽略）：', e.message); }
 
   // 3) cat 页：壳始终写盘（即使无券也不 404）

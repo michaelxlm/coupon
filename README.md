@@ -28,6 +28,7 @@ tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, �
 - 历史低价走势（券详情页走势迷你图）：`GET /api/v1/front/coupon/jd/priceTrend?tao_id=&limit=30`；批量 `jd/priceBatch?ids=a,b,c`
 - 今日降价 TopN（`/drops.html` 正式版数据源）：`GET /api/v1/front/coupon/jd/topDrops?limit=24&mainUrl=coupon.zangeng.com`——近 48h `priceHistory` 两日快照对比（到手价降 / 券面额加码），商品字段实时富化
 - 优惠券长文（`/guides/*` 预渲染数据源，对齐 `ad` 线无鉴权只读模式）：`GET /api/v1/front/coupon/content/list?page=1&pageSize=20`、`GET /api/v1/front/coupon/content/detail?slug=`——读 `Automate.couponMaterial`（`businessLine='coupon'`，`generated/published` 态），经 `sourceGuard` 按 `mainUrl` 放行、字段白名单裁剪
+- 场景导购 AI 导语（WO-125，`/topic/*` 预渲染数据源）：`GET /api/v1/front/coupon/content/topicIntro?slug=phone&kw=手机&title=…`——读 `Automate.couponTopicIntro` 缓存（TTL 30 天，`tier='light'` 只生成一次即复用）；slug 白名单由 `config.couponFront.topicIntroSlugs` 控制（与 `scripts/topics.json` 同步维护），非白名单直接 `null`；AI 不可用/生成失败同样返回 `null`，构建回落静态导语
 - 降价提醒（匿名 deviceId）：`POST /coupon/alert/subscribe|unsubscribe`、`GET /coupon/alert/list?deviceId=`；Web Push：`GET /coupon/push/vapid`、`POST /coupon/push/subscribe`
 
 > 上述三项 W2/W3 新接口（`jd/topDrops`、`content/list`、`content/detail`）已在中台 `app/router/api/v1/front/coupon/router.js` 落地。**依赖数据现状**：`couponPriceHistories` 每日快照尚未积累（现为 0）、`couponMaterial` 存量全为 `approved` 无 `published`，故上线初期 `topDrops` / `content/list` 会返回空——前端一律 fail-soft：`/drops.html` 回落预渲染力度榜 + 快照兜底、`/guides.html` 渲染空态索引壳（仍写盘不 404）、详情页走势图为空，**均不阻断部署**。待快照与发布态内容就绪即自动接通。
@@ -54,6 +55,7 @@ coupon/
 ├── drops.html          今日降价热榜（W2/W3，data-mode=drops：topDrops 接口优先→预渲染力度榜→快照兜底，每张可一键生成扫码战报）
 ├── guides.html         长文导购索引（W3，CollectionPage JSON-LD；接口无发布文章时为空态壳，仍写盘不 404）
 ├── guides/<slug>.html  长文导购页（W3，build.js 拉 /content/list 预渲染 AI 流水线长文，Article + BreadcrumbList JSON-LD）
+├── topic/<slug>.html   场景导购页（WO-125，build-topics.js 预渲染：AI 场景导语 + 实时比价 TOP8 + 券卡网格 + FAQ；CollectionPage + ItemList + FAQPage JSON-LD）
 ├── p/<tao_id>.html     券详情页（W1，build.js 依榜单/精选合集逐券写盘，Product+Offer+BreadcrumbList，含价格走势/订阅提醒/扫码分享）
 ├── my-alerts.html      我的降价提醒中心（W5，noindex：列本机 deviceId 订阅 + 当前力度对比 + Web Push/iOS 添加主屏引导）
 ├── about.html          关于与免责（AboutPage + 数据来源/合规，纯静态）
@@ -82,8 +84,10 @@ coupon/
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
 │   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 重写 sitemap.xml（CI 执行，fail-soft）
+│   ├── build-topics.js 场景导购页生成器（WO-125：按 topics.json + 快照渲染 topic/<slug>.html，TOPIC:* 标记整段替换、重复运行幂等）
+│   ├── topics.json     7 个场景配置（slug/kw/title/desc/intro/match/sort；新增场景需同步中台 config.couponFront.topicIntroSlugs）
 │   ├── fingerprint.js  内容哈希指纹（取代 cache-bust.js，部署前把资源引用改写为 <name>.<hash>.<ext>）
-│   ├── selfcheck.js    部署前质量门（chrome 标记 / 兜底快照 / 指纹生效 / W1–W5 资产存在 / drops、guides 含 JSON-LD / 详情页数量与 detailIds 对齐 / 抽样 JSON-LD 合法，关键项失败阻断 sync）
+│   ├── selfcheck.js    部署前质量门（chrome 标记 / 兜底快照 / 指纹生效 / W1–W5 资产存在 / drops、guides 含 JSON-LD / 详情页数量与 detailIds 对齐 / 抽样 JSON-LD 合法 / topic 场景页结构与导语门禁，关键项失败阻断 sync）
 │   └── archive/cache-bust.js  [已废弃] 手工 ?v= 刷新脚本历史归档，勿再用
 ├── data/
 │   ├── ad-slots.json   自营广告位兜底（远程 OSS 同步 JSON 优先）
@@ -199,6 +203,17 @@ python -m http.server 8080
 > **落点自查修复（2026-10-18）**：浏览器验收发现 `coupon-page.js` 多处用裸 `doc` 建 DOM（Top10 / 热搜词 / 氛围条 / sparkline）却漏声明局部 `doc`，`'use strict'` 下抛 `ReferenceError` 被 `request().catch` 与 `render()` 的 try/catch 静默吞掉——已补 `var doc = global.document;`（口径同 drops-page.js / detail-page.js）。
 
 > **已知边界（非本任务引入）**：线上 `api.xuyiheng.com` 老部署代码的 `jd/priceBatch` 在 `couponPriceHistories=0` 时返回 `code:30000`；本地 `main-api` `priceHistory.batch/trend` 代码正确，待中台随 W3 接口一并重新部署即消除。当前走势/迷你图为空属预期降级。
+
+## WO-125 场景导购 + 实时比价（2026-10-21）
+
+场景化长尾落地页：每个场景一页，回答「这个场景该买什么、现在多少钱、省多少」，全部免费无解锁门槛。
+
+- **场景源数据** `scripts/topics.json`：7 个场景（`phone` / `beauty` / `food` / `home` / `commute` / `study-kit` / `camping`），字段 `slug/kw/title/desc/intro/match/sort`——`kw` 用于匹配快照商品，`sort` 控制比价排序，`intro` 为 AI 不可用时的静态导语。**新增场景需同步中台 `config.couponFront.topicIntroSlugs` 白名单**，否则 AI 导语拉取会被拒（页面仍以静态导语生成）。
+- **生成链路**：`build.js` 2.7 节先 `safeTopicIntros()` 逐个拉 `content/topicIntro`（单个失败 warn 后回落，不阻断），再把导语映射交给 `buildTopics()`；后者按 `data/coupon-snapshot.json` 渲染 `topic/<slug>.html`：比价 TOP8 表 + 券卡网格（≥9 张）+ 4 条 FAQ + `CollectionPage/ItemList/FAQPage` JSON-LD。AI 导语标 `data-intro-source="ai"`，静态兜底标 `fallback`，selfcheck 据此统计覆盖率。
+- **页面约束**：保留 `data-ad-slot="carousel|inline"` 与 `data-img-slot="strip"` 三个广告位；券卡 CPS 埋点 `data-track="coupon_click"` 原样保留；全页免费、无登录/付费墙。
+- **幂等与门禁**：`TOPIC:JSONLD/INTRO/COMPARE/GRID/FAQ` START/END 标记整段替换，重复运行字节级一致（本地两次构建 MD5 比对通过）；`selfcheck.js` 第 9 节逐页校验文件存在、`noindex` 回写、导语来源标记、比价行/券卡/CPS 数量、三广告位齐全、JSON-LD 三件套——结构缺失报错阻断部署，上游数据不足（<5 行/卡）与 AI fallback 仅告警。
+- **sitemap**：`build.js` 写入 `/topic/<slug>.html`（`changefreq=daily`，`priority=0.65`），随每 4 小时定时重建刷新。
+- **本地验证**（2026-10-21）：`node scripts/build-topics.js` 7 页均「比价 8 行 / 卡片 9–12 张 / 静态兜底」；`node scripts/selfcheck.js` 0 错误 8 警告（7 条为 AI 导语 fallback，属预期降级）。AI 导语链路需中台部署 `content/topicIntro` 且配置模型 key 后才转 `ai`。
 
 ## 合规
 

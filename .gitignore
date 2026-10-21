@@ -1,5 +1,7 @@
 # 构建期生成物（CI 每次重新生成并随部署 sync 到服务器，无需入库）
 /data/coupon-snapshot.json
+# WO-125 场景导购页：build-topics.js 按快照 + topics.json 生成，部署时产出
+/topic/
 # fingerprint.js 产出的内容哈希副本：name.<hash>.ext（与源文件并存，部署时由 Nginx immutable 长缓存）
 /assets/**/*.[A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-].*
 

@@ -138,5 +138,71 @@ function firstJsonLdValid(file) {
   }
 }
 
+// 9) WO-125 场景导购页 topic/*.html：导语 / 比价 / 结构化数据 / 广告位 / CPS 门禁
+{
+  let topics = [];
+  try {
+    topics = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts', 'topics.json'), 'utf8'));
+  } catch (e) {
+    err('读 scripts/topics.json 失败：' + e.message);
+  }
+  const topicDir = path.join(ROOT, 'topic');
+  let checked = 0;
+  let aiIntroCount = 0;
+  for (const t of (Array.isArray(topics) ? topics : [])) {
+    if (!t || !t.slug) continue;
+    const f = path.join(topicDir, t.slug + '.html');
+    if (!fs.existsSync(f)) { err('缺失场景导购页 topic/' + t.slug + '.html（build-topics 未生成）'); continue; }
+    checked++;
+    const html = fs.readFileSync(f, 'utf8');
+
+    // 收录态：模板 noindex 未回写即裸模板泄漏
+    if (/<meta name="robots" content="noindex/i.test(html)) err('topic/' + t.slug + '.html 仍为 noindex（模板回写失效）');
+
+    // AI 导语：ai=构建期拉取成功；fallback=topics.json 兜底（上游/AI 不可用时仅告警，不阻断部署）
+    if (/data-intro-source="ai"/.test(html)) aiIntroCount++;
+    else if (!/data-intro-source="fallback"/.test(html)) err('topic/' + t.slug + '.html 缺少导语标记 data-intro-source');
+    else warn('topic/' + t.slug + '.html 导语为静态兜底（content/topicIntro 未命中或 AI 不可用）');
+
+    // 比价表 / 券卡 / CPS：数据型指标不足仅告警；结构性缺失报错
+    const rows = (html.match(/<td class="cp-rank">/g) || []).length;
+    const cards = (html.match(/class="cp-card"/g) || []).length;
+    const tracks = (html.match(/data-track="coupon_click"/g) || []).length;
+    if (!rows) err('topic/' + t.slug + '.html 缺失实时比价表');
+    else if (rows < 5) warn('topic/' + t.slug + '.html 比价行 ' + rows + ' < 5（本次快照可用券不足）');
+    if (!cards) err('topic/' + t.slug + '.html 缺失在券好物卡片');
+    else if (cards < 5) warn('topic/' + t.slug + '.html 券卡 ' + cards + ' < 5（本次快照可用券不足）');
+    if (!tracks) err('topic/' + t.slug + '.html 缺失 CPS 埋点 data-track="coupon_click"');
+    else if (tracks < 5) warn('topic/' + t.slug + '.html CPS 埋点仅 ' + tracks + ' 处');
+
+    // 广告位与美图位：广告回归为关键项
+    if (!/data-ad-slot="carousel"/.test(html) || !/data-ad-slot="inline"/.test(html)) {
+      err('topic/' + t.slug + '.html 广告位骨架缺失（carousel/inline）');
+    }
+    if (!/data-img-slot="strip"/.test(html)) err('topic/' + t.slug + '.html 美图位骨架缺失（strip）');
+
+    // 结构化数据：CollectionPage + ItemList + FAQPage 三件套，ItemList 少于 5 条仅告警
+    const ldMatch = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html);
+    if (!ldMatch) { err('topic/' + t.slug + '.html 缺少 JSON-LD'); continue; }
+    let graph = null;
+    try {
+      const parsed = JSON.parse(ldMatch[1]);
+      graph = Array.isArray(parsed) ? parsed : [ parsed ];
+    } catch (e) {
+      err('topic/' + t.slug + '.html JSON-LD 解析失败：' + e.message);
+      continue;
+    }
+    const typeSet = new Set(graph.map(x => x && x['@type']));
+    if (!typeSet.has('CollectionPage') || !typeSet.has('ItemList') || !typeSet.has('FAQPage')) {
+      err('topic/' + t.slug + '.html JSON-LD 缺 CollectionPage/ItemList/FAQPage');
+    }
+    const itemList = graph.find(x => x && x['@type'] === 'ItemList');
+    const itemCount = itemList && Array.isArray(itemList.itemListElement) ? itemList.itemListElement.length : 0;
+    if (itemCount < 5) warn('topic/' + t.slug + '.html JSON-LD ItemList 仅 ' + itemCount + ' 条');
+  }
+  if (checked) ok('topic/* 场景导购页 ' + checked + ' 个结构完整，AI 导语 ' + aiIntroCount + '/' + checked);
+  else err('未发现 topic/* 场景导购页（WO-125 构建产物缺失）');
+}
+
 console.log('[selfcheck] 完成：' + errors + ' 错误 / ' + warnings + ' 警告');
 process.exit(errors > 0 ? 1 : 0);

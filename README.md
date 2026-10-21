@@ -56,6 +56,7 @@ coupon/
 ├── guides.html         长文导购索引（W3，CollectionPage JSON-LD；接口无发布文章时为空态壳，仍写盘不 404）
 ├── guides/<slug>.html  长文导购页（W3，build.js 拉 /content/list 预渲染 AI 流水线长文，Article + BreadcrumbList JSON-LD）
 ├── topic/<slug>.html   场景导购页（WO-125，build-topics.js 预渲染：AI 场景导语 + 实时比价 TOP8 + 券卡网格 + FAQ；CollectionPage + ItemList + FAQPage JSON-LD）
+├── topic/index.html    场景导购索引（WO-125，build-topics.js 由 topic-index-template.html 生成：7 个场景入口 + CollectionPage/ItemList JSON-LD）
 ├── p/<tao_id>.html     券详情页（W1，build.js 依榜单/精选合集逐券写盘，Product+Offer+BreadcrumbList，含价格走势/订阅提醒/扫码分享）
 ├── my-alerts.html      我的降价提醒中心（W5，noindex：列本机 deviceId 订阅 + 当前力度对比 + Web Push/iOS 添加主屏引导）
 ├── about.html          关于与免责（AboutPage + 数据来源/合规，纯静态）
@@ -84,10 +85,10 @@ coupon/
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
 │   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 重写 sitemap.xml（CI 执行，fail-soft）
-│   ├── build-topics.js 场景导购页生成器（WO-125：按 topics.json + 快照渲染 topic/<slug>.html，TOPIC:* 标记整段替换、重复运行幂等）
+│   ├── build-topics.js 场景导购页生成器（WO-125：按 topics.json + 快照渲染 topic/<slug>.html 与索引页，TOPIC:* 标记整段替换、重复运行幂等）
 │   ├── topics.json     7 个场景配置（slug/kw/title/desc/intro/match/sort；新增场景需同步中台 config.couponFront.topicIntroSlugs）
 │   ├── fingerprint.js  内容哈希指纹（取代 cache-bust.js，部署前把资源引用改写为 <name>.<hash>.<ext>）
-│   ├── selfcheck.js    部署前质量门（chrome 标记 / 兜底快照 / 指纹生效 / W1–W5 资产存在 / drops、guides 含 JSON-LD / 详情页数量与 detailIds 对齐 / 抽样 JSON-LD 合法 / topic 场景页结构与导语门禁，关键项失败阻断 sync）
+│   ├── selfcheck.js    部署前质量门（chrome 标记 / 兜底快照 / 指纹生效 / W1–W5 资产存在 / drops、guides 含 JSON-LD / 详情页数量与 detailIds 对齐 / 抽样 JSON-LD 合法 / topic 场景页结构与导语门禁 + 索引页与首页入口校验，关键项失败阻断 sync）
 │   └── archive/cache-bust.js  [已废弃] 手工 ?v= 刷新脚本历史归档，勿再用
 ├── data/
 │   ├── ad-slots.json   自营广告位兜底（远程 OSS 同步 JSON 优先）
@@ -212,8 +213,9 @@ python -m http.server 8080
 - **生成链路**：`build.js` 2.7 节先 `safeTopicIntros()` 逐个拉 `content/topicIntro`（单个失败 warn 后回落，不阻断），再把导语映射交给 `buildTopics()`；后者按 `data/coupon-snapshot.json` 渲染 `topic/<slug>.html`：比价 TOP8 表 + 券卡网格（≥9 张）+ 4 条 FAQ + `CollectionPage/ItemList/FAQPage` JSON-LD。AI 导语标 `data-intro-source="ai"`，静态兜底标 `fallback`，selfcheck 据此统计覆盖率。
 - **页面约束**：保留 `data-ad-slot="carousel|inline"` 与 `data-img-slot="strip"` 三个广告位；券卡 CPS 埋点 `data-track="coupon_click"` 原样保留；全页免费、无登录/付费墙。
 - **幂等与门禁**：`TOPIC:JSONLD/INTRO/COMPARE/GRID/FAQ` START/END 标记整段替换，重复运行字节级一致（本地两次构建 MD5 比对通过）；`selfcheck.js` 第 9 节逐页校验文件存在、`noindex` 回写、导语来源标记、比价行/券卡/CPS 数量、三广告位齐全、JSON-LD 三件套——结构缺失报错阻断部署，上游数据不足（<5 行/卡）与 AI fallback 仅告警。
-- **sitemap**：`build.js` 写入 `/topic/<slug>.html`（`changefreq=daily`，`priority=0.65`），随每 4 小时定时重建刷新。
-- **本地验证**（2026-10-21）：`node scripts/build-topics.js` 7 页均「比价 8 行 / 卡片 9–12 张 / 静态兜底」；`node scripts/selfcheck.js` 0 错误 8 警告（7 条为 AI 导语 fallback，属预期降级）。AI 导语链路需中台部署 `content/topicIntro` 且配置模型 key 后才转 `ai`。
+- **sitemap**：`build.js` 写入 `/topic/<slug>.html` 与 `/topic/index.html`（`changefreq=daily`，`priority=0.65`），随每 4 小时定时重建刷新。
+- **站内入口**：`COUPON_SITE.nav/footer_nav` 新增「场景导购」→ `/topic/index.html`；首页 hero 增加 7 场景快捷 chips；每个场景页底部「其他场景导购」互链 + 返回索引。`selfcheck` 校验索引页存在、≥5 个场景入口、首页可达，防止「页面在但用户进不去」。
+- **本地验证**（2026-10-21）：完整构建 + selfcheck 通过——7 页「比价 8 行 / 卡片 9–12 张」，线上 `content/topicIntro` 已部署，AI 导语 7/7（`data-intro-source="ai"`）；selfcheck 0 错误 1 警告（既有 `?v=` 手工版本号）。
 
 ## 合规
 

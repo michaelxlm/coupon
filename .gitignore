@@ -2,6 +2,8 @@
 /data/coupon-snapshot.json
 # WO-125 场景导购页：build-topics.js 按快照 + topics.json 生成，部署时产出
 /topic/
+# 券详情页：build.js 按本次合集逐券写盘，部署时产出；已跟踪的历史文件不受影响，仅忽略新增产物
+/p/
 # fingerprint.js 产出的内容哈希副本：name.<hash>.ext（与源文件并存，部署时由 Nginx immutable 长缓存）
 /assets/**/*.[A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-][A-Za-z0-9_-].*
 

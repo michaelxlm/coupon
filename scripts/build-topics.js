@@ -40,6 +40,8 @@ const BLOCKS = {
   compare: ['<!-- TOPIC:COMPARE:START -->', '<!-- TOPIC:COMPARE:END -->'],
   grid: ['<!-- TOPIC:GRID:START -->', '<!-- TOPIC:GRID:END -->'],
   faq: ['<!-- TOPIC:FAQ:START -->', '<!-- TOPIC:FAQ:END -->'],
+  related: ['<!-- TOPIC:RELATED:START -->', '<!-- TOPIC:RELATED:END -->'],
+  index: ['<!-- TOPIC:INDEX:START -->', '<!-- TOPIC:INDEX:END -->'],
 };
 
 /* ---------------- 工具函数（与 build.js 同口径，独立内联免循环依赖） ---------------- */
@@ -221,6 +223,54 @@ function renderFaq(kw) {
   return `<dl class="cp-faq">\n          ` + items.map(f => `<dt>${esc(f.q)}</dt><dd>${esc(f.a)}</dd>`).join('\n          ') + '\n        </dl>';
 }
 
+// 其他场景互链（topic 页内链，避免只能靠 sitemap 发现）
+function renderRelated(topics, currentSlug) {
+  const links = topics.filter(t => t.slug !== currentSlug)
+    .map(t => `<a class="cp-his-chip" href="/topic/${esc(t.slug)}.html">${esc(t.kw)}</a>`);
+  links.push('<a class="cp-his-chip" href="/topic/index.html">全部场景 →</a>');
+  return '<div class="cp-his">' + links.join('\n          ') + '</div>';
+}
+
+// 场景索引卡片：复用 cp-card 外观，标题 + 场景词 + 在券数量
+function renderIndexCards(topics, counts) {
+  return topics.map(function (t) {
+    const n = Number(counts[t.slug]) || 0;
+    return '<a class="cp-card" href="/topic/' + esc(t.slug) + '.html" data-topic="' + esc(t.slug) + '">'
+      + '<span class="cp-name">' + esc(t.title) + '</span>'
+      + '<div class="cp-price"><span class="cp-off">' + esc(t.kw) + '实时比价</span>'
+      + (n > 0 ? '<span class="cp-expire">' + n + ' 件在券</span>' : '')
+      + '</div></a>';
+  }).join('\n          ');
+}
+
+function indexJsonLd(topics, url, siteUrl) {
+  const items = topics.map((t, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: siteUrl + '/topic/' + t.slug + '.html',
+    name: t.title,
+    description: t.desc || '',
+  }));
+  const graph = [
+    { '@context': 'https://schema.org', '@type': 'CollectionPage', name: '场景导购', description: '按生活场景找券：手机、美妆、零食、家居、通勤穿搭、开学装机、露营囤货，实时比价按省钱力度排序。', url: url, inLanguage: 'zh-CN', isPartOf: { '@type': 'WebSite', name: '小满券仓', url: siteUrl } },
+    { '@context': 'https://schema.org', '@type': 'ItemList', name: '场景导购', url: url, itemListElement: items },
+  ];
+  return '<script type="application/ld+json">\n' + JSON.stringify(graph, null, 0) + '\n</script>';
+}
+
+// 场景索引页：站内唯一「场景导购」入口，生成 topic/index.html
+function buildTopicIndex(topics, counts, siteUrl) {
+  const canonical = siteUrl + '/topic/index.html';
+  const tpl = fs.readFileSync(path.join(ROOT, 'topic-index-template.html'), 'utf8');
+  let html = tpl
+    .split('{{CANONICAL}}').join(canonical)
+    .split('content="noindex, nofollow"').join('content="index, follow"');
+  html = replaceBlock(html, BLOCKS.jsonld, indexJsonLd(topics, canonical, siteUrl));
+  html = replaceBlock(html, BLOCKS.index, renderIndexCards(topics, counts));
+  fs.writeFileSync(path.join(ROOT, 'topic', 'index.html'), html, 'utf8');
+  console.log('[build-topics] topic/index.html：' + topics.length + ' 个场景入口');
+}
+
 function jsonLdBlock(list, scene, url, siteUrl, sceneIntro) {
   const items = list.slice(0, 20).map((c, i) => ({
     '@type': 'ListItem',
@@ -278,8 +328,10 @@ function buildTopics(snapshot, siteUrlOpt, options) {
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
   const slugs = [];
+  const counts = {};
   topics.forEach(function (t) {
     const list = sceneList(pool, buckets, hot, t);
+    counts[t.slug] = list.length;
     // AI 导语优先（content/topicIntro 构建期拉取）；未命中/生成失败回落 topics.json 场景导语
     const aiIntro = String(aiIntros[t.slug] || '').trim();
     const sceneIntro = aiIntro || String(t.intro || t.desc || '').trim();
@@ -299,11 +351,14 @@ function buildTopics(snapshot, siteUrlOpt, options) {
     html = replaceBlock(html, BLOCKS.compare, list.length ? renderCompare(list, t.kw) : '<p class="cp-empty">该场景实时比价正在上新，稍后再来。</p>');
     html = replaceBlock(html, BLOCKS.grid, renderGrid(list));
     html = replaceBlock(html, BLOCKS.faq, renderFaq(t.kw));
+    html = replaceBlock(html, BLOCKS.related, renderRelated(topics, t.slug));
     fs.writeFileSync(path.join(outDir, t.slug + '.html'), html, 'utf8');
     console.log('[build-topics] topic/' + t.slug + '.html：比价 ' + Math.min(list.length, TOP_N) + ' 行 / 卡片 ' + Math.min(list.length, GRID_TOP) + ' 张 / 导语 ' + (introSource === 'ai' ? 'AI' : '静态兜底'));
     slugs.push(t.slug);
   });
-  console.log('[build-topics] 完成，共 ' + slugs.length + ' 个场景导购页');
+  buildTopicIndex(topics, counts, SITE_URL);
+  slugs.push('index');
+  console.log('[build-topics] 完成，共 ' + topics.length + ' 个场景导购页 + 1 个索引页');
   return slugs;
 }
 

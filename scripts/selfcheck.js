@@ -90,19 +90,26 @@ for (const name of ['drops.html', 'guides.html']) {
   ok(name + ' 已生成，含 JSON-LD');
 }
 
-// 7) W1 详情页壳 /p/*.html 数量：与 snapshot.detailIds 对齐；为 0 视为警告（后端本次可能不可达，池空则不生成）
+// 7) W1 详情页壳 /p/*.html：detailIds 必须逐一有文件（my-alerts 链接会 404）；
+//    磁盘多出的历史残留仅提示（build.js 只增不删，不影响访问）
 const pDir = path.join(ROOT, 'p');
-let pCount = 0;
-try { pCount = fs.readdirSync(pDir).filter(f => f.endsWith('.html')).length; } catch (e) { /* 无目录 */ }
+let pFiles = [];
+try { pFiles = fs.readdirSync(pDir).filter(f => f.endsWith('.html')); } catch (e) { /* 无目录 */ }
 let snapDetailIds = [];
 try {
   const snap = JSON.parse(fs.readFileSync(snapPath, 'utf8'));
   snapDetailIds = Array.isArray(snap.detailIds) ? snap.detailIds.map(String) : [];
 } catch (e) { /* 快照已在上面校验 */ }
-if (pCount > 0) {
-  ok('/p/* 详情页壳 ' + pCount + ' 张，snapshot.detailIds=' + snapDetailIds.length);
-  if (snapDetailIds.length && Math.abs(snapDetailIds.length - pCount) > pCount * 0.5 + 1) {
-    warn('snapshot.detailIds 与 /p/* 数量偏差过大（' + snapDetailIds.length + ' vs ' + pCount + '），my-alerts 详情链接可能大量 404');
+if (pFiles.length) {
+  const fileSet = new Set(pFiles);
+  const idSet = new Set(snapDetailIds);
+  const missing = snapDetailIds.filter(id => !fileSet.has(id + '.html'));
+  const stale = pFiles.filter(f => !idSet.has(f.slice(0, -5))).length;
+  ok('/p/* 详情页壳 ' + pFiles.length + ' 张，snapshot.detailIds=' + snapDetailIds.length
+    + (stale > 0 ? '（历史残留 ' + stale + ' 张，不影响访问）' : ''));
+  if (missing.length) {
+    warn('snapshot.detailIds 有 ' + missing.length + ' 个 id 缺详情页（my-alerts 链接会 404）：'
+      + missing.slice(0, 3).join(', ') + (missing.length > 3 ? ' 等' : ''));
   }
 } else {
   warn('未发现 /p/* 详情页壳（本次构建详情池可能为空——后端不可达；上线前请确认有券时能生成）');
@@ -181,6 +188,9 @@ function firstJsonLdValid(file) {
     }
     if (!/data-img-slot="strip"/.test(html)) err('topic/' + t.slug + '.html 美图位骨架缺失（strip）');
 
+    // 站内入口：场景页必须能回到索引页（避免只能靠 sitemap 发现）
+    if (!html.includes('href="/topic/index.html"')) err('topic/' + t.slug + '.html 缺少返回场景索引的入口');
+
     // 结构化数据：CollectionPage + ItemList + FAQPage 三件套，ItemList 少于 5 条仅告警
     const ldMatch = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html);
     if (!ldMatch) { err('topic/' + t.slug + '.html 缺少 JSON-LD'); continue; }
@@ -199,6 +209,30 @@ function firstJsonLdValid(file) {
     const itemList = graph.find(x => x && x['@type'] === 'ItemList');
     const itemCount = itemList && Array.isArray(itemList.itemListElement) ? itemList.itemListElement.length : 0;
     if (itemCount < 5) warn('topic/' + t.slug + '.html JSON-LD ItemList 仅 ' + itemCount + ' 条');
+  }
+  // 场景索引页与主站入口：索引缺失=导航 404；主站无入口=用户不可达
+  const idxFile = path.join(topicDir, 'index.html');
+  if (!fs.existsSync(idxFile)) {
+    err('缺失场景索引页 topic/index.html（导航「场景导购」会 404）');
+  } else {
+    const idx = fs.readFileSync(idxFile, 'utf8');
+    if (/<meta name="robots" content="noindex/i.test(idx)) err('topic/index.html 仍为 noindex（模板回写失效）');
+    const idxLd = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(idx);
+    if (!idxLd) err('topic/index.html 缺少 JSON-LD');
+    else {
+      try {
+        const g = JSON.parse(idxLd[1]);
+        const types = new Set((Array.isArray(g) ? g : [g]).map(x => x && x['@type']));
+        if (!types.has('CollectionPage') || !types.has('ItemList')) err('topic/index.html JSON-LD 缺 CollectionPage/ItemList');
+      } catch (e) { err('topic/index.html JSON-LD 解析失败：' + e.message); }
+    }
+    const sceneLinks = (idx.match(/href="\/topic\/[a-z0-9-]+\.html"/g) || []).length;
+    if (sceneLinks < 5) err('topic/index.html 场景入口仅 ' + sceneLinks + ' 个');
+    if (!/data-ad-slot="carousel"/.test(idx) || !/data-ad-slot="inline"/.test(idx)) err('topic/index.html 广告位骨架缺失（carousel/inline）');
+  }
+  const homeFile = path.join(ROOT, 'index.html');
+  if (fs.existsSync(homeFile) && !fs.readFileSync(homeFile, 'utf8').includes('href="/topic/index.html"')) {
+    err('首页缺少「场景导购」入口（/topic/index.html 不可达）');
   }
   if (checked) ok('topic/* 场景导购页 ' + checked + ' 个结构完整，AI 导语 ' + aiIntroCount + '/' + checked);
   else err('未发现 topic/* 场景导购页（WO-125 构建产物缺失）');

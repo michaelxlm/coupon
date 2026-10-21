@@ -30,6 +30,7 @@ const fs = require('fs');
 const path = require('path');
 const P = require('./shared-partials'); // WO-85 阶段二：header/footer/ad-slot 委托跨站单一源
 const NAV = require('./shared-navigation'); // WO-93：原生导航无缝化（Speculation Rules 预取 + View Transitions）单一源
+const { buildTopics } = require('./build-topics'); // WO-125：AI 场景导购 + 实时比价落地页（复用本次快照对象预渲染）
 
 const API_BASE = process.env.COUPON_API_BASE || 'https://api.xuyiheng.com';
 const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
@@ -991,7 +992,7 @@ function guidePageShell(a, others, detailIdSet) {
 `;
 }
 
-function writeSitemap(slugs, detailIds, guideSlugs) {
+function writeSitemap(slugs, detailIds, guideSlugs, topicSlugs) {
   const lm = todayIso();
   const urls = [
     ['/', '1.0', 'daily'],
@@ -1001,6 +1002,7 @@ function writeSitemap(slugs, detailIds, guideSlugs) {
     ['/category.html', '0.8', 'weekly'],
   ];
   for (const s of slugs) urls.push(['/cat/' + s + '.html', '0.7', 'daily']);
+  for (const t of (topicSlugs || [])) urls.push(['/topic/' + t + '.html', '0.65', 'daily']);
   urls.push(['/drops.html', '0.9', 'daily']);
   for (const id of (detailIds || [])) urls.push(['/p/' + id + '.html', '0.6', 'daily']);
   urls.push(['/guides.html', '0.5', 'weekly']);
@@ -1131,8 +1133,9 @@ async function run() {
 
   // 2.6) 快照：运行时后端不可达时的兜底数据源（配合 nginx 放行 /data/coupon-snapshot.json）
   //      构建期随部署刷新，使 api.xuyiheng.com 抖动/被墙时前端仍能渲染最近一次成功取到的券。
+  let snapObj = null;
   try {
-    writeSnapshot({
+    snapObj = {
       updatedAt: new Date().toISOString(),
       featured: idxList,
       rank: {
@@ -1145,8 +1148,17 @@ async function run() {
       drops: dropsList,
       // my-alerts.js 详情链接白名单：只对已生成 /p/<id> 的券给「详情」入口，避免 404
       detailIds: snapshotDetailIds,
-    });
+    };
+    writeSnapshot(snapObj);
   } catch (e) { console.warn('[build] 写快照失败（忽略）：', e.message); }
+
+  // 2.7) WO-125：AI 场景导购 + 实时比价落地页 topic/<slug>.html
+  //      复用同一次快照对象预渲染（不再打后端）；全页免费无解锁门槛，
+  //      ad-slot / img-slot 与 CPS data-track="coupon_click" 原样保留。
+  let topicSlugs = [];
+  try {
+    topicSlugs = buildTopics(snapObj || {}, SITE_URL);
+  } catch (e) { console.warn('[build] 生成场景导购页异常（忽略）：', e.message); }
 
   // 3) cat 页：壳始终写盘（即使无券也不 404）
   if (categories.length) {
@@ -1221,7 +1233,7 @@ async function run() {
   } catch (e) { console.warn('[build] 生成长文页异常（忽略）：', e.message); }
   
   // 4) sitemap
-  writeSitemap(categories.map(c => c.slug), detailIds, guideSlugs);
+  writeSitemap(categories.map(c => c.slug), detailIds, guideSlugs, topicSlugs);
 }
 
 run().catch(err => {

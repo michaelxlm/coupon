@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,15 +8,30 @@
   <!-- 本文件是模板源件，不应对外服务：默认 noindex 防止裸模板泄漏到生产时被收录（{{TITLE}} 占位页无独立价值）。
        build-topics.js 生成真实专题页时会把本行改写为 index, follow，落地页照常收录。 -->
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="stylesheet" href="/assets/css/tokens.css?v=2026.10.16" />
-  <link rel="stylesheet" href="/assets/css/main.css?v=2026.10.16" />
-  <link rel="stylesheet" href="/assets/css/coupon.css?v=2026.10.16" />
+  <link rel="icon" href="/assets/img/favicon.svg">
+  <link rel="canonical" href="{{CANONICAL}}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="小满券仓">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:description" content="{{DESC}}">
+  <meta property="og:url" content="{{CANONICAL}}">
+  <meta property="og:image" content="{{CANONICAL}}">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- TOPIC:JSONLD:START -->
+  <!-- TOPIC:JSONLD:END -->
+  <link rel="stylesheet" href="/assets/css/tokens.css" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="/assets/css/coupon.css" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <!-- nav-seamless:v1 · 原生导航无缝化，由 shared/navigation 单一源注入，请勿手改本块 -->
   <script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"or":[{"href_matches":"/api/*"},{"href_matches":"/admin/*"},{"href_matches":"/login*"},{"href_matches":"*logout*"}]}}]},"eagerness":"moderate"}]}</script>
   <style>@view-transition{navigation:auto}</style>
 </head>
-<body data-mode="browse" data-kw="{{KW}}">
+<body data-page="topic" data-mode="browse" data-kw="{{KW}}" data-theme-default="light">
+  <a class="skip-link" href="#main">跳到主内容</a>
+  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
   <header class="site-header">
     <div class="container nav">
       <a class="brand" href="/">小满券仓</a>
@@ -28,14 +43,52 @@
       </nav>
     </div>
   </header>
-  <main class="container">
-    <section class="section">
-      <h1 class="section-head" id="topicTitle">{{TITLE}}</h1>
-      <p class="cp-note">{{DESC}}</p>
-      <div id="cpGrid" class="cp-grid" role="list"></div>
-      <div id="cpState" class="cp-state" hidden></div>
-      <div class="cp-more-wrap"><button id="cpMore" class="cp-more" type="button" hidden>加载更多</button></div>
+  <main id="main">
+    <div class="container"><div class="ad-slot" data-ad-slot="carousel"></div></div>
+    <section class="section hero">
+      <div class="container">
+        <span class="eyebrow">场景导购 · {{KW}}</span>
+        <h1 class="section-head" id="topicTitle">{{TITLE}}</h1>
+        <!-- TOPIC:INTRO:START --><p class="hero-sub">{{DESC}}</p><!-- TOPIC:INTRO:END -->
+      </div>
     </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head left">
+          <h2>{{KW}}实时比价</h2>
+          <p class="section-desc">按省钱力度实时排序，先领券再下单更省——全页免费，无需登录、无解锁门槛。</p>
+        </div>
+        <!-- TOPIC:COMPARE:START -->
+        <!-- TOPIC:COMPARE:END -->
+      </div>
+    </section>
+
+    <div class="container"><div class="ad-slot" data-ad-slot="inline"></div></div>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head left">
+          <h2>{{KW}}在券好物</h2>
+          <p class="section-desc">实时{{KW}}相关全网优惠券，点击领券跳转商家活动页，最终优惠以商家活动页为准。</p>
+        </div>
+        <div id="cpGrid" class="cp-grid" role="list">
+          <!-- TOPIC:GRID:START -->
+          <!-- TOPIC:GRID:END -->
+        </div>
+        <p class="cp-note">优惠券展示与核销由各平台官方活动页完成，本站仅作内容聚合与跳转，不参与交易。</p>
+      </div>
+    </section>
+
+    <section class="section section-soft">
+      <div class="container">
+        <div class="section-head left"><h2>{{KW}}领券常见问题</h2></div>
+        <!-- TOPIC:FAQ:START -->
+        <!-- TOPIC:FAQ:END -->
+      </div>
+    </section>
+
+    <div class="container"><div class="img-slot" data-img-slot="strip"></div></div>
   </main>
   <footer class="site-footer">
     <div class="container">
@@ -43,9 +96,13 @@
     </div>
   </footer>
   <script>window.__TOPIC__ = { slug: '{{SLUG}}', kw: '{{KW}}', title: '{{TITLE}}', desc: '{{DESC}}' };</script>
-  <script src="/assets/js/tracker.js?v=2026.10.16"></script>
-  <script src="/assets/js/app.js?v=2026.10.16"></script>
-  <script src="/assets/js/store.js?v=2026.10.16"></script>
-  <script src="/assets/js/list-page.js?v=2026.10.16"></script>
+  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/conversion.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script src="/assets/js/store.js"></script>
+  <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
+  <script src="/assets/js/ad-slots.js" defer></script>
+  <script>window.ImgSlotConfig={mainUrl:"coupon.zangeng.com",moreUrl:"https://img.fangkelianmeng.com/"};</script>
+  <script src="/assets/js/img-slot.js" defer></script>
 </body>
 </html>

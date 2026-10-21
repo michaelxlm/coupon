@@ -11,24 +11,27 @@ Language: zh-CN
 - [全部券](https://coupon.zangeng.com/browse.html): 按时间浏览全部优惠券
 - [分类](https://coupon.zangeng.com/category.html): 按品类筛选优惠券
 - [榜单](https://coupon.zangeng.com/rank.html): 热度/折扣排行
-- [降价热榜](https://coupon.zangeng.com/drops.html): 今日真实降价/券加码热榜
-- [长文导购](https://coupon.zangeng.com/guides.html): 券怎么用、怎么凑最划算的攻略长文
 - [大促专题](https://coupon.zangeng.com/double11.html): 双十一等大促聚合
 - [节日券](https://coupon.zangeng.com/holidays.html): 按节日整理的券
-
-## 券与内容页
-
-- 券详情页 `/p/<id>.html`: 单券力度、到手价、价格走势与降价提醒订阅
-- 长文导购页 `/guides/<slug>.html`: 内容流水线自动撰写的比价导购文章
 
 ## 工具与记录
 
 - [比价计算器](https://coupon.zangeng.com/calculator.html): 叠加优惠算实付
 - [收藏](https://coupon.zangeng.com/favorites.html): 关注的券与店铺
-- [我的降价提醒](https://coupon.zangeng.com/my-alerts.html): 本机已订阅的降价提醒（匿名、无账号）
 - [领券攻略](https://coupon.zangeng.com/guide.html): 省钱方法与注意事项
 - [关于](https://coupon.zangeng.com/about.html): 数据来源与免责说明
 
+## Datasets
+
+> 本期免费接入（面向 LLM / Agent 只读调用）；档位单价与付费结算暂未对客开放，计费能力已对接
+
+- [历史上的今天](https://api.xuyiheng.com/api/v1/front/automate/history/): history 数据集（入参：mdmm（可选，MMDD））；鉴权 x-api-key 请求头。
+- [周公解梦](https://api.xuyiheng.com/api/v1/front/automate/dream/): dream 数据集（入参：keyword）；鉴权 x-api-key 请求头。
+- [中国传统色彩](https://api.xuyiheng.com/api/v1/front/automate/color/): color 数据集；鉴权 x-api-key 请求头。
+- [文档解析数据集（AI 摘要 + 元信息）](https://api.xuyiheng.com/api/v1/front/documents/): documents 数据集；鉴权 x-api-key 请求头。
+- [MCP Server](https://api.xuyiheng.com/api/v1/mcp): JSON-RPC 2.0（Streamable HTTP），与 REST 共用同一把 x-api-key 与配额。工具：history_of_today / history_list / dream_search / color_list。
+- 接入与 Key 申请：开发者门户 https://api.xuyiheng.com/developer.html
+
 ## Sitemap
 
-- [Full URL index](https://coupon.zangeng.com/sitemap.xml): 全部页面清单（含 /p/* 详情页、/drops、/guides/* 长文，约 150 条 URL）
+- [Full URL index](https://coupon.zangeng.com/sitemap.xml): 全部页面清单（约 152 条 URL）

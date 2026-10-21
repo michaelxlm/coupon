@@ -1035,4 +1035,47 @@
   .gd-more-list { grid-template-columns: 1fr; }
 }
 
+/* ---------------------- WO-125 场景导购：实时比价表 + FAQ ---------------------- */
+.cp-compare {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-size: 0.9375rem;
+}
+.cp-compare caption {
+  text-align: left;
+  padding: 10px 14px;
+  color: var(--muted, #6b7280);
+  font-size: 0.8125rem;
+  caption-side: top;
+}
+.cp-compare th, .cp-compare td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.cp-compare thead th {
+  font-weight: 600;
+  color: var(--muted, #6b7280);
+  background: color-mix(in srgb, var(--surface) 92%, var(--border));
+}
+.cp-compare tbody tr:last-child td { border-bottom: 0; }
+.cp-compare .cp-rank { width: 2.2em; text-align: center; color: var(--muted, #6b7280); }
+.cp-compare .cp-cname a { color: var(--text); text-decoration: none; }
+.cp-compare .cp-cname a:hover { color: var(--coupon-red); text-decoration: underline; }
+.cp-compare .cp-off { color: var(--coupon-red); font-weight: 600; white-space: nowrap; }
+.cp-compare .cp-final { white-space: nowrap; }
+@media (max-width: 640px) {
+  .cp-compare { font-size: 0.875rem; }
+  .cp-compare th, .cp-compare td { padding: 8px 10px; }
+}
+.cp-faq { margin: 8px 0 0; }
+.cp-faq dt { font-weight: 600; margin-top: 14px; }
+.cp-faq dd { margin: 6px 0 0; color: var(--muted, #6b7280); line-height: 1.6; }
+
 

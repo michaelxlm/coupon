@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "updated": "2026.10.12",
-  "source": "本地兜底广告位；远程 OSS 同步 JSON 优先，本文件仅作远程不可用时的兜底。优惠券内容由后端接口实时拉取，不进广告位。coupon 未纳入管理端集中 OSS 分片（config.adSlots.sites 不含 coupon），此处自营位为本地兜底，跨链同族站点。",
+  "source": "本地兜底广告位；远程 OSS 同步 JSON 优先，本文件仅作远程不可用时的兜底。优惠券内容由后端接口实时拉取，不进广告位。coupon-zangeng 已纳入管理端集中 OSS 分片（config.adSlots.sites 含 coupon-zangeng，投放内部 self 互推位，与本站同口径）；短期全部使用内部广告（D-ad-internal），此处自营位为本地兜底，跨链同族站点。",
   "settings": {
     "enabled": true,
     "maxPerSlot": 3,

@@ -701,11 +701,8 @@ details.faq .faq-body { padding: 0 16px 12px; color: var(--text-muted); font-siz
   .plan.is-featured { transform: none; }
 }
 
-@media (max-width: 720px) {
-  .section { padding: 20px 0; }
-  .hero { padding: 16px 0 18px; }
-  .hero h1 { font-size: 1.5rem; }
-  .hero-sub { font-size: 0.875rem; }
+/* 导航折叠断点 900px：7 项主导航在 720–900px 会折行撑出 header，提前收进抽屉 */
+@media (max-width: 900px) {
   .nav {
     position: absolute;
     top: var(--header-h);
@@ -720,10 +717,19 @@ details.faq .faq-body { padding: 0 16px 12px; color: var(--text-muted); font-siz
     background: var(--bg);
     border-bottom: 1px solid var(--border);
     box-shadow: var(--shadow);
+    max-height: calc(100vh - var(--header-h));
+    overflow-y: auto;
   }
   .nav.is-open { display: flex; }
   .nav-link { padding: 12px; }
   .nav-toggle { display: inline-flex; }
+}
+
+@media (max-width: 720px) {
+  .section { padding: 20px 0; }
+  .hero { padding: 16px 0 18px; }
+  .hero h1 { font-size: 1.5rem; }
+  .hero-sub { font-size: 0.875rem; }
   .grid-4, .grid-3, .grid-2, .plans { grid-template-columns: 1fr; }
   .logos { grid-template-columns: repeat(2, 1fr); }
   .footer-grid { grid-template-columns: 1fr; }

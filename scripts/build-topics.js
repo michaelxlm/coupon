@@ -26,6 +26,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const P = require('./shared-partials');
+const { COUPON_SITE, TOPIC_NAV } = require('./site-config');
 
 const ROOT = path.resolve(__dirname, '..');
 const SITE_URL_DEFAULT = (process.env.COUPON_SITE_URL || 'https://coupon.zangeng.com').replace(/\/+$/, '');
@@ -43,6 +45,20 @@ const BLOCKS = {
   related: ['<!-- TOPIC:RELATED:START -->', '<!-- TOPIC:RELATED:END -->'],
   index: ['<!-- TOPIC:INDEX:START -->', '<!-- TOPIC:INDEX:END -->'],
 };
+
+// 站点 chrome：与 build.js 根页共用 shared-partials + site-config，避免场景页旧菜单漂移
+const CHROME = {
+  header: ['<!-- CHROME:HEADER:START -->', '<!-- CHROME:HEADER:END -->'],
+  footer: ['<!-- CHROME:FOOTER:START -->', '<!-- CHROME:FOOTER:END -->'],
+};
+
+function applyChrome(html) {
+  const header = P.renderHeader(COUPON_SITE, { nav: TOPIC_NAV }, {}, { navAriaCurrent: true });
+  const footer = P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' });
+  html = replaceBlock(html, CHROME.header, header);
+  html = replaceBlock(html, CHROME.footer, footer);
+  return html;
+}
 
 /* ---------------- 工具函数（与 build.js 同口径，独立内联免循环依赖） ---------------- */
 function esc(s) {
@@ -267,6 +283,7 @@ function buildTopicIndex(topics, counts, siteUrl) {
     .split('content="noindex, nofollow"').join('content="index, follow"');
   html = replaceBlock(html, BLOCKS.jsonld, indexJsonLd(topics, canonical, siteUrl));
   html = replaceBlock(html, BLOCKS.index, renderIndexCards(topics, counts));
+  html = applyChrome(html);
   fs.writeFileSync(path.join(ROOT, 'topic', 'index.html'), html, 'utf8');
   console.log('[build-topics] topic/index.html：' + topics.length + ' 个场景入口');
 }
@@ -352,6 +369,7 @@ function buildTopics(snapshot, siteUrlOpt, options) {
     html = replaceBlock(html, BLOCKS.grid, renderGrid(list));
     html = replaceBlock(html, BLOCKS.faq, renderFaq(t.kw));
     html = replaceBlock(html, BLOCKS.related, renderRelated(topics, t.slug));
+    html = applyChrome(html);
     fs.writeFileSync(path.join(outDir, t.slug + '.html'), html, 'utf8');
     console.log('[build-topics] topic/' + t.slug + '.html：比价 ' + Math.min(list.length, TOP_N) + ' 行 / 卡片 ' + Math.min(list.length, GRID_TOP) + ' 张 / 导语 ' + (introSource === 'ai' ? 'AI' : '静态兜底'));
     slugs.push(t.slug);

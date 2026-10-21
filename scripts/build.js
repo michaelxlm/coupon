@@ -29,6 +29,7 @@
 const fs = require('fs');
 const path = require('path');
 const P = require('./shared-partials'); // WO-85 阶段二：header/footer/ad-slot 委托跨站单一源
+const { COUPON_SITE } = require('./site-config'); // 站点导航单一源（build-topics 场景页共用，防止菜单漂移）
 const NAV = require('./shared-navigation'); // WO-93：原生导航无缝化（Speculation Rules 预取 + View Transitions）单一源
 const { buildTopics } = require('./build-topics'); // WO-125：AI 场景导购 + 实时比价落地页（复用本次快照对象预渲染）
 
@@ -56,41 +57,7 @@ const CHROME_HDR_END = '<!-- CHROME:HEADER:END -->';
 const CHROME_FTR_START = '<!-- CHROME:FOOTER:START -->';
 const CHROME_FTR_END = '<!-- CHROME:FOOTER:END -->';
 
-// 站点静态 chrome（header/footer 数据源）：委托 shared-partials 渲染，不再内联字面量
-const COUPON_SITE = {
-  site_name: '小满券仓',
-  logo_text: '券',
-  domain: 'coupon.zangeng.com',
-  slogan: '全网优惠券，先领券再下单更省',
-  icp: '京ICP备18062653号-26',
-  icp_url: 'https://beian.miit.gov.cn/',
-  nav: [
-    { label: '领券中心', url: '/' },
-    { label: '全部好物', url: '/browse.html' },
-    { label: '榜单', url: '/rank.html' },
-    { label: '品类', url: '/category.html' },
-    { label: '场景导购', url: '/topic/index.html' },
-    { label: '攻略', url: '/guide.html' },
-    { label: '长文导购', url: '/guides.html' },
-  ],
-  footer_nav: [
-    { title: '导航', links: [
-      { label: '领券中心', url: '/' },
-      { label: '全部好物', url: '/browse.html' },
-      { label: '榜单', url: '/rank.html' },
-      { label: '降价热榜', url: '/drops.html' },
-      { label: '品类', url: '/category.html' },
-      { label: '场景导购', url: '/topic/index.html' },
-      { label: '领券攻略', url: '/guide.html' },
-      { label: '凑单计算器', url: '/calculator.html' },
-      { label: '大促日历', url: '/holidays.html' },
-      { label: '双 11 专题', url: '/double11.html' },
-      { label: '我的收藏', url: '/favorites.html' },
-      { label: '关于与免责', url: '/about.html' },
-    ] },
-  ],
-  contact: { email: 'xlm8826@gmail.com', feedback_url: 'https://antucao.com' },
-};
+// 站点静态 chrome（header/footer 数据源）：已抽到 scripts/site-config.js，与 build-topics 共用
 const COUPON_PAGE = { nav: '/category.html' }; // 品类落地页恒高亮「品类」
 
 // WO-86：全部手写页 chrome 委托 shared 渲染。key=文件名，value=导航高亮的 url（'' = 不高亮）。
@@ -359,6 +326,77 @@ function injectChrome(file, pageNav) {
   console.log('[build] ' + path.basename(file) + '：chrome 委托 shared 渲染' + (pageNav ? ('（高亮 ' + pageNav + '）') : ''));
 }
 
+// 存量产物（/p/*、/guides/*）在本次取数为空时不会重写，旧版菜单会残留在已部署页面。
+// 这里按域名目录做一次 chrome 对齐：整段替换唯一一处 header.site-header / footer.site-footer，
+// 不依赖 CHROME 标记；要求两段各命中一次，避免畸形页被吞正文或只换半套 chrome。
+// 幂等：renderHeader 无推广条时以 \n 开头，必须 trim 并连同匹配点前空白一起替换，否则每轮构建多一个空行。
+function syncChromeOnDisk(dir, pageNav, singleFile, ariaCurrent) {
+  const files = [];
+  if (singleFile) files.push(singleFile);
+  else {
+    if (!fs.existsSync(dir)) return 0; // 如 guides/ 尚未产生：可选目录，静默跳过
+    try {
+      fs.readdirSync(dir).filter(f => f.endsWith('.html')).forEach(f => files.push(path.join(dir, f)));
+    } catch (e) {
+      console.warn('[build] chrome 对齐跳过 ' + path.relative(ROOT, dir) + '：' + e.message);
+      return 0;
+    }
+  }
+  const header = P.renderHeader(COUPON_SITE, { nav: pageNav }, {}, { navAriaCurrent: !!ariaCurrent }).trim();
+  const footer = P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' }).trim();
+  let n = 0;
+  let failed = 0;
+  files.forEach(function (file) {
+    let html;
+    try { html = fs.readFileSync(file, 'utf8'); } catch (e) {
+      failed++;
+      console.warn('[build] chrome 对齐读失败 ' + path.basename(file) + '：' + e.message);
+      return;
+    }
+    const hdrCount = (html.match(/<header class="site-header">/g) || []).length;
+    const ftrCount = (html.match(/<footer class="site-footer">/g) || []).length;
+    if (!hdrCount && !ftrCount) {
+      // 本函数只扫全页目录：两段都没有说明模板标记变了，必须告警，否则兜底静默失效
+      failed++;
+      console.warn('[build] chrome 对齐跳过 ' + path.basename(file) + '：未找到站点 header/footer 标记');
+      return;
+    }
+    if (hdrCount !== 1 || ftrCount !== 1) {
+      failed++;
+      console.warn('[build] chrome 对齐跳过 ' + path.basename(file) + '：header ' + hdrCount + ' 处 / footer ' + ftrCount +
+        ' 处，标记不唯一或缺 footer，避免只换半套 chrome');
+      return;
+    }
+    // 已是最新 chrome（仅缩进/空行差异）就不再写盘：避免重生成页每轮都被计为“对齐”
+    if (html.indexOf(header) !== -1 && html.indexOf(footer) !== -1) return;
+    const hdrBlock = html.match(/<header class="site-header">[\s\S]*?<\/header>/);
+    const ftrBlock = html.match(/<footer class="site-footer">[\s\S]*?<\/footer>/);
+    if (!hdrBlock || !ftrBlock || /<main[\s>]/.test(hdrBlock[0]) || /<\/body>/.test(ftrBlock[0])) {
+      failed++;
+      console.warn('[build] chrome 对齐跳过 ' + path.basename(file) + '：闭合标签异常，避免误吞正文');
+      return;
+    }
+    const next = html
+      .replace(/\s*<header class="site-header">[\s\S]*?<\/header>/, '\n' + header)
+      .replace(/\s*<footer class="site-footer">[\s\S]*?<\/footer>/, '\n' + footer);
+    if (next === html) return;
+    try {
+      const out = NAV.injectIntoHtml(next, { site: 'coupon' });
+      const tmp = file + '.tmp';
+      fs.writeFileSync(tmp, out);
+      fs.renameSync(tmp, file); // 同目录 rename 原子替换，避免中断留下半截 HTML
+      n++;
+    } catch (e) {
+      failed++;
+      try { fs.unlinkSync(file + '.tmp'); } catch (_) { /* 临时文件可能未生成 */ }
+      console.warn('[build] chrome 对齐写失败 ' + path.basename(file) + '：' + e.message);
+    }
+  });
+  console.log('[build] ' + (singleFile ? path.basename(singleFile) : path.relative(ROOT, dir) + '/*') +
+    '：chrome 对齐 ' + n + ' 个文件（高亮 ' + pageNav + '）' + (failed ? '，失败 ' + failed + ' 个' : ''));
+  return n;
+}
+
 /* ---------------------------- 品类落地页模板 ---------------------------- */
 function catPageShell(cat, list) {
   const url = SITE_URL + '/cat/' + cat.slug + '.html';
@@ -610,7 +648,7 @@ function detailPageShell(c, related) {
   <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
-  ${P.renderHeader(COUPON_SITE, {}, {}, { navAriaCurrent: true })}
+  ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
 
   <main id="main">
     <section class="section-sm"><div class="container"><div class="ad-slot" data-ad-slot="carousel"></div></div></section>
@@ -727,7 +765,7 @@ function dropsPageShell(list) {
   <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
-  ${P.renderHeader(COUPON_SITE, {}, {}, { navAriaCurrent: true })}
+  ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
 
   <main id="main">
     ${P.renderAdSlotSection('carousel')}
@@ -907,7 +945,7 @@ function guideIndexShell(articles) {
   <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
-  ${P.renderHeader(COUPON_SITE, {}, {}, { navAriaCurrent: true })}
+  ${P.renderHeader(COUPON_SITE, { nav: '/guides.html' }, {}, { navAriaCurrent: true })}
 
   <main id="main">
     <section class="section hero">
@@ -993,7 +1031,7 @@ function guidePageShell(a, others, detailIdSet) {
   <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
-  ${P.renderHeader(COUPON_SITE, {}, {}, {})}
+  ${P.renderHeader(COUPON_SITE, { nav: '/guides.html' }, {}, { navAriaCurrent: true })}
 
   <main id="main">
     <article class="section gd-article">
@@ -1263,6 +1301,14 @@ async function run() {
     }
   } catch (e) { console.warn('[build] 生成长文页异常（忽略）：', e.message); }
   
+  // 3.8) 存量 /p/* 与 /guides/* 的 chrome 对齐：本次详情池/长文接口为空时文件不会重写，
+  //      旧菜单会残留在已部署页面；统一重渲染 header/footer，保证全站菜单一致。
+  try {
+    syncChromeOnDisk(P_DIR, '/rank.html', null, false);        // 详情页只是归属榜单，不是榜单页本身
+    syncChromeOnDisk(GUIDES_DIR, '/guides.html', null, false);
+    syncChromeOnDisk(null, '/guides.html', path.join(ROOT, 'guides.html'), true);
+  } catch (e) { console.warn('[build] 存量页 chrome 对齐异常（忽略）：', e.message); }
+
   // 4) sitemap
   writeSitemap(categories.map(c => c.slug), detailIds, guideSlugs, topicSlugs);
 }

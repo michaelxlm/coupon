@@ -32,6 +32,7 @@ const P = require('./shared-partials'); // WO-85 阶段二：header/footer/ad-sl
 const { COUPON_SITE } = require('./site-config'); // 站点导航单一源（build-topics 场景页共用，防止菜单漂移）
 const NAV = require('./shared-navigation'); // WO-93：原生导航无缝化（Speculation Rules 预取 + View Transitions）单一源
 const { buildTopics } = require('./build-topics'); // WO-125：AI 场景导购 + 实时比价落地页（复用本次快照对象预渲染）
+const { buildCommercial } = require('./build-commercial'); // WO-121：高商业意图省钱攻略长尾页（复用 build-topics 同口径助手）
 
 const API_BASE = process.env.COUPON_API_BASE || 'https://api.xuyiheng.com';
 const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
@@ -1060,7 +1061,7 @@ function guidePageShell(a, others, detailIdSet) {
 `;
 }
 
-function writeSitemap(slugs, detailIds, guideSlugs, topicSlugs) {
+function writeSitemap(slugs, detailIds, guideSlugs, topicSlugs, buySlugs) {
   const lm = todayIso();
   const urls = [
     ['/', '1.0', 'daily'],
@@ -1071,6 +1072,7 @@ function writeSitemap(slugs, detailIds, guideSlugs, topicSlugs) {
   ];
   for (const s of slugs) urls.push(['/cat/' + s + '.html', '0.7', 'daily']);
   for (const t of (topicSlugs || [])) urls.push(['/topic/' + t + '.html', '0.65', 'daily']);
+  for (const b of (buySlugs || [])) urls.push(['/buy/' + b + '.html', '0.7', 'daily']);
   urls.push(['/drops.html', '0.9', 'daily']);
   for (const id of (detailIds || [])) urls.push(['/p/' + id + '.html', '0.6', 'daily']);
   urls.push(['/guides.html', '0.5', 'weekly']);
@@ -1229,6 +1231,14 @@ async function run() {
     topicSlugs = buildTopics(snapObj || {}, SITE_URL, { intros: topicIntros });
   } catch (e) { console.warn('[build] 生成场景导购页异常（忽略）：', e.message); }
 
+  // 2.8) WO-121：高商业意图省钱攻略长尾页 buy/<slug>.html
+  //      复用同次快照对象 + build-topics 同口径渲染；带 data-ad-slot 广告槽与 CPS data-track="coupon_click" 券卡
+  //      （券卡 data-case="coupon:*" 经 conversion.js 产出 coupon_view 曝光，接 §4.3 真券 CTR）；条目见 scripts/commercial.json。
+  let buySlugs = [];
+  try {
+    buySlugs = buildCommercial(snapObj || {}, SITE_URL);
+  } catch (e) { console.warn('[build] 生成高商业意图页异常（忽略）：', e.message); }
+
   // 3) cat 页：壳始终写盘（即使无券也不 404）
   if (categories.length) {
     try {
@@ -1310,7 +1320,7 @@ async function run() {
   } catch (e) { console.warn('[build] 存量页 chrome 对齐异常（忽略）：', e.message); }
 
   // 4) sitemap
-  writeSitemap(categories.map(c => c.slug), detailIds, guideSlugs, topicSlugs);
+  writeSitemap(categories.map(c => c.slug), detailIds, guideSlugs, topicSlugs, buySlugs);
 }
 
 run().catch(err => {

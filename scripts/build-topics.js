@@ -380,7 +380,11 @@ function buildTopics(snapshot, siteUrlOpt, options) {
   return slugs;
 }
 
-module.exports = { buildTopics };
+module.exports = { buildTopics, __helpers: {
+  // 供 build-commercial.js（WO-121 高商业意图页）复用同一取数/渲染/口径，避免卡片、比价、JSON-LD 漂移
+  buildPool, sceneList, sortScene, sortByValue, buildCard, renderCompare, renderGrid, renderFaq,
+  jsonLdBlock, applyChrome, replaceBlock, esc, safeUrl, cardLink, isLinkable, isExpired, BLOCKS,
+} };
 
 // 独立运行：读盘上快照后生成
 if (require.main === module) {

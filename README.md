@@ -1,10 +1,10 @@
 ---
 title: 小满券仓（coupon.zangeng.com）
 owner: Michaelxlm
-updated: 2026-10-18
+updated: 2026-10-22
 scope: coupon（coupon.zangeng.com · 京东/淘宝优惠券聚合静态站）
 status: 有效
-tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页, 收藏, 凑单计算器, 大促日历, 券详情页, 扫码海报, 降价热榜, 长文导购, 降价提醒, Web-Push, 省钱挑战]
+tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页, 收藏, 凑单计算器, 大促日历, 券详情页, 扫码海报, 降价热榜, 长文导购, 降价提醒, Web-Push, 省钱挑战, 导航单一源, 视觉审计]
 ---
 
 # 小满券仓（coupon.zangeng.com）
@@ -46,7 +46,7 @@ coupon/
 ├── index.html          领券中心页（首页：精选 + 周榜 + 热门品类 chip）
 ├── browse.html         全部好物（paging 无限加载更多，data-mode=browse）
 ├── rank.html           榜单（日/周/月 tab + 排序，rank limit=50，data-mode=rank）
-├── category.html       品类中心（静态导航 22 品类 → cat/*.html）
+├── category.html       品类中心（静态导航 21 品类 → cat/*.html）
 ├── cat/<slug>.html     品类落地页（build.js 依 categories.json 生成，paging?search=kw）
 ├── guide.html          领券攻略（HowTo + FAQPage，纯静态内容，含省钱工具交叉链接）
 ├── calculator.html     凑单省钱计算器（满X减Y 叠加算到手价，WebApplication + FAQPage JSON-LD，支持 ?price=&quota=&off= 预填）
@@ -84,7 +84,8 @@ coupon/
 │   └── js/challenge.js  今日省钱挑战（纯 localStorage 连续回访 streak + 累计省钱，里程碑一键晒战报，仅首页，fail-soft）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
-│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 重写 sitemap.xml（CI 执行，fail-soft）
+│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 存量 p/guides chrome 对齐 + 重写 sitemap.xml（CI 执行，fail-soft）
+│   ├── site-config.js  站点导航/页脚单一源（7 项主导航 + 12 项页脚），build.js / build-topics.js / topic 模板共用，改菜单只改这一处
 │   ├── build-topics.js 场景导购页生成器（WO-125：按 topics.json + 快照渲染 topic/<slug>.html 与索引页，TOPIC:* 标记整段替换、重复运行幂等）
 │   ├── topics.json     7 个场景配置（slug/kw/title/desc/intro/match/sort；新增场景需同步中台 config.couponFront.topicIntroSlugs）
 │   ├── fingerprint.js  内容哈希指纹（取代 cache-bust.js，部署前把资源引用改写为 <name>.<hash>.<ext>）
@@ -92,10 +93,10 @@ coupon/
 │   └── archive/cache-bust.js  [已废弃] 手工 ?v= 刷新脚本历史归档，勿再用
 ├── data/
 │   ├── ad-slots.json   自营广告位兜底（远程 OSS 同步 JSON 优先）
-│   ├── categories.json 22 品类元数据（slug/name/kw/icon/desc，品类页与 build.js 共用）
+│   ├── categories.json 21 品类元数据（slug/name/kw/icon/desc，品类页与 build.js 共用）
 │   └── coupon-snapshot.json 构建期兜底快照（首页精选/日周月榜/全部好物/品类按 kw/drops 力度榜/detailIds 详情白名单），运行时后端不可达时回退渲染，nginx 放行 `/data/coupon-snapshot.json`
 ├── deploy/nginx.conf   部署配置（server_name 与证书路径按域名填）
-├── robots.txt / sitemap.xml  （sitemap 由 build.js 重写：固定页 + cat/* + /p/* 详情页 + /drops + /guides* + guide/calculator/holidays/about，现约 150 条；favorites/my-alerts 为 noindex 不入）
+├── robots.txt / sitemap.xml  （sitemap 由 build.js 重写：固定页 + cat/* + /p/* 详情页 + /drops + /guides* + /topic/* + guide/calculator/holidays/about，现 160 条；favorites/my-alerts 为 noindex 不入）
 └── .github/workflows/deploy.yml  push-to-deploy（39.107 上的 self-hosted runner 执行）
 ```
 
@@ -128,7 +129,7 @@ python -m http.server 8080
 
 站体仍为纯静态托管（HTML 直加源文件），但新增一个**部署前的可选预渲染步骤**（为让券内容可被百度等弱 JS 搜索引擎索引）：
 
-1. **预渲染与生成（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后先过**编码门禁** `node scripts/check-encoding.js`（八站统一硬断），再执行 `node scripts/build.js`。**全站 chrome（WO-86）**：`injectChrome()` 先把 10 张手写页（index/browse/rank/category/guide/calculator/holidays/favorites/about/404）的 `<header>/<footer>` 在 `CHROME:HEADER/FOOTER` 标记内整段委托 `shared-partials` 的 `renderHeader/renderFooter` 渲染（`STATIC_PAGES` 定义各页导航高亮，cat 页由 `catPageShell` 同样委托）——与历史/notes/zangeng 共单一源，实现「六站一处改 chrome 生效」，标记内覆盖、重跑幂等。随后一次拉取后端：将首页（精选+周榜去重）、`browse.html`（paging 前 20）、`rank.html`（周榜前 50）写入各自 `PRERENDER:GRID` 标记的券网格并注入 `ItemList/Product/Offer` JSON-LD；再依 `data/categories.json` 的关键词生成 `cat/<slug>.html` 品类落地页（**页面壳每次写盘**，即使接口不可达也不 404，仅网格 fail-soft 留空）；最后重写 `sitemap.xml`（固定页 + `cat/*` + `guide`/`about`，`lastmod=当日`）。脚本 fail-soft：上游不可达 / 未取到券时保持原有 HTML 壳，绝不阻断部署。运行时 `coupon-page.js`（首页）/ `list-page.js`（browse/rank/category）会清空重绘（渐进增强，禁 JS 仍可读到预渲染内容）。
+1. **预渲染与生成（CI 自动）**：`.github/workflows/deploy.yml` 在 `checkout` 后先过**编码门禁** `node scripts/check-encoding.js`（八站统一硬断），再执行 `node scripts/build.js`。**全站 chrome（WO-86）**：`injectChrome()` 先把 10 张手写页（index/browse/rank/category/guide/calculator/holidays/favorites/about/404）的 `<header>/<footer>` 在 `CHROME:HEADER/FOOTER` 标记内整段委托 `shared-partials` 的 `renderHeader/renderFooter` 渲染（`STATIC_PAGES` 定义各页导航高亮，cat 页由 `catPageShell` 同样委托）——与历史/notes/zangeng 共单一源，实现「六站一处改 chrome 生效」，标记内覆盖、重跑幂等。随后一次拉取后端：将首页（精选+周榜去重）、`browse.html`（paging 前 20）、`rank.html`（周榜前 50）写入各自 `PRERENDER:GRID` 标记的券网格并注入 `ItemList/Product/Offer` JSON-LD；再依 `data/categories.json` 的关键词生成 `cat/<slug>.html` 品类落地页（**页面壳每次写盘**，即使接口不可达也不 404，仅网格 fail-soft 留空）；3.8 步 `syncChromeOnDisk()` 再把 `/p/*`、`/guides*` 存量页的 header/footer 统一重渲染（两段各命中一次、幂等、原子写）；最后重写 `sitemap.xml`（固定页 + `cat/*` + `/p/*` + `/topic/*` + `guide`/`about`，`lastmod=当日`）。脚本 fail-soft：上游不可达 / 未取到券时保持原有 HTML 壳，绝不阻断部署。运行时 `coupon-page.js`（首页）/ `list-page.js`（browse/rank/category）会清空重绘（渐进增强，禁 JS 仍可读到预渲染内容）。
 2. **内容哈希指纹（取代 cache-bust.js）**：部署前 `node scripts/fingerprint.js` 把本地 `css/js/图片/字体` 复制为 `<name>.<hash>.<ext>` 并改写 HTML/CSS 引用，配 Nginx 对 `/assets/**` 的 `immutable` 长缓存实现「内容变 URL 变、无手工版本号」的最优缓存。`cache-bust.js` 已归档至 `scripts/archive/`，不再使用。
 3. **兜底快照（运行时韧性）**：`build.js` 随每次构建写出 `data/coupon-snapshot.json`（首页精选 / 日周月榜 / 全部好物 / 品类按 `data-kw`），`nginx.conf` 已放行该路径（`no-cache`）。当 `api.xuyiheng.com` 抖动 / 被墙导致前端 fetch 失败时，`coupon-page.js` / `list-page.js` 自动回退渲染该快照，整页不再空白。
 4. **定时重建**：`deploy.yml` 除 `push` 外增加 `schedule`（UTC `20 */4 * * *` ≈ 北京每 4 小时一次）重跑门禁 + build + 指纹 + 自检 + sync，使优惠券（时效短）在搜索引擎侧保持新鲜，无需手动 push。CI 的 Node 口径与其余七站一致：优先用服务器已装 Node（`/www/server/nodejs/v20.18.3`，取不到回退 PATH），不再用 `setup-node` 重复下载。
@@ -195,7 +196,7 @@ python -m http.server 8080
 
 - **W1 券详情落地页 `/p/<tao_id>.html`（传播地基）**：`build.js` 复用本次构建拉取的 `featured + rank(day/week/month) + browse + d11` 合集（`usable()` 去重），逐券写盘、**页面壳始终写盘**（接口不可达也不 404，fail-soft 与 cat 页同口径）。页含券力度大字 / 到手价 / 商品大图 / 价格走势迷你图（运行时 `detail-page.js` fetch `jd/priceTrend`）/ `立即领取`（`rel="sponsored noopener"`）/ 相关推荐 / 订阅降价提醒 / 分享。`Product`+`Offer`+`BreadcrumbList` JSON-LD；`/p/*` 纳入 `sitemap.xml`（初期限量约 60–120 条，写入 `coupon-snapshot.json` 的 `detailIds` 白名单）。新脚本 `assets/js/detail-page.js`（走势 + 订阅 + 分享 + 相关推荐，全程静默失败）。
 - **W2 社交裂变**：`assets/js/qrcode.js` **零依赖 QR 编码器**（自实现 Nayuki 移植，v1–15 / EC-M / GF(256)，无网络）；`assets/js/share.js` 升级为——分享深链指向站内 `/p/<tao_id>`，海报右下渲染该深链二维码，版式对齐 `tokens.css` 品牌色。`/drops.html` 降价热榜页（`data-mode=drops`）：三级数据源 `jd/topDrops` 接口 → 预渲染 `priceBatch` 标记 → 快照兜底，每张热榜卡一键生成扫码战报（`drops_view` 埋点）。
-- **W3 内容引擎 + SEO 爆发**：中台新增三只读接口（`jd/topDrops`、`content/list`、`content/detail`，见「数据来源」），经 `sourceGuard` 放行、字段白名单裁剪、config 开关灰度。`build.js` 拉长文预渲染 `/guides/<slug>.html`（`Article`+`BreadcrumbList` JSON-LD，`guideIndexShell`/`guidePageShell`）+ `/guides.html` 索引；`data/categories.json` 由 8 品类扩至 **22**，长尾落地页复用 `catPageShell`（`paging?search=`），sitemap 由 16 条 → **约 150 条**；刷新 `llms.txt`。沿用 `deploy.yml` 定时重建（`20 */4 * * *`）保新鲜。
+- **W3 内容引擎 + SEO 爆发**：中台新增三只读接口（`jd/topDrops`、`content/list`、`content/detail`，见「数据来源」），经 `sourceGuard` 放行、字段白名单裁剪、config 开关灰度。`build.js` 拉长文预渲染 `/guides/<slug>.html`（`Article`+`BreadcrumbList` JSON-LD，`guideIndexShell`/`guidePageShell`）+ `/guides.html` 索引；`data/categories.json` 由 8 品类扩至 **21**，长尾落地页复用 `catPageShell`（`paging?search=`），sitemap 由 16 条 → **160 条**；刷新 `llms.txt`。沿用 `deploy.yml` 定时重建（`20 */4 * * *`）保新鲜。
 - **W4 首页重塑（移动端优先「省钱情报流」）**：`index.html` + `coupon-page.js` + `coupon.css`。首屏情报条 `cpIntelBar`（实时在架券数 / 累计省钱力度，本地对已加载数据估算，不接埋点不采 PII）、今日必抢 `cpTop10` 横滑胶囊行、临近失效/降价倒计时氛围条 `cpMoodBar`；券卡升级（降幅 + 走势微图标记 + 一键订阅降价提醒，拇指区优先）；feed 顶部按 `saveScore()`（省钱力度 + 新鲜度 + 临近失效）前置 hero，前后端同口径。新增埋点 `drops_view`/`alert_toggle`/`poster_share`/`top10_click`/`mood_click`/`challenge_share`/`push_guide_view`。
 - **W5 留存与回访（匿名设备合规）**：`/my-alerts.html`（`noindex`）降价提醒中心——列本机 `deviceId` 订阅 + 当前力度对比（复用 `alert/list`），命中降价高亮一键跳详情；`my-alerts.js` 复用 `app.js` 的 `push/vapid`/`push/subscribe` 基座做 Web Push 引导 + iOS 添加到主屏引导（补齐知识库 2026-10-14 待办），推送落地指向 `/p/<id>` 或 `/drops.html` 承接回流。`challenge.js` 今日省钱挑战：纯 `localStorage` 记录连续回访 streak + 累计省钱（匿名、非账号积分），里程碑（3/7/14/30/60/100 天）达成时触发扫码战报海报（复用 W2 `share.js`，item.link 指回首页）。
 
@@ -216,6 +217,20 @@ python -m http.server 8080
 - **sitemap**：`build.js` 写入 `/topic/<slug>.html` 与 `/topic/index.html`（`changefreq=daily`，`priority=0.65`），随每 4 小时定时重建刷新。
 - **站内入口**：`COUPON_SITE.nav/footer_nav` 新增「场景导购」→ `/topic/index.html`；首页 hero 增加 7 场景快捷 chips；每个场景页底部「其他场景导购」互链 + 返回索引。`selfcheck` 校验索引页存在、≥5 个场景入口、首页可达，防止「页面在但用户进不去」。
 - **本地验证**（2026-10-21）：完整构建 + selfcheck 通过——7 页「比价 8 行 / 卡片 9–12 张」，线上 `content/topicIntro` 已部署，AI 导语 7/7（`data-intro-source="ai"`）；selfcheck 0 错误 1 警告（既有 `?v=` 手工版本号）。
+
+## 导航统一与导购站视觉审计（2026-10-22）
+
+**背景**：导航硬编码散落在根页、topic 模板、build-topics 与 336 个 `/p/*` 伪静态页中，站内并存 7 项新菜单与 8 项旧菜单；首页首屏与券卡信息密度同国际导购站差距明显。
+
+- **导航单一源**：新增 `scripts/site-config.js`，导出 `COUPON_SITE`（7 项主导航：领券中心 / 全部好物 / 榜单 / 品类 / 场景导购 / 攻略 / 长文导购，另 12 项页脚）与 `TOPIC_NAV`；`build.js`、`build-topics.js`、`topic-template.html`、`topic-index-template.html` 均消费同一源，模板不再写死菜单。
+- **存量页 chrome 对齐**：`build.js` 新增 `syncChromeOnDisk()`，在 sitemap 前对 `p/*`、`guides/*`、`guides.html` 整段重渲染 header/footer；要求两段各命中一次，header 块不得含 `<main`、footer 块不得含 `</body>`，否则告警跳过；同目录 `.tmp` + rename 原子写，失败计数入日志。
+- **幂等**：`renderHeader/renderFooter` 结果先 `trim()`，替换时连匹配点前空白一起归一，并跳过已是新 chrome 的页面；连续两次构建 337 个文件（`p/*` + `guides.html`）SHA256 全部一致、日志 `chrome 对齐 0`，不再产生空行噪声。
+- **active 语义**：`p/*` 与 `drops.html` 仅高亮「榜单」入口，不输出错误的 `aria-current="page"`；`guides.html` 保留当前页语义。
+- **一致性校验**：378 页全量脚本核对——7 项菜单不一致 0、多高亮 0、缺失折叠按钮 0；footer 结构 / 姊妹站 / 备案号缺失 0。about、double11、favorites、my-alerts 为页脚次级页，约定不高亮。
+- **首屏与卡片**：`index.html` hero 改两栏（左价值主张、右搜索 + 热搜 chips，1440 搜索框 538px），删除独立「优惠券」分区标题，首卡顶 596→475px；`.cp-grid` 改 `minmax(210px,1fr)/gap16`（1440 6 列 / 1024 4 列 / 390 2 列）；到手价改 17px/800 红色主视觉 + 「到手」前缀，券力度降为浅红 pill；券卡补 `:focus-visible`；深色 `--coupon-red:#ff5c5e`。
+- **响应式**：导航折叠断点 960→900px（901/920 仍 7 项同行、header 56px 不撑破）；≤720 隐藏排序文案与热搜词，移动端首卡顶 572→518px，390 无横向溢出。
+- **同类问题修复**：比价表 `td.cp-off` 补 `display:table-cell; background:none; border-radius:0`，避免基础胶囊背景铺满整格（仅 7 张表 56 个 `td`，91 个 `span.cp-off` 仍在 `.cp-price` 内保持胶囊）；静态资源 `?v=` 统一 `2026.10.16`（CI fingerprint 仍会改写为内容哈希）。
+- **质量门禁**：check-encoding 454 文件通过；build 成功（index 24 / browse 20 / rank 50 / topic 8 / cat 21 / p 120 / sitemap 160）；selfcheck 0 错误 1 条既有警告；WCAG 通过；浏览器 1440/1024/920/901/768/390 + topic/drops/guides/暗色 console 0 错误。
 
 ## 合规
 

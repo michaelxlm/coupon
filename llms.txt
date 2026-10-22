@@ -11,6 +11,9 @@ Language: zh-CN
 - [全部券](https://coupon.zangeng.com/browse.html): 按时间浏览全部优惠券
 - [分类](https://coupon.zangeng.com/category.html): 按品类筛选优惠券
 - [榜单](https://coupon.zangeng.com/rank.html): 热度/折扣排行
+- [场景导购](https://coupon.zangeng.com/topic/index.html): 按使用场景选券与实时比价
+- [今日降价](https://coupon.zangeng.com/drops.html): 近 48 小时降价热榜
+- [长文导购](https://coupon.zangeng.com/guides.html): 深度选购长文与省钱方法
 - [大促专题](https://coupon.zangeng.com/double11.html): 双十一等大促聚合
 - [节日券](https://coupon.zangeng.com/holidays.html): 按节日整理的券
 

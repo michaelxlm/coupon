@@ -40,6 +40,14 @@ jobs:
           [ -x "$NODE" ] || NODE=node
           echo "[info] node: $NODE ($($NODE -v))"
           $NODE scripts/build.js
+      # 场景导购页（WO-125）：重生成 topic/*.html（AI 导语 + 智能比价表）。须排在 build.js 之后、fingerprint.js 之前，产物的资源引用才会被指纹改写
+      # fail-soft：build-topics 的 main() 无顶层 catch，AI/上游不可达或异常会 exit 1 卡断整段部署（吸取 push-to-deploy 静默停摆教训），故 || 兜底为警告
+      - name: Build AI scene topics (WO-125)
+        shell: bash
+        run: |
+          NODE=/www/server/nodejs/v20.18.3/bin/node
+          [ -x "$NODE" ] || NODE=node
+          $NODE scripts/build-topics.js || echo "[warn] build-topics.js 失败，保留上一版场景页（不阻断部署）"
       # 内容哈希指纹：为静态资源生成 <name>.<hash>.<ext> 并改写 HTML/CSS 引用（配合服务器 immutable 长缓存）。须排在 build.js 之后
       - name: Content hash fingerprint
         shell: bash

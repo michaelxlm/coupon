@@ -175,8 +175,6 @@ function buildCard(c) {
   const off = Number(c.couponDiscount) || 0;
   const quota = Number(c.couponQuota) || 0;
   const finalPrice = Number(c.price) || 0;
-  const ct = Number(c.createTime) || 0;
-  const fresh = ct && (Date.now() - ct) < 24 * 60 * 60 * 1000;
   const rel = link ? ' rel="sponsored noopener"' : '';
   const href = link ? esc(link) : '#';
   let html = `<a class="cp-card" href="${href}"${rel} target="_blank" data-track="coupon_click"`;
@@ -192,7 +190,6 @@ function buildCard(c) {
   var exLabel = expireLabel(c);
   if (exLabel) html += `<span class="cp-expire">${esc(exLabel)}</span>`;
   html += '</div>';
-  if (fresh) html += '<span class="cp-fresh">今日新增</span>';
   html += '</a>';
   return html;
 }

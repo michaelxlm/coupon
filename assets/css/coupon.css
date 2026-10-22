@@ -168,6 +168,8 @@
 body[data-page="coupon"] .hero { padding: 12px 0 12px; }
 body[data-page="coupon"] .hero-sub { font-size: 0.9375rem; }
 body[data-page="coupon"] .cp-cats { margin-bottom: 6px; }
+/* 首屏收紧：券列表区顶部留白压缩，让「实时在架」情报条贴近 hero */
+body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 
 /* 首屏两栏：左侧价值主张，右侧搜索与快捷入口（对标导购站，首屏即完成搜索） */
 .cp-hero-inner {
@@ -717,11 +719,13 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 6px; }
   background: var(--bg);
   color: var(--text-muted);
   font-size: 0.75rem;
-  padding: 0 14px;
-  /* 触控目标 ≥44px（审计 T5）：降价提醒胶囊 */
+  padding: 0 12px;
+  /* 价格行内联胶囊：与「即将失效」左右对齐（margin-left:auto 推到行尾），压缩高度避免撑高卡片 */
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 30px;
+  margin-left: auto;
+  align-self: center;
   border-radius: var(--radius-pill);
   cursor: pointer;
   font-family: inherit;
@@ -801,7 +805,8 @@ body[data-page="coupon"] .cp-cats { margin-bottom: 6px; }
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 10px;
-  margin-top: 8px;
+  margin-top: 0;
+  margin-bottom: 12px;
   padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
@@ -1136,6 +1141,24 @@ body[data-page="topic"] .hero-sub { font-size: 0.9375rem; max-width: 900px; }
   .cp-compare th, .cp-compare td { padding: 8px 10px; }
 }
 .cp-faq { margin: 8px 0 0; }
+/* AI 智能比价徽标：贴在比价区标题前，突出 AI 能力 */
+.cp-ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-right: 8px;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #6a5cff, #2bb3ff);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  vertical-align: middle;
+  box-shadow: 0 2px 8px rgba(90, 92, 255, .28);
+}
+/* AI 比价表顶部渐变描边，与徽标呼应 */
+.cp-compare { border-top: 2px solid #6a5cff; }
 .cp-faq dt { font-weight: 600; margin-top: 14px; }
 .cp-faq dd { margin: 6px 0 0; color: var(--muted, #6b7280); line-height: 1.6; }
 

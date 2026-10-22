@@ -423,6 +423,22 @@
     });
   }
 
+  // 首页热门品类空探测：对带 data-kw 的品类 chip 发一个 pageSize=1 的轻量计数请求，
+  // count 为 0（当前无券）则移除该 chip；请求失败静默保留，不误删。
+  function probeCats() {
+    var chips = global.document.querySelectorAll('.cp-cat-chip[data-kw]');
+    Array.prototype.forEach.call(chips, function (chip) {
+      var kw = chip.getAttribute('data-kw');
+      if (!kw) return;
+      var url = buildUrl('/paging', [ [ 'search', kw ], [ 'page', 1 ], [ 'pageSize', 1 ] ]);
+      request(url, function (err, d) {
+        if (err) return;
+        var count = Number(d && d.count) || 0;
+        if (count <= 0 && chip.parentNode) chip.parentNode.removeChild(chip);
+      }, { cache: true });
+    });
+  }
+
   function buildCard(c) {
     var a = el('a', 'cp-card');
     var link = safeUrl(c.clickURL) || safeUrl(c.couponUrl) || safeUrl(c.item_url);
@@ -477,9 +493,6 @@
       }
     }
     a.appendChild(price);
-    // 时效标签（今日新增）：createTime 在 24h 内
-    var ct = Number(c.createTime) || 0;
-    if (ct && (Date.now() - ct) < 24 * 60 * 60 * 1000) a.appendChild(el('span', 'cp-fresh', '今日新增'));
     return a;
   }
 
@@ -720,7 +733,7 @@
     var left = rankFiltered().length - state.rankShown;
     if (left > 0) {
       moreBtn.hidden = false;
-      moreBtn.textContent = '加载更多（还有 ' + left + ' 条）';
+      moreBtn.textContent = '加载更多';
     } else {
       moreBtn.hidden = true;
       moreBtn.textContent = '加载更多';
@@ -914,6 +927,7 @@
     renderHistory();
     loadHotWords();
     initSuggest();
+    probeCats();
     // 猜你喜欢（M1）：本地有浏览/搜索信号才拉取并展示
     recGrid = $('cpRecGrid'); recSection = $('cpRecSection');
     loadRecommend();

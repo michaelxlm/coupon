@@ -217,7 +217,7 @@ function renderCompare(list, kw) {
       + `<td class="cp-off">${esc(power)}</td>`
       + `<td class="cp-final">${price > 0 ? ('¥' + esc(price)) : '—'}</td></tr>`;
   }).join('\n');
-  return `<table class="cp-compare">\n          <caption>实时${esc(kw)}比价 · 按省钱力度排序，先领券再下单更省（全页免费，无需登录）</caption>\n          <thead>\n            <tr><th scope="col">#</th><th scope="col">商品</th><th scope="col">券力度</th><th scope="col">到手价</th></tr>\n          </thead>\n          <tbody>\n${rows}\n          </tbody>\n        </table>`;
+  return `<table class="cp-compare">\n          <caption>AI 智能比价 · ${esc(kw)}按省钱力度排序，先领券再下单更省（全页免费，无需登录）</caption>\n          <thead>\n            <tr><th scope="col">#</th><th scope="col">商品</th><th scope="col">券力度</th><th scope="col">到手价</th></tr>\n          </thead>\n          <tbody>\n${rows}\n          </tbody>\n        </table>`;
 }
 
 function renderGrid(list) {
@@ -253,7 +253,7 @@ function renderIndexCards(topics, counts) {
     const n = Number(counts[t.slug]) || 0;
     return '<a class="cp-card" href="/topic/' + esc(t.slug) + '.html" data-topic="' + esc(t.slug) + '">'
       + '<span class="cp-name">' + esc(t.title) + '</span>'
-      + '<div class="cp-price"><span class="cp-off">' + esc(t.kw) + '实时比价</span>'
+      + '<div class="cp-price"><span class="cp-off">AI 智能比价 · ' + esc(t.kw) + '</span>'
       + (n > 0 ? '<span class="cp-expire">' + n + ' 件在券</span>' : '')
       + '</div></a>';
   }).join('\n          ');

@@ -272,8 +272,6 @@
       }
     }
     a.appendChild(price);
-    var ct = Number(c.createTime) || 0;
-    if (ct && (Date.now() - ct) < 24 * 60 * 60 * 1000) a.appendChild(el('span', 'cp-fresh', '今日新增'));
     return a;
   }
 
@@ -392,7 +390,7 @@
     var left = rankFiltered().length - state.rankShown;
     if (left > 0) {
       moreBtn.hidden = false;
-      moreBtn.textContent = '加载更多（还有 ' + left + ' 条）';
+      moreBtn.textContent = '加载更多';
     } else {
       moreBtn.hidden = true;
       moreBtn.textContent = '加载更多';

@@ -162,10 +162,34 @@
     check();
   }
 
-  /** 案例卡片曝光：进入视口 ≥50% 且停留 1s，每卡每会话只报一次 */
+  /** 券/案例卡片曝光：进入视口 ≥50% 且停留 1s
+   *  - 券卡（data-case="coupon:<id>"）：报专用无歧义事件 coupon_view，逐页逐会话一次
+   *    （与 OSS coupon-slot.js 同口径，供 v4-ledger 真券 CTR = coupon_click / coupon_view）；
+   *  - 其余 data-case：保留逐卡逐会话 case_view 归因。
+   */
   var caseIO = null;          // IntersectionObserver 句柄（供动态新增节点补观察）
-  var caseSeen = {};          // 已上报的 data-case id（每会话一次）
-  var caseTimers = {};
+  var caseSeen = {};          // 已上报的非券 data-case id（每会话一次）
+  var caseTimers = {};        // 每张卡的停留计时器（按 data-case id 索引）
+
+  // 页面标识（与 coupon-slot.js currentPage() 同逻辑：body[data-page-id|data-page] 优先，回落路径文件名）
+  function currentPageId() {
+    var body = doc.body;
+    var pid = body && (body.getAttribute('data-page-id') || body.getAttribute('data-page'));
+    if (pid) return pid;
+    var file = (global.location.pathname || '/').split('/').pop() || '';
+    if (!file || file === '/' || file.indexOf('index') === 0) return 'home';
+    return file.replace(/\.html?$/i, '') || 'home';
+  }
+  function viewed(key) { try { return global.sessionStorage.getItem(key) === '1'; } catch (e) { return false; } }
+  function markViewed(key) { try { global.sessionStorage.setItem(key, '1'); } catch (e) { /* 隐私模式忽略 */ } }
+
+  // 券曝光：逐页逐会话只报一次 coupon_view（sessionStorage 去重，键与 coupon-slot.js 一致）
+  function emitCouponView() {
+    var key = '__coupon_view_' + currentPageId();
+    if (viewed(key)) return;
+    markViewed(key);
+    track('coupon_view', { page: currentPageId(), via: 'coupon-page' });
+  }
 
   function scanCaseNodes() {
     if (!caseIO) return;
@@ -178,11 +202,32 @@
   }
 
   function bindCaseView() {
-    if (!global.IntersectionObserver) return;
+    if (!global.IntersectionObserver) {
+      // 兜底（与 coupon-slot.js 同策略）：不支持 IO 时若页上有券卡，立即补报一次，宁可少采不虚采
+      if (doc.querySelector('[data-case^="coupon:"]')) emitCouponView();
+      return;
+    }
     caseIO = new global.IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         var id = entry.target.getAttribute('data-case') || '';
-        if (!id || caseSeen[id]) return;
+        if (!id) return;
+        if (id.indexOf('coupon:') === 0) {
+          // 券曝光走 coupon_view（逐页逐会话去重在 emitCouponView 内完成），不再发含混 case_view
+          if (entry.isIntersecting) {
+            if (!caseTimers[id]) {
+              caseTimers[id] = global.setTimeout(function () {
+                caseTimers[id] = null;
+                emitCouponView();
+              }, 1000);
+            }
+          } else if (caseTimers[id]) {
+            global.clearTimeout(caseTimers[id]);
+            caseTimers[id] = null;
+          }
+          return;
+        }
+        // 非券 data-case：保留逐卡逐会话 case_view 归因
+        if (caseSeen[id]) return;
         if (entry.isIntersecting) {
           caseTimers[id] = global.setTimeout(function () {
             caseSeen[id] = 1;

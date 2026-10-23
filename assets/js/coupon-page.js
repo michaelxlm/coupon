@@ -211,6 +211,18 @@
     var terms = global.CouponStore.recommendTerms();
     if (!terms.length) { recSection.hidden = true; return; }
     var seen = global.CouponStore.seenIds();
+    var seenStr = Object.keys(seen).join(',');
+    // 首选后端召回（全手选池内容召回 + 热度）；失败或空则回落本地 /random 重排兜底
+    var rUrl = buildUrl('/recommend', [ [ 'terms', terms.slice(0, 8).join(',') ], [ 'seen', seenStr ], [ 'limit', 10 ] ]);
+    request(rUrl, function (err, d) {
+      var list = err ? [] : pickList(d);
+      if (list.length) { renderRecommend(list); return; }
+      recommendFallback(terms, seen);
+    }, { cache: true });
+  }
+
+  // 本地兜底：命中后端失败/空时，沿用原「/random 50 池 + 子串匹配重排」
+  function recommendFallback(terms, seen) {
     var tokenMap = buildTermScores(terms);
     var url = buildUrl('/random', [ [ 'limit', 50 ] ]);
     request(url, function (err, d) {
@@ -226,11 +238,16 @@
       scored.sort(function (a, b) { return b.s - a.s; });
       var top = scored.slice(0, 10).map(function (x) { return x.c; });
       if (!top.length) { recSection.hidden = true; return; }
-      recSection.hidden = false;
-      recGrid.innerHTML = '';
-      top.forEach(function (c) { var card = buildCard(c); recGrid.appendChild(card); attachStar(card, c); });
-      if (global.Conv && global.Conv.reobserve) global.Conv.reobserve();
+      renderRecommend(top);
     }, { cache: true });
+  }
+
+  function renderRecommend(top) {
+    if (!top || !top.length) { recSection.hidden = true; return; }
+    recSection.hidden = false;
+    recGrid.innerHTML = '';
+    top.forEach(function (c) { var card = buildCard(c); recGrid.appendChild(card); attachStar(card, c); });
+    if (global.Conv && global.Conv.reobserve) global.Conv.reobserve();
   }
 
   // 热搜词（M6）：服务端 Redis zset 计数 TopN，渲染「大家都在搜」+ 供输入联想复用

@@ -396,11 +396,23 @@ function syncChromeOnDisk(dir, pageNav, singleFile, ariaCurrent) {
 }
 
 /* ---------------------------- 品类落地页模板 ---------------------------- */
+function catSeoIntro(cat) {
+  return cat.name + '优惠券专区实时聚合' + cat.desc
+    + '你可以按价格区间、券面额或省钱力度快速筛选，点击任意一张券即可跳转商家官方活动页，先领券再下单更省。本站仅做信息聚合与跳转，不参与交易，最终价格与优惠以商家活动页为准。';
+}
+function catSeoFaq(cat) {
+  return [
+    [cat.name + '优惠券是真实的吗？', '本页' + cat.name + '券信息来自京东、淘宝等平台官方联盟，本站只做聚合与跳转，领券和下单都在商家官方活动页完成，不参与任何交易，最终优惠以商家活动页为准。'],
+    ['怎么领取' + cat.name + '优惠券？', '在券列表点击任意一张优惠券，会跳转到商家的领券或活动页面，按页面提示先领券后再下单，即可享受对应的满减或折扣。'],
+    ['为什么到手价会变化或券显示已失效？', '优惠券有面额、库存和有效期，商家会不定期调整活动；页面标注的到手价与失效时间为抓取时的快照，下单前请以商家活动页的实时信息为准。'],
+  ];
+}
 function catPageShell(cat, list) {
   const url = SITE_URL + '/cat/' + cat.slug + '.html';
   const title = `${cat.name}优惠券 · 全网${cat.name}领券 | 小满券仓`;
   const desc = cat.desc + ' 券数据由各平台联盟实时聚合，领券后跳转商家活动页下单，最终优惠以商家活动页为准。';
   const grid = list.length ? renderGridHtml(list) : '';
+  const faqPairs = catSeoFaq(cat);
   const ld = JSON.stringify([
     {
       '@context': 'https://schema.org', '@type': 'CollectionPage',
@@ -416,6 +428,12 @@ function catPageShell(cat, list) {
       ],
     },
     list.length ? jsonLd(list, `${cat.name}优惠券`, url) : null,
+    {
+      '@context': 'https://schema.org', '@type': 'FAQPage', inLanguage: 'zh-CN',
+      mainEntity: faqPairs.map(function (qa) {
+        return { '@type': 'Question', name: qa[0], acceptedAnswer: { '@type': 'Answer', text: qa[1] } };
+      }),
+    },
   ].filter(Boolean));
 
   return `<!DOCTYPE html>
@@ -435,7 +453,7 @@ function catPageShell(cat, list) {
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${esc(url)}">
-  <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.svg">
+  <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${esc(title)}">
   <meta name="twitter:description" content="${esc(desc)}">
@@ -513,6 +531,13 @@ ${grid}
         <div class="img-slot" data-img-slot="strip"></div>
       </div>
     </section>
+
+    <section class="section"><div class="container">
+      <div class="section-head left"><h2>关于${esc(cat.name)}优惠券</h2></div>
+      <p>${esc(catSeoIntro(cat))}</p>
+      <div class="section-head left" style="margin-top:24px"><h2>常见问题</h2></div>
+${faqPairs.map(function (qa) { return '      <details>\n        <summary>' + esc(qa[0]) + '</summary>\n        <p>' + esc(qa[1]) + '</p>\n      </details>'; }).join('\n')}
+    </div></section>
   </main>
 
   ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
@@ -631,7 +656,7 @@ function detailPageShell(c, related) {
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${esc(url)}">
-  <meta property="og:image" content="${esc(img || SITE_URL + '/assets/img/og-cover.svg')}">
+  <meta property="og:image" content="${esc(img || SITE_URL + '/assets/img/og-cover.png')}">
   <meta name="twitter:card" content="summary_large_image">
   <script type="application/ld+json">${ld}</script>
   <link rel="stylesheet" href="/assets/css/tokens.css">
@@ -752,7 +777,7 @@ function dropsPageShell(list) {
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${esc(url)}">
-  <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.svg">
+  <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.png">
   <script type="application/ld+json">${ld}</script>
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
@@ -1018,7 +1043,7 @@ function guidePageShell(a, others, detailIdSet) {
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${esc(url)}">
-  ${a.cover ? '<meta property="og:image" content="' + esc(a.cover) + '">' : '<meta property="og:image" content="' + SITE_URL + '/assets/img/og-cover.svg">'}
+  ${a.cover ? '<meta property="og:image" content="' + esc(a.cover) + '">' : '<meta property="og:image" content="' + SITE_URL + '/assets/img/og-cover.png">'}
   <script type="application/ld+json">${ld}</script>
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />

@@ -735,6 +735,18 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 .cp-alert.is-on:hover { color: #fff; }
 .cp-expire.is-hot { background: var(--coupon-red); color: #fff; }
 
+/* 降价提醒引导弹窗（web-push 已下线 → 点「降价提醒」弹带参小程序码，store.js showRemindGuide） */
+.rs-mask { position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, .55); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.rs-card { background: var(--surface, #fff); color: var(--text, #222); border-radius: var(--radius, 14px); padding: 22px 20px; max-width: 320px; width: 100%; text-align: center; box-shadow: 0 12px 40px rgba(0, 0, 0, .22); }
+.rs-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 6px; }
+.rs-sub { font-size: .8125rem; color: var(--text-muted); line-height: 1.6; margin: 0 0 12px; }
+.rs-name { font-size: .875rem; color: var(--text, #222); margin: 0 0 10px; word-break: break-all; }
+.rs-imgwrap { display: flex; align-items: center; justify-content: center; min-height: 180px; margin: 0 auto 12px; }
+.rs-img { width: 180px; height: 180px; border-radius: 10px; background: #fff; display: block; }
+.rs-loading, .rs-err { font-size: .8125rem; color: var(--text-muted); }
+.rs-err { color: var(--coupon-red, #d33); }
+.rs-close { border: 1px solid var(--border-strong, #ccc); background: transparent; color: var(--text-muted); border-radius: 999px; padding: 7px 22px; font-size: .875rem; cursor: pointer; font-family: inherit; }
+
 /* ---------------------------------- 回到顶部 ---------------------------------- */
 .cp-back-top {
   position: fixed;

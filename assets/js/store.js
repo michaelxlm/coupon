@@ -15,6 +15,7 @@
   var K_SEARCH = 'coupon_searches';
   var K_ALERT = 'coupon_alerts';
   var API_BASE = 'https://api.xuyiheng.com';
+  var MAIN_URL = 'coupon.zangeng.com';
   var FAV_MAX = 100;
   var RECENT_MAX = 24;
   var SEARCH_MAX = 10;
@@ -203,7 +204,57 @@
       }).catch(function () { /* 忽略 */ });
     } catch (e) { /* 忽略 */ }
   }
-  // 把「降价提醒」按钮挂到券卡价格行（绝对定位会拥挤，改为价格行内联胶囊）
+  /* ---------------- 降价提醒引导：弹带参小程序码（web-push 已下线，H5 不再发通知） ---------------- */
+  var RS_ID = 'coupon-remind-modal';
+  var rsKeyHandler = null;
+  // scene=券 tao_id；带 mainUrl 过后端 sourceGuard 来源守卫（与 my-alerts.js 同口径）
+  function mpCodeUrl(taoId) {
+    if (!taoId) return '';
+    return API_BASE + '/api/v1/front/coupon/mpcode?tao_id=' + encodeURIComponent(String(taoId)) +
+      '&mainUrl=' + encodeURIComponent(MAIN_URL);
+  }
+  function closeRemindModal() {
+    var m = doc.getElementById(RS_ID);
+    if (m && m.parentNode) m.parentNode.removeChild(m);
+    if (rsKeyHandler) { doc.removeEventListener('keydown', rsKeyHandler); rsKeyHandler = null; }
+  }
+  // 弹出该券的带参小程序码引导：扫码进小程序订阅到期/大额提醒（scene=tao_id，落到当前券）
+  function showRemindGuide(item) {
+    if (!item || !item.id) return;
+    closeRemindModal();
+    var mask = doc.createElement('div');
+    mask.className = 'rs-mask'; mask.id = RS_ID;
+    var card = doc.createElement('div'); card.className = 'rs-card';
+    card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true');
+    var title = doc.createElement('div'); title.className = 'rs-title'; title.textContent = '订阅降价 / 到期提醒';
+    var sub = doc.createElement('p'); sub.className = 'rs-sub';
+    sub.textContent = '网页通知已停用。用微信扫描下面的小程序码，进入小程序点顶部「到期提醒 / 大额券提醒」即可订阅该券。';
+    card.appendChild(title); card.appendChild(sub);
+    if (item.t) { var name = doc.createElement('p'); name.className = 'rs-name'; name.textContent = '《' + item.t + '》'; card.appendChild(name); }
+    var imgWrap = doc.createElement('div'); imgWrap.className = 'rs-imgwrap';
+    var img = doc.createElement('img'); img.className = 'rs-img'; img.src = mpCodeUrl(item.id);
+    img.alt = '小程序码：' + (item.t || '优惠券'); img.width = 180; img.height = 180; img.referrerPolicy = 'no-referrer';
+    var loadTip = doc.createElement('span'); loadTip.className = 'rs-loading'; loadTip.textContent = '二维码生成中…';
+    imgWrap.appendChild(loadTip); imgWrap.appendChild(img);
+    card.appendChild(imgWrap);
+    img.addEventListener('load', function () { if (loadTip.parentNode) loadTip.parentNode.removeChild(loadTip); });
+    img.addEventListener('error', function () { loadTip.className = 'rs-err'; loadTip.textContent = '二维码暂时不可用，请稍后再试，或直接前往小程序搜索该券。'; if (img.parentNode) img.parentNode.removeChild(img); });
+    var closeBtn = doc.createElement('button'); closeBtn.type = 'button'; closeBtn.className = 'rs-close'; closeBtn.textContent = '关闭';
+    card.appendChild(closeBtn);
+    mask.appendChild(card);
+    doc.body.appendChild(mask);
+    rsKeyHandler = function (e) { if (e.key === 'Escape') closeRemindModal(); };
+    doc.addEventListener('keydown', rsKeyHandler);
+    mask.addEventListener('click', function (e) { if (e.target === mask) closeRemindModal(); });
+    closeBtn.addEventListener('click', closeRemindModal);
+  }
+  // 点「降价提醒」：记入本机清单（供 /my-alerts.html 降价高亮）+ 弹出小程序码引导；不再翻成「已提醒」
+  function remindNow(item) {
+    try { if (item && item.id && !isAlert(item.id)) toggleAlert(item); } catch (e) { /* 忽略 */ }
+    showRemindGuide(item);
+  }
+
+  // 把「降价提醒」按钮挂到券卡价格行（点击 → 带参小程序码引导，杜绝 H5「已提醒」假承诺）
   function attachAlert(cardEl, item) {
     if (!cardEl || !item || !item.id) return;
     var price = cardEl.querySelector ? cardEl.querySelector('.cp-price') : null;
@@ -211,18 +262,13 @@
     var btn = doc.createElement('button');
     btn.type = 'button';
     btn.className = 'cp-alert';
-    var on = isAlert(item.id);
-    btn.textContent = on ? '已提醒' : '降价提醒';
-    if (on) btn.classList.add('is-on');
-    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.textContent = '降价提醒';
+    btn.setAttribute('aria-label', '订阅该券的降价/到期提醒（弹出小程序码）');
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      var nowOn = toggleAlert(item);
-      btn.textContent = nowOn ? '已提醒' : '降价提醒';
-      btn.classList.toggle('is-on', nowOn);
-      btn.setAttribute('aria-pressed', nowOn ? 'true' : 'false');
-      if (global.Conv) global.Conv.track('alert_toggle', { coupon_id: String(item.id), on: nowOn ? 1 : 0 });
+      remindNow(item);
+      if (global.Conv) global.Conv.track('alert_guide_view', { coupon_id: String(item.id) });
     });
     price.appendChild(btn);
   }
@@ -293,6 +339,7 @@
     searches: searches, pushSearch: pushSearch, clearSearches: clearSearches,
     recommendTerms: recommendTerms, seenIds: seenIds,
     alerts: alerts, isAlert: isAlert, toggleAlert: toggleAlert, attachAlert: attachAlert,
+    showRemindGuide: showRemindGuide, remindNow: remindNow,
     itemFromCard: itemFromCard, attachStar: attachStar, enhance: enhance,
   };
 

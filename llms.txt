@@ -11,9 +11,6 @@ Language: zh-CN
 - [全部券](https://coupon.zangeng.com/browse.html): 按时间浏览全部优惠券
 - [分类](https://coupon.zangeng.com/category.html): 按品类筛选优惠券
 - [榜单](https://coupon.zangeng.com/rank.html): 热度/折扣排行
-- [场景导购](https://coupon.zangeng.com/topic/index.html): 按使用场景选券与实时比价
-- [今日降价](https://coupon.zangeng.com/drops.html): 近 48 小时降价热榜
-- [长文导购](https://coupon.zangeng.com/guides.html): 深度选购长文与省钱方法
 - [大促专题](https://coupon.zangeng.com/double11.html): 双十一等大促聚合
 - [节日券](https://coupon.zangeng.com/holidays.html): 按节日整理的券
 
@@ -33,7 +30,7 @@ Language: zh-CN
 - [中国传统色彩](https://api.xuyiheng.com/api/v1/front/automate/color/): color 数据集；鉴权 x-api-key 请求头。
 - [文档解析数据集（AI 摘要 + 元信息）](https://api.xuyiheng.com/api/v1/front/documents/): documents 数据集；鉴权 x-api-key 请求头。
 - [MCP Server](https://api.xuyiheng.com/api/v1/mcp): JSON-RPC 2.0（Streamable HTTP），与 REST 共用同一把 x-api-key 与配额。工具：history_of_today / history_list / dream_search / color_list。
-- 接入与 Key 申请：开发者门户 https://api.xuyiheng.com/developer.html
+- 接入与 Key 申请：开发者门户 https://api.xuyiheng.com/public/developer.html
 
 ## Sitemap
 

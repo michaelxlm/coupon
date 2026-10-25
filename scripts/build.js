@@ -886,6 +886,36 @@ async function safeTopicIntros() {
   return out;
 }
 
+// WO-121 完整版：拉 AI 批量生成的省钱攻略条目（/content/commercialList，服务端只下发硬校验通过的 published）
+// fail-soft：接口异常/未上线返回空数组，仅用 scripts/commercial.json seed，不阻断构建
+async function safeCommercial() {
+  try {
+    const d = await fetchJson('/content/commercialList', []);
+    const list = Array.isArray(d) ? d : (d && Array.isArray(d.list) ? d.list : []);
+    return list.filter(t => t && typeof t.slug === 'string' && /^[a-z0-9-]{2,48}$/.test(t.slug) && t.kw && t.title);
+  } catch (e) { console.warn('[build] 拉取 AI 生成攻略条目失败（仅用 seed 条目）：', e.message); return []; }
+}
+
+// seed（scripts/commercial.json，人工审定）在前、AI 生成在后；按 slug 与归一化 kw 去重（seed 优先）
+function mergeCommercialItems(generated) {
+  let seed = [];
+  try { seed = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts', 'commercial.json'), 'utf8')); } catch (e) {
+    console.warn('[build] 读 commercial.json 失败（仅用 AI 生成条目）：', e.message);
+  }
+  if (!Array.isArray(seed)) seed = [];
+  const seenSlug = new Set(seed.map(t => t && t.slug).filter(Boolean));
+  const seenKw = new Set(seed.map(t => t && String(t.kw || '').trim().toLowerCase()).filter(Boolean));
+  const extra = (Array.isArray(generated) ? generated : []).filter(t => {
+    const kw = String(t.kw || '').trim().toLowerCase();
+    if (seenSlug.has(t.slug) || seenKw.has(kw)) return false;
+    seenSlug.add(t.slug);
+    if (kw) seenKw.add(kw);
+    return true;
+  });
+  if (extra.length) console.log('[build] 省钱攻略条目：seed ' + seed.length + ' + AI 生成 ' + extra.length + '（另跳过同 kw/slug ' + (generated.length - extra.length) + '）');
+  return seed.concat(extra);
+}
+
 // 正文→HTML：AI 产文为纯文本/简版 markdown，先整体转义再行级变换（无裸 HTML）
 function articleToHtml(text) {
   const lines = String(text || '').replace(/\r/g, '').split('\n');
@@ -1255,10 +1285,12 @@ async function run() {
 
   // 2.8) WO-121：高商业意图省钱攻略长尾页 buy/<slug>.html（另生成索引页 buy/index.html，导航/页脚入口指向它）
   //      复用同次快照对象 + build-topics 同口径渲染（buy 页严格取数：不回落热门池、同品去重）；带 data-ad-slot 广告槽与 CPS data-track="coupon_click" 券卡
-  //      （券卡 data-case="coupon:*" 经 conversion.js 产出 coupon_view 曝光，接 §4.3 真券 CTR）；条目见 scripts/commercial.json。
+  //      （券卡 data-case="coupon:*" 经 conversion.js 产出 coupon_view 曝光，接 §4.3 真券 CTR）；
+  //      条目 = scripts/commercial.json seed + AI 批量生成（/content/commercialList，按 slug/kw 去重，seed 优先）。
   let buySlugs = [];
   try {
-    buySlugs = buildCommercial(snapObj || {}, SITE_URL);
+    const commercialItems = mergeCommercialItems(await safeCommercial());
+    buySlugs = buildCommercial(snapObj || {}, SITE_URL, { items: commercialItems });
   } catch (e) { console.warn('[build] 生成高商业意图页异常（忽略）：', e.message); }
 
   // 3) cat 页：壳始终写盘（即使无券也不 404）

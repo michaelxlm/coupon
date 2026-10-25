@@ -23,9 +23,10 @@
  * fail-soft：快照缺失/异常不抛出，页壳仍写盘（空态），绝不阻断部署。
  *
  * 用法：
- *   node scripts/build-commercial.js                 # 独立跑（读 data/coupon-snapshot.json，导语走静态兜底）
- *   require('./build-commercial').buildCommercial(snapshot, SITE_URL, { intros: { <slug>: '<AI 导语>' } })
- *     # build.js 内联调用（复用同次快照对象；有 AI 导语用 AI，无则回落 commercial.json intro/desc）
+ *   node scripts/build-commercial.js                 # 独立跑（读 data/coupon-snapshot.json + scripts/commercial.json，导语走静态兜底）
+ *   require('./build-commercial').buildCommercial(snapshot, SITE_URL, { intros: { <slug>: '<AI 导语>' }, items: [...] })
+ *     # build.js 内联调用（复用同次快照对象；有 AI 导语用 AI，无则回落条目 intro/desc）
+ *     # items=seed+AI 生成已合并去重的条目（WO-121 完整版，源 /content/commercialList）；缺省读 scripts/commercial.json
  * ========================================================================== */
 
 'use strict';
@@ -130,7 +131,10 @@ function buildBuyIndex(items, counts, siteUrl) {
 function buildCommercial(snapshot, siteUrlOpt, options) {
   const SITE_URL = String(siteUrlOpt || SITE_URL_DEFAULT).replace(/\/+$/, '');
   const aiIntros = (options && options.intros) || {};
-  const items = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/commercial.json'), 'utf8'));
+  // 条目优先用调用方传入（build.js 已把 seed 与 AI 生成条目合并去重）；缺省读本地 seed（独立跑口径不变）
+  const items = (options && Array.isArray(options.items))
+    ? options.items
+    : JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/commercial.json'), 'utf8'));
   const tpl = fs.readFileSync(path.join(ROOT, 'commercial-template.html'), 'utf8');
   if (!Array.isArray(items)) return [];
   const snap = snapshot || {};

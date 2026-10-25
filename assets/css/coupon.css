@@ -879,68 +879,18 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 .cp-top-more { flex-shrink: 0; margin-bottom: 4px; color: var(--accent); font-size: 0.8125rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .cp-top-more:hover { text-decoration: underline; }
 
-/* ------------------------- W5 推送底部引导条（app.js initPushGuide） ------------------------- */
-.pg-banner {
-  position: fixed;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  z-index: 96;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  max-width: min(680px, calc(100vw - 24px));
-  padding: 12px 16px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .14);
-  font-size: 0.875rem;
-  color: var(--text);
-}
-.pg-text { flex: 1 1 220px; min-width: 0; line-height: 1.5; }
-.pg-btn {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
-  background: transparent;
-  color: var(--text);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-}
-.pg-btn--go { background: var(--coupon-red); border-color: var(--coupon-red); color: #fff; }
-.pg-btn--go:hover { filter: brightness(.95); text-decoration: none; color: #fff; }
-.pg-btn--later { color: var(--text-muted); }
-.pg-btn--later:hover { border-color: var(--text-muted); }
-@media (max-width: 640px) {
-  .pg-banner { bottom: 10px; padding: 10px 12px; }
-  .pg-btn--later { display: none; } /* 拇指区只留主 CTA，关闭由「以后再说」以外手势退出 */
-}
-
-/* ------------------------- W5 降价提醒中心 /my-alerts.html ------------------------- */
-.ma-push { border: 1px solid var(--border); border-radius: var(--radius, 12px); background: var(--surface); padding: 16px; }
-.ma-push-row { display: flex; align-items: center; gap: 12px; }
-.ma-push-icon { font-size: 1.5rem; flex: 0 0 auto; }
-.ma-push-row > div { flex: 1 1 auto; min-width: 0; }
-.ma-push-status { margin: 4px 0 0; font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
-.ma-push-btn { flex: 0 0 auto; }
-.ma-ios {
-  margin-top: 14px;
-  padding: 12px 14px;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius, 12px);
-  background: var(--coupon-red-soft, rgba(220, 38, 38, .06));
-  font-size: 0.875rem;
-  line-height: 1.7;
-}
-.ma-ios ol { margin: 6px 0 8px; padding-left: 22px; }
-.ma-ios b { color: var(--coupon-red); }
+/* ------------------------- 降价提醒中心 /my-alerts.html（web-push 已下线 → 小程序引导） ------------------------- */
+/* 原 W5 底部推送引导条（.pg-banner / initPushGuide）已随 web-push 下线移除 */
+.ma-guide { border: 1px solid var(--border); border-radius: var(--radius, 12px); background: var(--surface); padding: 16px; }
+.ma-guide-head { display: flex; align-items: flex-start; gap: 12px; }
+.ma-guide-icon { font-size: 1.5rem; flex: 0 0 auto; }
+.ma-guide-head > div { flex: 1 1 auto; min-width: 0; }
+.ma-guide-text { margin: 4px 0 0; font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
+.ma-guide-tip { margin: 12px 0 0; font-size: 0.8125rem; color: var(--text-muted); }
+/* 已订阅券卡内嵌的带参小程序码（扫码落当前券） */
+.ma-mpcode { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.ma-mpcode img { width: 120px; height: 120px; flex: 0 0 auto; border-radius: 8px; background: #fff; }
+.ma-mpcode-cap { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
 .ma-cell {
   display: flex;
   gap: 12px;

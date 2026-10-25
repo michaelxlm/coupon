@@ -3,8 +3,8 @@
    —— 本地订阅清单（CouponStore.alerts）+ 当前力度对比：
      批量 fetch /coupon/jd/priceBatch 取每券最近快照，与订阅基线比较，
      到手价下降或券面额提升 → 卡片高亮 + 「已降/加码」标记。
-   —— 推送授权卡：复用 app.js window.CouponPush（开启/状态/denied 恢复指引）；
-     iOS（PushManager 不可用）展示「添加到主屏幕」教程（知识库 2026-10-14 待办）。
+   —— 小程序引导（web-push 已下线）：页面顶部渲染「去小程序订阅提醒」引导卡；每张已订阅券
+     卡内嵌该券的带参数小程序码（/coupon/mpcode?tao_id=&mainUrl=），扫码进小程序落到当前券。
    —— 详情页承接：命中 /data/coupon-snapshot.json 的 detailIds 白名单才给「详情」链接，
      避免链到未生成的 /p/<id>（404）。
    —— 静默失败：任何接口异常只退回基线展示，不报错。
@@ -19,43 +19,12 @@
   function $(id) { return doc.getElementById(id); }
   function num(v) { return (Math.round(Number(v) * 100) / 100) || 0; }
 
-  /* ------------------------------ 推送授权卡 ------------------------------ */
-  function renderPushCard() {
-    var CP = global.CouponPush;
-    var statusEl = $('pushStatus'), btn = $('pushEnable'), iosBox = $('iosBox'), title = $('pushTitle');
-    if (!CP || !statusEl) return;
-    var perm = CP.permission();
-    var ios = CP.isIOS();
-    if (ios) { iosBox.hidden = false; }
-    if (perm === 'granted') {
-      statusEl.textContent = '已开启：订阅的券降价 / 加码时会向本浏览器推送提醒。';
-      btn.hidden = true;
-    } else if (perm === 'denied') {
-      statusEl.textContent = '通知已被浏览器拦截。可在地址栏左侧 🔒（Chrome：设置 → 网站设置 → 通知）恢复允许后刷新本页。';
-      btn.hidden = true;
-    } else if (perm === 'default') {
-      if (ios && !CP.isStandalone()) {
-        statusEl.textContent = 'iPhone 需先从主屏幕打开本站才能开启通知（见下方教程）。';
-        btn.hidden = true;
-      } else {
-        statusEl.textContent = '开启后可收到本清单内券的降价 / 加码推送，不弹其他内容。';
-        btn.hidden = false;
-        btn.textContent = '开启通知';
-      }
-    } else {
-      statusEl.textContent = ios
-        ? '当前浏览器不支持推送，按下方教程从主屏幕打开后可开启。'
-        : '当前浏览器不支持系统推送，可在本页查看降价高亮。';
-      btn.hidden = true;
-      if (title && ios) title.textContent = '浏览器通知（iOS）';
-    }
-    btn.addEventListener('click', function () {
-      btn.disabled = true;
-      CP.enable(function (err, state) {
-        btn.disabled = false;
-        renderPushCard();
-      });
-    });
+  /* ---------------- 小程序码图片 URL（web-push 下线后落当前券） ---------------- */
+  // scene=券 tao_id；带 mainUrl 过后端 sourceGuard 来源守卫（与 priceBatch 同口径）
+  function mpCodeUrl(taoId) {
+    if (!taoId) return '';
+    return API_BASE + '/api/v1/front/coupon/mpcode?tao_id=' + encodeURIComponent(String(taoId)) +
+      '&mainUrl=' + encodeURIComponent(MAIN_URL);
   }
 
   /* ------------------------------ 订阅清单 ------------------------------ */
@@ -116,6 +85,24 @@
     }
     bodyEl.appendChild(cmp);
 
+    // 带参小程序码（web-push 下线后落当前券）：扫码进小程序 onLoad 读 scene=tao_id 定位该券
+    if (a.id) {
+      var mp = doc.createElement('div');
+      mp.className = 'ma-mpcode';
+      var mpImg = doc.createElement('img');
+      mpImg.src = mpCodeUrl(a.id);
+      mpImg.alt = '小程序码：' + (a.t || '优惠券');
+      mpImg.loading = 'lazy';
+      mpImg.referrerPolicy = 'no-referrer';
+      mpImg.width = 120; mpImg.height = 120;
+      mp.appendChild(mpImg);
+      var mpCap = doc.createElement('span');
+      mpCap.className = 'ma-mpcode-cap';
+      mpCap.textContent = '微信扫码进小程序 · 顶部订阅到期/大额提醒';
+      mp.appendChild(mpCap);
+      bodyEl.appendChild(mp);
+    }
+
     var row = doc.createElement('div');
     row.className = 'ma-actions';
     if (a.url) {
@@ -166,7 +153,6 @@
   }
 
   function boot() {
-    renderPushCard();
     loadDetailIds(render);
   }
 

@@ -3,7 +3,7 @@
    —— 导航请求：网络优先，失败回退缓存首页 / 快照，断网也能浏览已缓存券。
       静态资源：缓存优先，后台更新。不拦截 API（/api/）请求，保证数据实时。
    ========================================================================== */
-const CACHE = 'coupon-v2';
+const CACHE = 'coupon-v3';
 const CORE = [
   '/', '/index.html',
   '/assets/css/tokens.css', '/assets/css/main.css', '/assets/css/coupon.css',
@@ -33,8 +33,14 @@ self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
   var url = req.url || '';
-  // API 与跨域资源（图片/广告）不进缓存策略，直接走网络
+  // API 不进缓存策略，直接走网络（保证数据实时）
   if (url.indexOf('/api/') >= 0) return;
+  // 跨域请求不拦截：缓存优先策略只适用于同源静态资源。此前未排除跨域图片/广告，
+  // 其 fetch 失败后 respondWith(undefined) 会抛 "Failed to convert value to 'Response'"；
+  // 交由浏览器原生处理（web-push 已下线，Service Worker 仅保留离线兜底）。
+  try {
+    if (new URL(url).origin !== self.location.origin) return;
+  } catch (err) { return; }
 
   if (req.mode === 'navigate') {
     e.respondWith(
@@ -56,26 +62,7 @@ self.addEventListener('fetch', function (e) {
         return res;
       }).catch(function () { return r; });
       return r || net;
-      })
-      );
-      });
+    })
+  );
+});
 
-      /* Web Push（M5b）：展示降价提醒通知，点击打开站点 */
-      self.addEventListener('push', function (e) {
-      var data = {};
-      try { data = e.data ? e.data.json() : {}; } catch (err) { data = { title: '小满券仓', body: e.data ? e.data.text() : '' }; }
-      var title = data.title || '小满券仓 · 领券提醒';
-      var opts = { body: data.body || '', icon: '/assets/img/favicon.svg', badge: '/assets/img/favicon.svg', data: { url: data.url || '/' } };
-      e.waitUntil(self.registration.showNotification(title, opts));
-      });
-
-      self.addEventListener('notificationclick', function (e) {
-      e.notification.close();
-      var url = (e.notification.data && e.notification.data.url) || '/';
-      e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cls) {
-      for (var i = 0; i < cls.length; i++) {
-      if ('focus' in cls[i]) return cls[i].focus();
-      }
-      if (clients.openWindow) return clients.openWindow(url);
-      }));
-      });

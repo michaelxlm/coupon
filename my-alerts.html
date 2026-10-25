@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>我的降价提醒 | 小满券仓</title>
-  <meta name="description" content="小满券仓我的降价提醒：查看本机订阅的券与当前力度对比，命中降价即时高亮；开启浏览器通知或添加到主屏幕，降价第一时间收到推送。">
+  <meta name="description" content="小满券仓我的提醒：查看本机订阅的券与当前力度对比，命中降价即时高亮；降价 / 到期 / 大额券提醒已改由微信小程序下发，扫码即可订阅。">
   <meta name="robots" content="noindex,follow">
   <link rel="icon" href="/assets/img/favicon.svg">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="小满券仓">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="我的降价提醒 | 小满券仓">
-  <meta property="og:description" content="本机订阅的券与当前力度对比，命中降价即时高亮。">
+  <meta property="og:description" content="本机订阅的券与当前力度对比，命中降价即时高亮；提醒改由微信小程序下发。">
   <link rel="stylesheet" href="/assets/css/tokens.css?v=2026.10.16">
   <link rel="stylesheet" href="/assets/css/main.css?v=2026.10.16" />
   <link rel="stylesheet" href="/assets/css/coupon.css?v=2026.10.16" />
@@ -54,31 +54,21 @@
       <div class="container">
         <span class="eyebrow">匿名设备 · 本地订阅</span>
         <h1>我的降价提醒</h1>
-        <p class="hero-sub">这里汇总你在本站点过「降价提醒」的券：对比订阅时与当前的力度，命中降价 / 券加码会高亮标出。订阅清单只保存在本机浏览器（localStorage），开启浏览器通知后力度变化会推送提醒——全程匿名设备，无需注册。</p>
+        <p class="hero-sub">这里汇总你在本站点过「降价提醒」的券：对比订阅时与当前的力度，命中降价 / 券加码会高亮标出。订阅清单只保存在本机浏览器（localStorage）。推送提醒已改由微信小程序下发（浏览器 web-push 在大陆网络下无法送达，已停用），微信扫码即可订阅，全程匿名、无需注册。</p>
       </div>
     </section>
 
     <section class="section-sm">
       <div class="container">
-        <div class="ma-push" id="pushCard">
-          <div class="ma-push-row">
-            <span class="ma-push-icon" aria-hidden="true">🔔</span>
+        <div class="ma-guide" id="mpGuide">
+          <div class="ma-guide-head">
+            <span class="ma-guide-icon" aria-hidden="true">📱</span>
             <div>
-              <strong id="pushTitle">浏览器通知</strong>
-              <p class="ma-push-status" id="pushStatus">正在检测…</p>
+              <strong>券提醒已升级：请到微信小程序开启</strong>
+              <p class="ma-guide-text">浏览器推送（web-push）在大陆网络下无法送达，已停用。降价 / 到期 / 大额券提醒改由「小满券仓」微信小程序下发：微信扫码进入小程序，点顶部「到期提醒 / 大额券提醒」即可订阅（微信服务通知送达，无需注册）。</p>
             </div>
-            <button class="btn ma-push-btn" id="pushEnable" type="button" hidden>开启通知</button>
           </div>
-          <div class="ma-ios" id="iosBox" hidden>
-            <strong>iPhone / iPad 用户看这里</strong>
-            <ol>
-              <li>用 <b>Safari</b> 打开 coupon.zangeng.com；</li>
-              <li>点底部「分享」→「<b>添加到主屏幕</b>」；</li>
-              <li>从主屏幕图标打开站点（全屏模式）；</li>
-              <li>在本页点「开启通知」，允许后即可收到降价推送。</li>
-            </ol>
-            <p class="muted">iOS 16.4 起，只有从主屏幕启动的网页才能使用系统推送，这是苹果的限制。</p>
-          </div>
+          <p class="ma-guide-tip">下方每张已订阅的券都附有对应的小程序码，扫码可直接定位到该券。</p>
         </div>
       </div>
     </section>

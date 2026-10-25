@@ -1,10 +1,10 @@
 ---
 title: 小满券仓（coupon.zangeng.com）
 owner: Michaelxlm
-updated: 2026-10-22
+updated: 2026-10-26
 scope: coupon（coupon.zangeng.com · 京东/淘宝优惠券聚合静态站）
 status: 有效
-tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页, 收藏, 凑单计算器, 大促日历, 券详情页, 扫码海报, 降价热榜, 长文导购, 降价提醒, Web-Push, 省钱挑战, 导航单一源, 视觉审计]
+tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页, 收藏, 凑单计算器, 大促日历, 券详情页, 扫码海报, 降价热榜, 长文导购, 降价提醒, 小程序码引导, 省钱挑战, 导航单一源, 视觉审计]
 ---
 
 # 小满券仓（coupon.zangeng.com）
@@ -29,7 +29,7 @@ tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, �
 - 今日降价 TopN（`/drops.html` 正式版数据源）：`GET /api/v1/front/coupon/jd/topDrops?limit=24&mainUrl=coupon.zangeng.com`——近 48h `priceHistory` 两日快照对比（到手价降 / 券面额加码），商品字段实时富化
 - 优惠券长文（`/guides/*` 预渲染数据源，对齐 `ad` 线无鉴权只读模式）：`GET /api/v1/front/coupon/content/list?page=1&pageSize=20`、`GET /api/v1/front/coupon/content/detail?slug=`——读 `Automate.couponMaterial`（`businessLine='coupon'`，`generated/published` 态），经 `sourceGuard` 按 `mainUrl` 放行、字段白名单裁剪
 - 场景导购 AI 导语（WO-125，`/topic/*` 预渲染数据源）：`GET /api/v1/front/coupon/content/topicIntro?slug=phone&kw=手机&title=…`——读 `Automate.couponTopicIntro` 缓存（TTL 30 天，`tier='light'` 只生成一次即复用）；slug 白名单由 `config.couponFront.topicIntroSlugs` 控制（与 `scripts/topics.json` 同步维护），非白名单直接 `null`；AI 不可用/生成失败同样返回 `null`，构建回落静态导语
-- 降价提醒（匿名 deviceId）：`POST /coupon/alert/subscribe|unsubscribe`、`GET /coupon/alert/list?deviceId=`；Web Push：`GET /coupon/push/vapid`、`POST /coupon/push/subscribe`
+- 降价提醒（匿名 deviceId）：`POST /coupon/alert/subscribe|unsubscribe`、`GET /coupon/alert/list?deviceId=`——**仅本机清单/降价高亮数据层**；**Web Push 已下线**（大陆 Chrome 走 Google FCM、prod 到 `fcm.googleapis.com:443` 不可达、投递恒失败），券到期/大额/降价提醒改引导至小程序：`GET /coupon/mpcode?tao_id=&mainUrl=`（带参小程序码 PNG，`getUnlimited` scene=券 `tao_id`、Redis 缓存 30 天）、`GET /coupon/jd/detail?tao_id=`（小程序 `onLoad` 读 scene 还原当前券）
 
 > 上述三项 W2/W3 新接口（`jd/topDrops`、`content/list`、`content/detail`）已在中台 `app/router/api/v1/front/coupon/router.js` 落地。**依赖数据现状**：`couponPriceHistories` 每日快照尚未积累（现为 0）、`couponMaterial` 存量全为 `approved` 无 `published`，故上线初期 `topDrops` / `content/list` 会返回空——前端一律 fail-soft：`/drops.html` 回落预渲染力度榜 + 快照兜底、`/guides.html` 渲染空态索引壳（仍写盘不 404）、详情页走势图为空，**均不阻断部署**。待快照与发布态内容就绪即自动接通。
 
@@ -58,7 +58,7 @@ coupon/
 ├── topic/<slug>.html   场景导购页（WO-125，build-topics.js 预渲染：AI 场景导语 + 实时比价 TOP8 + 券卡网格 + FAQ；CollectionPage + ItemList + FAQPage JSON-LD）
 ├── topic/index.html    场景导购索引（WO-125，build-topics.js 由 topic-index-template.html 生成：7 个场景入口 + CollectionPage/ItemList JSON-LD）
 ├── p/<tao_id>.html     券详情页（W1，build.js 依榜单/精选合集逐券写盘，Product+Offer+BreadcrumbList，含价格走势/订阅提醒/扫码分享）
-├── my-alerts.html      我的降价提醒中心（W5，noindex：列本机 deviceId 订阅 + 当前力度对比 + Web Push/iOS 添加主屏引导）
+├── my-alerts.html      我的降价提醒中心（W5，noindex：列本机 deviceId 订阅 + 当前力度对比 + 「去小程序订阅提醒」引导卡，每张已订阅券内嵌带参小程序码；web-push 已下线）
 ├── about.html          关于与免责（AboutPage + 数据来源/合规，纯静态）
 ├── 404.html            404
 ├── assets/
@@ -80,7 +80,7 @@ coupon/
 │   ├── js/share.js      扫码战报海报（canvas 版式对齐品牌色；深链指向站内 /p/<id>，右下渲染 qrcode 二维码；支持自定义大字 power/sub）
 │   ├── js/detail-page.js 券详情页交互（fetch /jd/priceTrend 走势迷你图、订阅降价提醒、分享海报、相关推荐；全程 fail-soft）
 │   ├── js/drops-page.js 降价热榜页交互（三级数据源：topDrops 接口→预渲染 priceBatch 标记→快照兜底；打 drops_view）
-│   ├── js/my-alerts.js  降价提醒中心（读 alert/list + snapshot.detailIds 白名单给详情入口、Web Push enable/iOS 引导）
+│   ├── js/my-alerts.js  降价提醒中心（读 alert/list + snapshot.detailIds 白名单给详情入口 + 每张已订阅券内嵌带参小程序码引导至小程序；web-push 已下线）
 │   └── js/challenge.js  今日省钱挑战（纯 localStorage 连续回访 streak + 累计省钱，里程碑一键晒战报，仅首页，fail-soft）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
@@ -197,8 +197,8 @@ python -m http.server 8080
 - **W1 券详情落地页 `/p/<tao_id>.html`（传播地基）**：`build.js` 复用本次构建拉取的 `featured + rank(day/week/month) + browse + d11` 合集（`usable()` 去重），逐券写盘、**页面壳始终写盘**（接口不可达也不 404，fail-soft 与 cat 页同口径）。页含券力度大字 / 到手价 / 商品大图 / 价格走势迷你图（运行时 `detail-page.js` fetch `jd/priceTrend`）/ `立即领取`（`rel="sponsored noopener"`）/ 相关推荐 / 订阅降价提醒 / 分享。`Product`+`Offer`+`BreadcrumbList` JSON-LD；`/p/*` 纳入 `sitemap.xml`（初期限量约 60–120 条，写入 `coupon-snapshot.json` 的 `detailIds` 白名单）。新脚本 `assets/js/detail-page.js`（走势 + 订阅 + 分享 + 相关推荐，全程静默失败）。
 - **W2 社交裂变**：`assets/js/qrcode.js` **零依赖 QR 编码器**（自实现 Nayuki 移植，v1–15 / EC-M / GF(256)，无网络）；`assets/js/share.js` 升级为——分享深链指向站内 `/p/<tao_id>`，海报右下渲染该深链二维码，版式对齐 `tokens.css` 品牌色。`/drops.html` 降价热榜页（`data-mode=drops`）：三级数据源 `jd/topDrops` 接口 → 预渲染 `priceBatch` 标记 → 快照兜底，每张热榜卡一键生成扫码战报（`drops_view` 埋点）。
 - **W3 内容引擎 + SEO 爆发**：中台新增三只读接口（`jd/topDrops`、`content/list`、`content/detail`，见「数据来源」），经 `sourceGuard` 放行、字段白名单裁剪、config 开关灰度。`build.js` 拉长文预渲染 `/guides/<slug>.html`（`Article`+`BreadcrumbList` JSON-LD，`guideIndexShell`/`guidePageShell`）+ `/guides.html` 索引；`data/categories.json` 由 8 品类扩至 **21**，长尾落地页复用 `catPageShell`（`paging?search=`），sitemap 由 16 条 → **160 条**；刷新 `llms.txt`。沿用 `deploy.yml` 定时重建（`20 */4 * * *`）保新鲜。
-- **W4 首页重塑（移动端优先「省钱情报流」）**：`index.html` + `coupon-page.js` + `coupon.css`。首屏情报条 `cpIntelBar`（实时在架券数 / 累计省钱力度，本地对已加载数据估算，不接埋点不采 PII）、今日必抢 `cpTop10` 横滑胶囊行、临近失效/降价倒计时氛围条 `cpMoodBar`；券卡升级（降幅 + 走势微图标记 + 一键订阅降价提醒，拇指区优先）；feed 顶部按 `saveScore()`（省钱力度 + 新鲜度 + 临近失效）前置 hero，前后端同口径。新增埋点 `drops_view`/`alert_toggle`/`poster_share`/`top10_click`/`mood_click`/`challenge_share`/`push_guide_view`。
-- **W5 留存与回访（匿名设备合规）**：`/my-alerts.html`（`noindex`）降价提醒中心——列本机 `deviceId` 订阅 + 当前力度对比（复用 `alert/list`），命中降价高亮一键跳详情；`my-alerts.js` 复用 `app.js` 的 `push/vapid`/`push/subscribe` 基座做 Web Push 引导 + iOS 添加到主屏引导（补齐知识库 2026-10-14 待办），推送落地指向 `/p/<id>` 或 `/drops.html` 承接回流。`challenge.js` 今日省钱挑战：纯 `localStorage` 记录连续回访 streak + 累计省钱（匿名、非账号积分），里程碑（3/7/14/30/60/100 天）达成时触发扫码战报海报（复用 W2 `share.js`，item.link 指回首页）。
+- **W4 首页重塑（移动端优先「省钱情报流」）**：`index.html` + `coupon-page.js` + `coupon.css`。首屏情报条 `cpIntelBar`（实时在架券数 / 累计省钱力度，本地对已加载数据估算，不接埋点不采 PII）、今日必抢 `cpTop10` 横滑胶囊行、临近失效/降价倒计时氛围条 `cpMoodBar`；券卡升级（降幅 + 走势微图标记 + 一键订阅降价提醒，拇指区优先）；feed 顶部按 `saveScore()`（省钱力度 + 新鲜度 + 临近失效）前置 hero，前后端同口径。新增埋点 `drops_view`/`alert_toggle`/`poster_share`/`top10_click`/`mood_click`/`challenge_share`（`push_guide_view` 随 W5 web-push 下线已停用）。
+- **W5 留存与回访（匿名设备合规）**：`/my-alerts.html`（`noindex`）提醒中心——列本机 `deviceId` 订阅 + 当前力度对比（复用 `alert/list`），命中降价高亮一键跳详情。~~Web Push 引导~~**已下线**（2026-10-26：大陆 Chrome 走 Google FCM、prod 到 `fcm.googleapis.com:443` 不可达、投递恒失败），`app.js` 删 `CouponPush` 基座、`sw.js` 删 `push`/`notificationclick` 监听、`my-alerts.html`/`my-alerts.js` 引导卡改为每张已订阅券内嵌**带参小程序码**（`GET /front/coupon/mpcode?tao_id=`）+「微信扫码进小程序 · 顶部订阅到期/大额提醒」文案，`alert/list` 数据层保留仅作本机清单/降价高亮；`challenge.js` 今日省钱挑战：纯 `localStorage` 记录连续回访 streak + 累计省钱（匿名、非账号积分），里程碑（3/7/14/30/60/100 天）达成时触发扫码战报海报（复用 W2 `share.js`，item.link 指回首页）。
 
 **构建 / CI 联动**：`build.js` 新增 `/p/*` 详情页、`/guides/*` 长文页、`/drops.html`、`sitemap.xml` 扩展（分项 fail-soft）；`selfcheck.js` 门禁扩展——STATIC_PAGES 纳入 `my-alerts.html`、新增关键资产存在性（qrcode/share/detail-page/drops-page/my-alerts/challenge.js 六脚本）、构建壳存在性（drops/guides 含 JSON-LD）、详情页数量与 `snapshot.detailIds` 对齐、抽样 `/p` 与 `/guides` JSON-LD 合法性。`deploy.yml` 沿用现有 push + schedule，无新增触发。
 

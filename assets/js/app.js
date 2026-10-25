@@ -264,134 +264,11 @@
     }
   }
 
-  /* ----------------------- Web Push 订阅 + 引导（M5b · W5） -----------------------
-     —— 改造：不再页面加载即静默 requestPermission（浏览器会替用户默默拒绝）；
-        改为底部引导条，用户主动点击后才走授权→订阅→上报链路；
-        iOS（PushManager 不可用）引导「添加到主屏幕」（iOS 16.4+ 主屏 PWA 支持通知）；
-        已授权用户仍静默刷新订阅。暴露 window.CouponPush 供 /my-alerts.html 复用。 */
-  var PUSH_API = 'https://api.xuyiheng.com/api/v1/front/coupon';
-  var PUSH_DISMISS_KEY = 'coupon_push_dismiss';
-
-  function pushMainUrl() {
-    return (global.location && global.location.hostname) || 'coupon.zangeng.com';
-  }
-
-  function pushSupported() {
-    return ('serviceWorker' in global.navigator) && ('PushManager' in global) && ('Notification' in global);
-  }
-
-  function isIOS() {
-    var ua = String(global.navigator.userAgent || '');
-    return /iP(hone|ad|od)/.test(ua) || (ua.indexOf('Macintosh') !== -1 && 'ontouchend' in doc);
-  }
-
-  function isStandalone() {
-    return (global.navigator.standalone === true) ||
-      (global.matchMedia && global.matchMedia('(display-mode: standalone)').matches);
-  }
-
-  // 已有授权→静默完成订阅上报（授权由 enablePush 的引导链路触发，不在这里弹窗）
-  function ensureSubscription(dev, cb) {
-    global.navigator.serviceWorker.ready.then(function (reg) {
-      return reg.pushManager.getSubscription();
-    }).then(function (sub) {
-      var doSub = function (raw) {
-        // 携带 mainUrl 过后端 sourceGuard 来源守卫（与 /coupon/jd/* 同一口径）
-        global.fetch(PUSH_API + '/push/subscribe', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ deviceId: dev, subscription: raw, mainUrl: pushMainUrl() }),
-        }).then(function () { if (cb) cb(null); }).catch(function (e) { if (cb) cb(e); });
-      };
-      if (sub) { doSub(sub.toJSON ? sub.toJSON() : sub); return null; }
-      return global.fetch(PUSH_API + '/push/vapid?mainUrl=' + encodeURIComponent(pushMainUrl()), { cache: 'no-store' })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          var pk = j && j.data && j.data.publicKey;
-          if (!pk) { if (cb) cb(new Error('no-vapid')); return null; } // 未配置 VAPID：仍可用「我的降价提醒」列表
-          return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pk })
-            .then(function (s) { doSub(s.toJSON ? s.toJSON() : s); });
-        });
-    }).catch(function (e) { if (cb) cb(e); });
-  }
-
-  // 主动开启：请求权限 → 订阅 → 上报；回调 (err, state)
-  function enablePush(cb) {
-    if (!pushSupported()) { if (cb) cb(null, 'unsupported'); return; }
-    if (!global.Tracker) { if (cb) cb(null, 'no-tracker'); return; }
-    var dev = global.Tracker.visitorId();
-    if (!dev) { if (cb) cb(null, 'no-device'); return; }
-    if (global.Notification.permission === 'granted') { ensureSubscription(dev, function (e) { if (cb) cb(e, 'granted'); }); return; }
-    if (global.Notification.permission === 'denied') { if (cb) cb(null, 'denied'); return; }
-    global.Notification.requestPermission().then(function (perm) {
-      if (perm === 'granted') { ensureSubscription(dev, function (e) { if (cb) cb(e, 'granted'); }); }
-      else if (cb) cb(null, perm);
-    }).catch(function () { if (cb) cb(null, 'error'); });
-  }
-
-  // 背景静默链路：仅对已授权用户刷新订阅（不弹窗）
-  function initPush() {
-    if (!pushSupported() || !global.Tracker) return;
-    if (global.Notification.permission !== 'granted') return;
-    var dev = global.Tracker.visitorId();
-    if (!dev) return;
-    global.addEventListener('load', function () {
-      ensureSubscription(dev, null);
-    });
-  }
-
-  // 底部引导条：未授权时显著引导（计划 W5）；7 天内点过「以后再说」则不打扰
-  function initPushGuide() {
-    try {
-      if (doc.body && doc.body.getAttribute('data-page') === 'my-alerts') return; // 提醒中心页自带授权卡
-      var dismissedAt = Number(global.localStorage.getItem(PUSH_DISMISS_KEY) || 0);
-      if (dismissedAt && Date.now() - dismissedAt < 7 * 86400000) return;
-      var iosNoPush = isIOS() && !pushSupported() && !isStandalone();
-      var desktopAsk = pushSupported() && global.Notification.permission === 'default';
-      if (!iosNoPush && !desktopAsk) return;
-
-      var bar = doc.createElement('div');
-      bar.className = 'pg-banner';
-      bar.setAttribute('role', 'region');
-      bar.setAttribute('aria-label', '降价提醒开通引导');
-      var txt = doc.createElement('span');
-      txt.className = 'pg-text';
-      txt.textContent = iosNoPush
-        ? '📲 iPhone 用户：用 Safari「添加到主屏幕」后，可从主屏图标开启降价推送'
-        : '🔔 开启浏览器通知，订阅的券降价 / 加码第一时间提醒你（匿名设备，不注册账号）';
-      bar.appendChild(txt);
-      function dismissBar() {
-        try { global.localStorage.setItem(PUSH_DISMISS_KEY, String(Date.now())); } catch (e) { /* 忽略 */ }
-        bar.remove();
-      }
-      if (desktopAsk) {
-        var ok = doc.createElement('button');
-        ok.type = 'button'; ok.className = 'pg-btn pg-btn--go'; ok.textContent = '开启通知';
-        ok.addEventListener('click', function () {
-          enablePush(function (err, state) {
-            if (state === 'granted') { toast('已开启降价提醒推送'); bar.remove(); }
-            else if (state === 'denied') { toast('浏览器已拦截通知，可在地址栏设置里恢复'); dismissBar(); }
-            else dismissBar();
-          });
-        });
-        bar.appendChild(ok);
-      } else {
-        var go = doc.createElement('a');
-        go.className = 'pg-btn pg-btn--go'; go.href = '/my-alerts.html#ios'; go.textContent = '查看教程';
-        bar.appendChild(go);
-      }
-      var later = doc.createElement('button');
-      later.type = 'button'; later.className = 'pg-btn pg-btn--later'; later.textContent = '以后再说';
-      later.addEventListener('click', dismissBar);
-      bar.appendChild(later);
-      doc.body.appendChild(bar);
-      if (global.Tracker) global.Tracker.track('push_guide_view', { ios: iosNoPush ? 1 : 0 });
-    } catch (e) { /* 引导失败不影响页面 */ }
-  }
-
-  global.CouponPush = {
-    enable: enablePush, supported: pushSupported, isIOS: isIOS, isStandalone: isStandalone,
-    permission: function () { return pushSupported() ? global.Notification.permission : 'unsupported'; },
-  };
+  /* --------------------------- Web Push（已下线） ---------------------------
+     原 M5b 浏览器推送订阅/引导（CouponPush / enablePush / initPush / initPushGuide）已整体移除：
+     大陆 Chrome 走 Google FCM、prod 到 fcm.googleapis.com:443 实测不可达，投递恒失败；
+     H5 券提醒改引导至小程序「到期提醒 / 大额券提醒」（见 my-alerts.js 引导卡 + 带参小程序码）。
+     Service Worker 仍保留（sw.js 仅做离线兜底，不再监听 push/notificationclick）。 */
 
   /* --------------------------------- 启动 --------------------------------- */
   function boot() {
@@ -402,8 +279,6 @@
     initBackTop();
     initExp();
     initPWA();
-    initPush();
-    initPushGuide();
   }
 
   if (doc.readyState === 'loading') {

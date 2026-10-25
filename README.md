@@ -232,6 +232,16 @@ python -m http.server 8080
 - **同类问题修复**：比价表 `td.cp-off` 补 `display:table-cell; background:none; border-radius:0`，避免基础胶囊背景铺满整格（仅 7 张表 56 个 `td`，91 个 `span.cp-off` 仍在 `.cp-price` 内保持胶囊）；静态资源 `?v=` 统一 `2026.10.16`（CI fingerprint 仍会改写为内容哈希）。
 - **质量门禁**：check-encoding 454 文件通过；build 成功（index 24 / browse 20 / rank 50 / topic 8 / cat 21 / p 120 / sitemap 160）；selfcheck 0 错误 1 条既有警告；WCAG 通过；浏览器 1440/1024/920/901/768/390 + topic/drops/guides/暗色 console 0 错误。
 
+## WO-121 高商业意图产出·完整版改造（2026-10-25）
+
+在 12 条人工 seed 脚手架之上，接入「AI 批量产条目 → 中台校验落库 → 接口下发 → 构建合并扩 buy 页」全链路。
+
+- **条目双源合并**：`build.js` 2.8 节 `safeCommercial()` 拉中台 `/content/commercialList`（fail-soft：接口异常返 `[]` 只用本地 seed），`mergeCommercialItems()` 与 `scripts/commercial.json` 合并——seed 在前、按 slug/kw 去重（seed 优先），整批交给 `build-commercial.js`（`options.items` 缺省仍读本地 seed，本地脱后端构建不受影响）。
+- **中台侧（WO-125 三件套模式）**：模型 `automate/couponCommercialEntry` 一次生成落库复用；`service/coupon/content.js` 生成 + 硬校验（格式 / 绝对化用语 SUPERLATIVE_RE 拦截 / slug·kw 去重 / 券池实证 match≥3——match 词须真实命中近期在售券标题，防无券空页）；调度任务 `coupon.content.generateCommercial`（每日 07:40，开关与配比见中台 `config.couponFront.commercial*`，总量上限达顶自动空转不烧 token）。
+- **下发接口**：`GET /api/v1/front/coupon/content/commercialList`（sourceGuard 覆盖前缀、只回 published、字段白名单 7 项、异常降级 `[]`）。
+- **生产验证**（2026-10-25）：首轮 `{sampled:6000, seeds:8, produced:8, published:8, rejected:0}`；8 个新 buy 页外网 200、`/buy/` 入口收录、sitemap buy 共 21 条（12 seed + 8 AI + 1 索引）；8 页全文扫描 14 个绝对化用语 0 命中。
+- **日常运转**：任务已启用、每日滚动生成至上限；coupon 每次构建自动合并最新已发布条目，无需人工干预。
+
 ## 合规
 
 - 优惠券展示与核销由京东 / 折淘客完成，本站仅作内容聚合与跳转，不参与交易（页脚与卡片均标注 `rel="sponsored noopener"`）。

@@ -1253,8 +1253,8 @@ async function run() {
     topicSlugs = buildTopics(snapObj || {}, SITE_URL, { intros: topicIntros });
   } catch (e) { console.warn('[build] 生成场景导购页异常（忽略）：', e.message); }
 
-  // 2.8) WO-121：高商业意图省钱攻略长尾页 buy/<slug>.html
-  //      复用同次快照对象 + build-topics 同口径渲染；带 data-ad-slot 广告槽与 CPS data-track="coupon_click" 券卡
+  // 2.8) WO-121：高商业意图省钱攻略长尾页 buy/<slug>.html（另生成索引页 buy/index.html，导航/页脚入口指向它）
+  //      复用同次快照对象 + build-topics 同口径渲染（buy 页严格取数：不回落热门池、同品去重）；带 data-ad-slot 广告槽与 CPS data-track="coupon_click" 券卡
   //      （券卡 data-case="coupon:*" 经 conversion.js 产出 coupon_view 曝光，接 §4.3 真券 CTR）；条目见 scripts/commercial.json。
   let buySlugs = [];
   try {

@@ -129,11 +129,25 @@
     });
   }
 
+  // 非微信环境：引导卡内联展示服务号关注二维码（微信内走一键授权，不展示）
+  function initFollowGuide() {
+    var CS = global.CouponStore;
+    if (!CS || !CS.fetchOaConfig) return;
+    if (CS.isWeixin && CS.isWeixin()) return;
+    var box = $('oaGuideQr'), img = $('oaGuideQrImg');
+    CS.fetchOaConfig('expiry').then(function (cfg) {
+      if (!cfg || !cfg.enabled || !cfg.qr) return;
+      if (img) img.src = cfg.qr;
+      if (box) box.hidden = false; // 内联展示关注码；保留「开启提醒」按钮（非微信点它仍弹二维码引导）
+    }).catch(function () { /* 静默失败：退回原按钮（点击仍会走弹窗展示二维码） */ });
+  }
+
   function boot() {
     var btn = $('oaGuideBtn');
     if (btn && global.CouponStore && global.CouponStore.showRemindGuide) {
       btn.addEventListener('click', function () { global.CouponStore.showRemindGuide(); });
     }
+    initFollowGuide();
     loadDetailIds(render);
   }
 

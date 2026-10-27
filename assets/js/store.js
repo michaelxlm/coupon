@@ -261,6 +261,11 @@
     closeBtn.addEventListener('click', closeRemindModal);
   }
 
+  // 微信内置浏览器判定：仅微信内可发起服务号网页授权、长按识别二维码
+  function isWeixin() {
+    return /MicroMessenger|WeChat/i.test((global.navigator && global.navigator.userAgent) || '');
+  }
+
   // 发起服务号网页授权（snsapi_base 静默授权）：回跳当前页并带 code & oa_type
   function startOaAuth(appId, type) {
     var redirect = global.location.origin + global.location.pathname + '?oa_type=' + encodeURIComponent(type);
@@ -274,6 +279,8 @@
     var type = 'expiry';
     fetchJson(oaConfigUrl(type)).then(function (cfg) {
       if (!cfg || !cfg.enabled) { openRemindModal('提醒暂未开放', '公众号到期/大额提醒暂未开通，可先前往榜单浏览在券好物。'); return; }
+      // 非微信环境：跳服务号网页授权无效 → 直接展示关注二维码，引导用微信「扫一扫」关注后进公众号开启
+      if (!isWeixin()) { openRemindModal('在微信里开启到期提醒', '当前不在微信内，无法一键授权。请使用微信「扫一扫」扫描下方二维码关注服务号；关注后在微信中重新打开本页，点击券上的「到期提醒」即可开启，届时券到期会通过服务号消息直达本站详情页。', cfg.qr); return; }
       if (!cfg.appId) { openRemindModal('请在微信内开启提醒', '请在微信中打开本页面并关注服务号，即可开启到期/大额券提醒。', cfg.qr); return; }
       startOaAuth(cfg.appId, type);
     }).catch(function () { openRemindModal('网络异常', '暂时无法连接提醒服务，请稍后再试。'); });
@@ -381,6 +388,29 @@
     } catch (e) { /* 忽略 */ }
   }
 
+  // 非微信环境：站内底部轻量关注引导条（列表/详情页通用，本函数注入；my-alerts 已有内联卡故跳过；可关闭并记忆）
+  function mountFollowBanner() {
+    if (isWeixin()) return;
+    try { if (global.localStorage.getItem('coupon_oa_banner') === '1') return; } catch (e) { /* 无痕忽略 */ }
+    if (/my-alerts/i.test(global.location.pathname || '')) return;
+    fetchJson(oaConfigUrl('expiry')).then(function (cfg) {
+      if (!cfg || !cfg.enabled || !cfg.qr) return;
+      if (doc.getElementById('oaBanner')) return;
+      var bar = doc.createElement('div'); bar.className = 'oa-banner'; bar.id = 'oaBanner';
+      var img = doc.createElement('img'); img.className = 'oa-banner-qr'; img.alt = '服务号关注二维码'; img.referrerPolicy = 'no-referrer'; img.src = cfg.qr;
+      var txt = doc.createElement('div'); txt.className = 'oa-banner-txt';
+      var strong = doc.createElement('strong'); strong.textContent = '开启券到期提醒';
+      var span = doc.createElement('span'); span.textContent = '微信「扫一扫」关注服务号，到期/大额券消息直达本站（手机可先截图再到微信里识别）。';
+      txt.appendChild(strong); txt.appendChild(span);
+      var cta = doc.createElement('button'); cta.type = 'button'; cta.className = 'btn btn-sm oa-banner-cta'; cta.textContent = '如何开启';
+      cta.addEventListener('click', function () { showRemindGuide(); });
+      var close = doc.createElement('button'); close.type = 'button'; close.className = 'oa-banner-close'; close.setAttribute('aria-label', '关闭'); close.textContent = '\u00d7';
+      close.addEventListener('click', function () { try { global.localStorage.setItem('coupon_oa_banner', '1'); } catch (e) { /* 忽略 */ } if (bar.parentNode) bar.parentNode.removeChild(bar); });
+      bar.appendChild(img); bar.appendChild(txt); bar.appendChild(cta); bar.appendChild(close);
+      doc.body.appendChild(bar);
+    }).catch(function () { /* 静默失败：不打扰 */ });
+  }
+
   function boot() {
     Array.prototype.forEach.call(doc.querySelectorAll('.cp-grid'), enhance);
     // 点击券卡 = 视为「看过」，写最近看过快照（星标按钮在 a 外，不会误触）
@@ -391,6 +421,7 @@
       pushRecent(itemFromCard(a));
     });
     initOaCallback();
+    mountFollowBanner();
   }
 
   global.CouponStore = {
@@ -401,6 +432,7 @@
     recommendTerms: recommendTerms, seenIds: seenIds,
     alerts: alerts, isAlert: isAlert, toggleAlert: toggleAlert, attachAlert: attachAlert,
     showRemindGuide: showRemindGuide, remindNow: remindNow,
+    isWeixin: isWeixin, fetchOaConfig: function (type) { return fetchJson(oaConfigUrl(type || 'expiry')); },
     itemFromCard: itemFromCard, attachStar: attachStar, enhance: enhance,
   };
 

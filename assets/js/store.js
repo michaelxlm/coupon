@@ -280,7 +280,7 @@
     fetchJson(oaConfigUrl(type)).then(function (cfg) {
       if (!cfg || !cfg.enabled) { openRemindModal('提醒暂未开放', '公众号到期/大额提醒暂未开通，可先前往榜单浏览在券好物。'); return; }
       // 非微信环境：跳服务号网页授权无效 → 直接展示关注二维码，引导用微信「扫一扫」关注后进公众号开启
-      if (!isWeixin()) { openRemindModal('在微信里开启到期提醒', '当前不在微信内，无法一键授权。请使用微信「扫一扫」扫描下方二维码关注服务号；关注后在微信中重新打开本页，点击券上的「到期提醒」即可开启，届时券到期会通过服务号消息直达本站详情页。', cfg.qr); return; }
+      if (!isWeixin()) { openRemindModal('在微信里开启到期提醒', '当前不在微信内，无法一键授权。请使用微信「扫一扫」扫描下方二维码关注服务号；关注后在公众号里回复「提醒」，或点底部菜单「优惠券 → 我的提醒」，即可开启券到期提醒，届时券到期会通过服务号消息直达本站详情页。', cfg.qr); return; }
       if (!cfg.appId) { openRemindModal('请在微信内开启提醒', '请在微信中打开本页面并关注服务号，即可开启到期/大额券提醒。', cfg.qr); return; }
       startOaAuth(cfg.appId, type);
     }).catch(function () { openRemindModal('网络异常', '暂时无法连接提醒服务，请稍后再试。'); });
@@ -290,7 +290,7 @@
   function handleOaCallback(code, type) {
     postJson(oaSubscribeUrl(), { code: code, type: type }).then(function (res) {
       if (res && res.needFollow) {
-        openRemindModal('还差一步：关注服务号', '长按识别下方二维码关注服务号，关注后回到本页再次点击「开启提醒」，即可接收到期/大额券直达提醒。', res.qr);
+        openRemindModal('还差一步：关注服务号', '长按识别下方二维码关注服务号，关注后回复「提醒」或回到本页再次点击「开启提醒」，即可接收到期/大额券直达提醒。', res.qr);
       } else {
         openRemindModal('提醒已开启', '到期/大额券提醒已开启，届时服务号会发送消息并直达本站券详情页，无需再做任何操作。');
       }
@@ -400,7 +400,7 @@
       var img = doc.createElement('img'); img.className = 'oa-banner-qr'; img.alt = '服务号关注二维码'; img.referrerPolicy = 'no-referrer'; img.src = cfg.qr;
       var txt = doc.createElement('div'); txt.className = 'oa-banner-txt';
       var strong = doc.createElement('strong'); strong.textContent = '开启券到期提醒';
-      var span = doc.createElement('span'); span.textContent = '微信「扫一扫」关注服务号，到期/大额券消息直达本站（手机可先截图再到微信里识别）。';
+      var span = doc.createElement('span'); span.textContent = '微信「扫一扫」关注服务号，关注后回复「提醒」即可开启到期/大额券直达提醒（手机可先截图再到微信里识别）。';
       txt.appendChild(strong); txt.appendChild(span);
       var cta = doc.createElement('button'); cta.type = 'button'; cta.className = 'btn btn-sm oa-banner-cta'; cta.textContent = '如何开启';
       cta.addEventListener('click', function () { showRemindGuide(); });

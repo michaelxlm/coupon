@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>我的降价提醒 | 小满券仓</title>
-  <meta name="description" content="小满券仓我的提醒：查看本机订阅的券与当前力度对比，命中降价即时高亮；降价 / 到期 / 大额券提醒已改由微信小程序下发，扫码即可订阅。">
+  <meta name="description" content="小满券仓我的提醒：查看本机订阅的券与当前力度对比，命中降价即时高亮；到期 / 大额券提醒已改由微信服务号（公众号）下发，关注并一键授权即可开启。">
   <meta name="robots" content="noindex,follow">
   <link rel="icon" href="/assets/img/favicon.svg">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="小满券仓">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="我的降价提醒 | 小满券仓">
-  <meta property="og:description" content="本机订阅的券与当前力度对比，命中降价即时高亮；提醒改由微信小程序下发。">
+  <meta property="og:description" content="本机订阅的券与当前力度对比，命中降价即时高亮；提醒改由微信服务号（公众号）下发。">
   <link rel="stylesheet" href="/assets/css/tokens.css?v=2026.10.16">
   <link rel="stylesheet" href="/assets/css/main.css?v=2026.10.16" />
   <link rel="stylesheet" href="/assets/css/coupon.css?v=2026.10.16" />
@@ -38,6 +38,7 @@
       <a class="nav-link" href="/rank.html">榜单</a>
       <a class="nav-link" href="/category.html">品类</a>
       <a class="nav-link" href="/topic/index.html">场景导购</a>
+      <a class="nav-link" href="/buy/index.html">省钱攻略</a>
       <a class="nav-link" href="/guide.html">攻略</a>
       <a class="nav-link" href="/guides.html">长文导购</a>
     </nav>
@@ -54,7 +55,7 @@
       <div class="container">
         <span class="eyebrow">匿名设备 · 本地订阅</span>
         <h1>我的降价提醒</h1>
-        <p class="hero-sub">这里汇总你在本站点过「降价提醒」的券：对比订阅时与当前的力度，命中降价 / 券加码会高亮标出。订阅清单只保存在本机浏览器（localStorage）。推送提醒已改由微信小程序下发（浏览器 web-push 在大陆网络下无法送达，已停用），微信扫码即可订阅，全程匿名、无需注册。</p>
+        <p class="hero-sub">这里汇总你在本站点过「降价提醒」的券：对比订阅时与当前的力度，命中降价 / 券加码会高亮标出。订阅清单只保存在本机浏览器（localStorage）。到期 / 大额券提醒已改由微信服务号（公众号）下发（浏览器 web-push 在大陆网络下无法送达，已停用），关注服务号并一键授权即可开启，提醒消息可直达本站券详情页，全程匿名、无需注册。</p>
       </div>
     </section>
 
@@ -62,13 +63,14 @@
       <div class="container">
         <div class="ma-guide" id="mpGuide">
           <div class="ma-guide-head">
-            <span class="ma-guide-icon" aria-hidden="true">📱</span>
+            <span class="ma-guide-icon" aria-hidden="true">🔔</span>
             <div>
-              <strong>券提醒已升级：请到微信小程序开启</strong>
-              <p class="ma-guide-text">浏览器推送（web-push）在大陆网络下无法送达，已停用。降价 / 到期 / 大额券提醒改由「小满券仓」微信小程序下发：微信扫码进入小程序，点顶部「到期提醒 / 大额券提醒」即可订阅（微信服务通知送达，无需注册）。</p>
+              <strong>开启到期 / 大额券提醒：关注公众号</strong>
+              <p class="ma-guide-text">浏览器推送（web-push）在大陆网络下无法送达，已停用。到期 / 大额券提醒改由「小满券仓」微信服务号下发：在微信中打开本页，点击下方「开启提醒」并同意网页授权，关注服务号后即可接收提醒——消息可直接跳转到本站对应券详情页，无需注册。</p>
+              <button type="button" class="btn btn-sm ma-guide-btn" id="oaGuideBtn">开启提醒</button>
             </div>
           </div>
-          <p class="ma-guide-tip">下方每张已订阅的券都附有对应的小程序码，扫码可直接定位到该券。</p>
+          <p class="ma-guide-tip">开启后，服务号会定时推送临期券与大额券榜，点击即直达本站。</p>
         </div>
       </div>
     </section>
@@ -117,6 +119,7 @@
           <li><a href="/drops.html">降价热榜</a></li>
           <li><a href="/category.html">品类</a></li>
           <li><a href="/topic/index.html">场景导购</a></li>
+          <li><a href="/buy/index.html">省钱攻略</a></li>
           <li><a href="/guide.html">领券攻略</a></li>
           <li><a href="/calculator.html">凑单计算器</a></li>
           <li><a href="/holidays.html">大促日历</a></li>

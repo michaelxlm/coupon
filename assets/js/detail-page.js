@@ -1,8 +1,8 @@
 /* ==========================================================================
-   detail-page.js · 券详情页交互（W1 · /p/<tao_id>.html）
+   detail-page.js · 券详情页交互（W1 · /p/<_id>.html）
    —— 渐进增强：页面壳与券信息由 build.js 预渲染写死，本脚本只做三件事：
      1) 价格走势：fetch /coupon/jd/priceTrend（每日力度快照）画 SVG 折线 + 摘要；
-     2) 订阅降价提醒 / 分享海报按钮（提醒引导复用 store.js remindNow/showRemindGuide 弹带参小程序码，分享复用 share.js openShare）；
+     2) 订阅降价/到期提醒 / 分享海报按钮（提醒引导复用 store.js remindNow/showRemindGuide 走公众号网页授权订阅，分享复用 share.js openShare）；
      3) 临近失效倒计时（有 couponEndTime 时逐秒刷新）。
    —— 静默失败：任何 fetch/DOM 异常都不影响页面浏览，走势区退化为文字说明。
    ========================================================================== */
@@ -108,7 +108,7 @@
   function wireAlert() {
     var btn = doc.getElementById('pAlert');
     if (!btn || !item.id || !global.CouponStore) return;
-    // web-push 已下线：不再翻「已订阅」假承诺，点击直接弹带参小程序码引导至小程序订阅
+    // web-push 已下线：不再翻「已订阅」假承诺，点击直接发起公众号（服务号）网页授权订阅引导
     btn.textContent = '订阅降价提醒';
     btn.classList.remove('is-on');
     btn.setAttribute('aria-pressed', 'false');

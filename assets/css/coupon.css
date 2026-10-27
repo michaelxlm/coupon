@@ -735,7 +735,7 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 .cp-alert.is-on:hover { color: #fff; }
 .cp-expire.is-hot { background: var(--coupon-red); color: #fff; }
 
-/* 降价提醒引导弹窗（web-push 已下线 → 点「降价提醒」弹带参小程序码，store.js showRemindGuide） */
+/* 降价/到期提醒引导弹窗（web-push 已下线 → 点「开启提醒」走公众号网页授权，store.js showRemindGuide） */
 .rs-mask { position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, .55); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .rs-card { background: var(--surface, #fff); color: var(--text, #222); border-radius: var(--radius, 14px); padding: 22px 20px; max-width: 320px; width: 100%; text-align: center; box-shadow: 0 12px 40px rgba(0, 0, 0, .22); }
 .rs-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 6px; }
@@ -891,7 +891,7 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 .cp-top-more { flex-shrink: 0; margin-bottom: 4px; color: var(--accent); font-size: 0.8125rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .cp-top-more:hover { text-decoration: underline; }
 
-/* ------------------------- 降价提醒中心 /my-alerts.html（web-push 已下线 → 小程序引导） ------------------------- */
+/* ------------------------- 降价提醒中心 /my-alerts.html（web-push 已下线 → 关注公众号引导） ------------------------- */
 /* 原 W5 底部推送引导条（.pg-banner / initPushGuide）已随 web-push 下线移除 */
 .ma-guide { border: 1px solid var(--border); border-radius: var(--radius, 12px); background: var(--surface); padding: 16px; }
 .ma-guide-head { display: flex; align-items: flex-start; gap: 12px; }
@@ -899,10 +899,7 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 .ma-guide-head > div { flex: 1 1 auto; min-width: 0; }
 .ma-guide-text { margin: 4px 0 0; font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
 .ma-guide-tip { margin: 12px 0 0; font-size: 0.8125rem; color: var(--text-muted); }
-/* 已订阅券卡内嵌的带参小程序码（扫码落当前券） */
-.ma-mpcode { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-.ma-mpcode img { width: 120px; height: 120px; flex: 0 0 auto; border-radius: 8px; background: #fff; }
-.ma-mpcode-cap { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+.ma-guide-btn { margin-top: 10px; }
 .ma-cell {
   display: flex;
   gap: 12px;

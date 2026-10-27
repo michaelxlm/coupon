@@ -9,6 +9,7 @@
 
   var doc = global.document;
   var API_BASE = 'https://api.xuyiheng.com';
+  var MAIN_URL = 'coupon.zangeng.com'; // 携给后端 sourceGuard 的来源键（须已在 projects 登记 url），与 store.js/coupon-page.js 同值
 
   function $(id) { return doc.getElementById(id); }
 
@@ -144,7 +145,7 @@
     var count = $('alertCount');
     var dev = global.Tracker && global.Tracker.visitorId ? global.Tracker.visitorId() : '';
     if (!dev) { if (empty) empty.hidden = false; grid.hidden = true; return; }
-    var url = API_BASE + '/api/v1/front/coupon/alert/list?deviceId=' + encodeURIComponent(dev);
+    var url = API_BASE + '/api/v1/front/coupon/alert/list?deviceId=' + encodeURIComponent(dev) + '&mainUrl=' + encodeURIComponent(MAIN_URL);
     global.fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
       var list = (j && j.data && j.data.list) || [];
       grid.innerHTML = '';

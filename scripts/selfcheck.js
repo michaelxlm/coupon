@@ -104,15 +104,36 @@ if (pFiles.length) {
   const fileSet = new Set(pFiles);
   const idSet = new Set(snapDetailIds);
   const missing = snapDetailIds.filter(id => !fileSet.has(id + '.html'));
-  const stale = pFiles.filter(f => !idSet.has(f.slice(0, -5))).length;
+  // 动态回退壳 _shell.html（nginx 200 回退目标）恒存在、非 detailId，不计入历史残留
+  const stale = pFiles.filter(f => f !== '_shell.html' && !idSet.has(f.slice(0, -5))).length;
   ok('/p/* 详情页壳 ' + pFiles.length + ' 张，snapshot.detailIds=' + snapDetailIds.length
     + (stale > 0 ? '（历史残留 ' + stale + ' 张，不影响访问）' : ''));
   if (missing.length) {
-    warn('snapshot.detailIds 有 ' + missing.length + ' 个 id 缺详情页（my-alerts 链接会 404）：'
+    warn('snapshot.detailIds 有 ' + missing.length + ' 个 id 缺详情页（应由 nginx /p/ 回退壳兑着）：'
       + missing.slice(0, 3).join(', ') + (missing.length > 3 ? ' 等' : ''));
   }
 } else {
   warn('未发现 /p/* 详情页壳（本次构建详情池可能为空——后端不可达；上线前请确认有券时能生成）');
+}
+
+// 7.5) URL 键已统一 _id：detailIds 必须全为 24 位 hex（无旧 safeId(tao_id) 残留）；旧链映射与回退壳到位
+{
+  const nonHex = snapDetailIds.filter(id => !/^[0-9a-fA-F]{24}$/.test(id));
+  if (!snapDetailIds.length) console.log('[selfcheck] · detailIds 为空（跳 _id 键形校验）');
+  else if (nonHex.length) err('snapshot.detailIds 含 ' + nonHex.length + ' 个非 _id（24hex）键，旧 safeId 未清除：' + nonHex.slice(0, 3).join(', '));
+  else ok('snapshot.detailIds 全为 _id（24hex）· 无 safeId 残留');
+
+  if (!fs.existsSync(path.join(pDir, '_shell.html'))) err('缺失动态回退壳 /p/_shell.html（未预渲染券将 404）');
+  else ok('动态回退壳 /p/_shell.html 存在');
+
+  const rmapPath = path.join(ROOT, 'data', 'p-redirect-map.json');
+  try {
+    const rmap = JSON.parse(fs.readFileSync(rmapPath, 'utf8'));
+    const cnt = Object.keys(rmap).length;
+    const badTarget = Object.entries(rmap).filter(([, id]) => !/^[0-9a-fA-F]{24}$/.test(String(id)));
+    if (badTarget.length) err('旧链映射 ' + badTarget.length + ' 条目标非 _id：' + badTarget.slice(0, 3).map(([k]) => k).join(', '));
+    else ok('旧链重定向映射 data/p-redirect-map.json：' + cnt + ' 条 safeId(tao_id)→_id');
+  } catch (e) { err('缺失/非法 data/p-redirect-map.json（URL 迁移旧链 301 表未导出）：' + e.message); }
 }
 
 // 8) JSON-LD 合法性：抽样 /p 与 /guides 各一页，内联 ld+json 必须可解析（构建期 JSON.stringify 生成，解析失败=模板污染）

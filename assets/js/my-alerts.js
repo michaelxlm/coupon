@@ -3,10 +3,10 @@
    —— 本地订阅清单（CouponStore.alerts）+ 当前力度对比：
      批量 fetch /coupon/jd/priceBatch 取每券最近快照，与订阅基线比较，
      到手价下降或券面额提升 → 卡片高亮 + 「已降/加码」标记。
-   —— 小程序引导（web-push 已下线）：页面顶部渲染「去小程序订阅提醒」引导卡；每张已订阅券
-     卡内嵌该券的带参数小程序码（/coupon/mpcode?tao_id=&mainUrl=），扫码进小程序落到当前券。
-   —— 详情页承接：命中 /data/coupon-snapshot.json 的 detailIds 白名单才给「详情」链接，
-     避免链到未生成的 /p/<id>（404）。
+   —— 到期/大额提醒：走公众号（服务号）网页授权订阅（web-push / 带参小程序码均已退役），
+     页面顶部渲染「关注公众号开启提醒」引导卡；订阅动作在券卡/引导卡点击时由 CouponStore 发起。
+   —— 详情页承接：详情键统一 _id（告警快照 did 字段）→ /p/<_id>.html；命中静态预渲染白名单
+     或已捕获 _id 即给链接（nginx 动态回退壳保证同 URL 恒不 404）。
    —— 静默失败：任何接口异常只退回基线展示，不报错。
    ========================================================================== */
 (function (global) {
@@ -18,14 +18,6 @@
 
   function $(id) { return doc.getElementById(id); }
   function num(v) { return (Math.round(Number(v) * 100) / 100) || 0; }
-
-  /* ---------------- 小程序码图片 URL（web-push 下线后落当前券） ---------------- */
-  // scene=券 tao_id；带 mainUrl 过后端 sourceGuard 来源守卫（与 priceBatch 同口径）
-  function mpCodeUrl(taoId) {
-    if (!taoId) return '';
-    return API_BASE + '/api/v1/front/coupon/mpcode?tao_id=' + encodeURIComponent(String(taoId)) +
-      '&mainUrl=' + encodeURIComponent(MAIN_URL);
-  }
 
   /* ------------------------------ 订阅清单 ------------------------------ */
   var detailIdSet = null;
@@ -85,24 +77,6 @@
     }
     bodyEl.appendChild(cmp);
 
-    // 带参小程序码（web-push 下线后落当前券）：扫码进小程序 onLoad 读 scene=tao_id 定位该券
-    if (a.id) {
-      var mp = doc.createElement('div');
-      mp.className = 'ma-mpcode';
-      var mpImg = doc.createElement('img');
-      mpImg.src = mpCodeUrl(a.id);
-      mpImg.alt = '小程序码：' + (a.t || '优惠券');
-      mpImg.loading = 'lazy';
-      mpImg.referrerPolicy = 'no-referrer';
-      mpImg.width = 120; mpImg.height = 120;
-      mp.appendChild(mpImg);
-      var mpCap = doc.createElement('span');
-      mpCap.className = 'ma-mpcode-cap';
-      mpCap.textContent = '微信扫码进小程序 · 顶部订阅到期/大额提醒';
-      mp.appendChild(mpCap);
-      bodyEl.appendChild(mp);
-    }
-
     var row = doc.createElement('div');
     row.className = 'ma-actions';
     if (a.url) {
@@ -113,9 +87,12 @@
       claim.setAttribute('data-case', 'coupon:' + a.id);
       row.appendChild(claim);
     }
-    if (detailIdSet && detailIdSet[String(a.id)]) {
+    // 详情键统一 _id：告警快照带 did（新）优先，兼容旧条目回落 snapshot detailIds 白名单（现为 _id 集）
+    var detId = String(a.did || '');
+    if (detId || (detailIdSet && detailIdSet[String(a.id)])) {
+      var hrefId = detId || String(a.id);
       var det = doc.createElement('a');
-      det.className = 'btn btn-sm btn-ghost'; det.href = '/p/' + encodeURIComponent(String(a.id)) + '.html'; det.textContent = '详情';
+      det.className = 'btn btn-sm btn-ghost'; det.href = '/p/' + encodeURIComponent(hrefId) + '.html'; det.textContent = '详情';
       row.appendChild(det);
     }
     if (global.CouponShare && a.id) {
@@ -153,6 +130,10 @@
   }
 
   function boot() {
+    var btn = $('oaGuideBtn');
+    if (btn && global.CouponStore && global.CouponStore.showRemindGuide) {
+      btn.addEventListener('click', function () { global.CouponStore.showRemindGuide(); });
+    }
     loadDetailIds(render);
   }
 

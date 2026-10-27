@@ -267,7 +267,7 @@
   /* --------------------------- Web Push（已下线） ---------------------------
      原 M5b 浏览器推送订阅/引导（CouponPush / enablePush / initPush / initPushGuide）已整体移除：
      大陆 Chrome 走 Google FCM、prod 到 fcm.googleapis.com:443 实测不可达，投递恒失败；
-     H5 券提醒改引导至小程序「到期提醒 / 大额券提醒」（见 my-alerts.js 引导卡 + 带参小程序码）。
+     H5 券提醒改走公众号（服务号）网页授权订阅（见 my-alerts.js 引导卡 / store.js showRemindGuide）。
      Service Worker 仍保留（sw.js 仅做离线兜底，不再监听 push/notificationclick）。 */
 
   /* --------------------------------- 启动 --------------------------------- */

@@ -1,10 +1,12 @@
 /* ==========================================================================
-   store.js · 小满券仓本地数据层（收藏 / 最近看过 / 搜索历史）
+   store.js · 小满券仓本地数据层（收藏 / 最近看过 / 搜索历史 / 提醒订阅引导）
    —— 纯 localStorage、零依赖、静默失败（无痕模式 / 配额满时不报错，功能自动降级）。
    · 券卡星标：coupon-page.js / list-page.js 生成卡片时调 CouponStore.attachStar；
      预渲染静态券卡由本脚本启动时补增强（包一层 .cp-cell + 收藏按钮，禁 JS 不受影响）。
    · 最近看过：事件委托捕获 .cp-card 点击，从 DOM 反解券快照（上限 24 条）。
-   · 收藏上限 100、搜索历史上限 10；数据结构为紧凑快照 {id,t,img,url,price,quota,off,at}。
+   · 收藏上限 100、搜索历史上限 10；数据结构为紧凑快照 {id,did,t,img,url,price,quota,off,at}。
+   · 到期/大额提醒：走公众号（服务号）网页授权订阅（web-push / 带参小程序码均已退役）；
+     id=tao_id（本机清单主键，历史兼容）、did=_id（详情页 URL 键，供 /my-alerts.html 构造 /p/<_id>.html）。
    ========================================================================== */
 (function (global) {
   'use strict';
@@ -41,6 +43,7 @@
   // 从券卡 DOM 反解紧凑快照（预渲染卡与运行时卡同构，均带 cp-name/cp-off/cp-final）
   function itemFromCard(a) {
     var cid = (a.getAttribute('data-case') || '').replace(/^coupon:/, '');
+    var did = a.getAttribute('data-id') || ''; // 详情页 URL 键＝_id（供 my-alerts 构造 /p/<_id>.html）
     var url = a.href || '';
     var id = cid || url;
     if (!id || id === '#') return null;
@@ -55,6 +58,7 @@
     }
     return {
       id: String(id),
+      did: String(did),
       t: nameEl ? (nameEl.textContent || '').trim() : '',
       img: imgEl ? (imgEl.getAttribute('src') || '') : '',
       url: (/^https?:\/\//i.test(url) ? url : ''),
@@ -163,7 +167,7 @@
     return s;
   }
 
-  /* ---------------------- 降价提醒（M2） ---------------------- */
+  /* ---------------------- 降价/到期提醒（M2）本机清单 ---------------------- */
   function alerts() { return lsGet(K_ALERT, []); }
   function isAlert(id) { return alerts().some(function (x) { return x.id === String(id); }); }
   // 切换订阅：本地 localStorage 为主，后端上报为最佳努力（失败忽略）
@@ -177,7 +181,7 @@
     if (idx >= 0) { list.splice(idx, 1); on = false; }
     else {
       list.unshift({
-        id: id, t: item.t || '', img: item.img || '', url: item.url || '',
+        id: id, did: String(item.did || ''), t: item.t || '', img: item.img || '', url: item.url || '',
         price: Number(item.price) || 0, quota: Number(item.quota) || 0, off: Number(item.off) || 0,
         baseline: { price: Number(item.price) || 0, quota: Number(item.quota) || 0, couponDiscount: Number(item.off) || 0 },
         ts: Date.now(),
@@ -192,6 +196,8 @@
     var dev = global.Tracker && global.Tracker.visitorId ? global.Tracker.visitorId() : '';
     if (!dev) return;
     var url = (action === 'subscribe' ? '/api/v1/front/coupon/alert/subscribe' : '/api/v1/front/coupon/alert/unsubscribe');
+    // sourceGuard 对 /api/v1/front/coupon/ 全量要求携带 mainUrl，否则按「未登记来源」置空（订阅/退订静默失败并刷 P1）
+    url += '?mainUrl=' + encodeURIComponent(MAIN_URL);
     try {
       global.fetch(API_BASE + url, {
         method: 'POST',
@@ -204,42 +210,48 @@
       }).catch(function () { /* 忽略 */ });
     } catch (e) { /* 忽略 */ }
   }
-  /* ---------------- 降价提醒引导：弹带参小程序码（web-push 已下线，H5 不再发通知） ---------------- */
+
+  /* ---------------- 到期/大额提醒引导：公众号（服务号）网页授权订阅（web-push / 带参小程序码均已退役） ---------------- */
   var RS_ID = 'coupon-remind-modal';
   var rsKeyHandler = null;
-  // scene=券 tao_id；带 mainUrl 过后端 sourceGuard 来源守卫（与 my-alerts.js 同口径）
-  function mpCodeUrl(taoId) {
-    if (!taoId) return '';
-    return API_BASE + '/api/v1/front/coupon/mpcode?tao_id=' + encodeURIComponent(String(taoId)) +
+
+  function oaConfigUrl(type) {
+    return API_BASE + '/api/v1/front/coupon/oa/config?type=' + encodeURIComponent(type || 'expiry') +
       '&mainUrl=' + encodeURIComponent(MAIN_URL);
   }
+  function oaSubscribeUrl() {
+    return API_BASE + '/api/v1/front/coupon/oa/subscribe?mainUrl=' + encodeURIComponent(MAIN_URL);
+  }
+  function fetchJson(url) {
+    return global.fetch(url).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { return (j && j.data) || {}; });
+  }
+  function postJson(url, body) {
+    return global.fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { return (j && j.data) || {}; });
+  }
+
   function closeRemindModal() {
     var m = doc.getElementById(RS_ID);
     if (m && m.parentNode) m.parentNode.removeChild(m);
     if (rsKeyHandler) { doc.removeEventListener('keydown', rsKeyHandler); rsKeyHandler = null; }
   }
-  // 弹出该券的带参小程序码引导：扫码进小程序订阅到期/大额提醒（scene=tao_id，落到当前券）
-  function showRemindGuide(item) {
-    if (!item || !item.id) return;
+  // 通用提示弹窗（标题 + 说明 + 可选服务号关注二维码）
+  function openRemindModal(titleText, subText, qrImg) {
     closeRemindModal();
-    var mask = doc.createElement('div');
-    mask.className = 'rs-mask'; mask.id = RS_ID;
+    var mask = doc.createElement('div'); mask.className = 'rs-mask'; mask.id = RS_ID;
     var card = doc.createElement('div'); card.className = 'rs-card';
     card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true');
-    var title = doc.createElement('div'); title.className = 'rs-title'; title.textContent = '订阅降价 / 到期提醒';
-    var sub = doc.createElement('p'); sub.className = 'rs-sub';
-    sub.textContent = '网页通知已停用。用微信扫描下面的小程序码，进入小程序点顶部「到期提醒 / 大额券提醒」即可订阅该券。';
+    var title = doc.createElement('div'); title.className = 'rs-title'; title.textContent = titleText;
+    var sub = doc.createElement('p'); sub.className = 'rs-sub'; sub.textContent = subText;
     card.appendChild(title); card.appendChild(sub);
-    if (item.t) { var name = doc.createElement('p'); name.className = 'rs-name'; name.textContent = '《' + item.t + '》'; card.appendChild(name); }
-    var imgWrap = doc.createElement('div'); imgWrap.className = 'rs-imgwrap';
-    var img = doc.createElement('img'); img.className = 'rs-img'; img.src = mpCodeUrl(item.id);
-    img.alt = '小程序码：' + (item.t || '优惠券'); img.width = 180; img.height = 180; img.referrerPolicy = 'no-referrer';
-    var loadTip = doc.createElement('span'); loadTip.className = 'rs-loading'; loadTip.textContent = '二维码生成中…';
-    imgWrap.appendChild(loadTip); imgWrap.appendChild(img);
-    card.appendChild(imgWrap);
-    img.addEventListener('load', function () { if (loadTip.parentNode) loadTip.parentNode.removeChild(loadTip); });
-    img.addEventListener('error', function () { loadTip.className = 'rs-err'; loadTip.textContent = '二维码暂时不可用，请稍后再试，或直接前往小程序搜索该券。'; if (img.parentNode) img.parentNode.removeChild(img); });
-    var closeBtn = doc.createElement('button'); closeBtn.type = 'button'; closeBtn.className = 'rs-close'; closeBtn.textContent = '关闭';
+    if (qrImg) {
+      var img = doc.createElement('img'); img.className = 'rs-img'; img.src = qrImg;
+      img.alt = '服务号关注二维码'; img.width = 180; img.height = 180; img.referrerPolicy = 'no-referrer';
+      card.appendChild(img);
+    }
+    var closeBtn = doc.createElement('button'); closeBtn.type = 'button'; closeBtn.className = 'rs-close'; closeBtn.textContent = '我知道了';
     card.appendChild(closeBtn);
     mask.appendChild(card);
     doc.body.appendChild(mask);
@@ -248,13 +260,43 @@
     mask.addEventListener('click', function (e) { if (e.target === mask) closeRemindModal(); });
     closeBtn.addEventListener('click', closeRemindModal);
   }
-  // 点「降价提醒」：记入本机清单（供 /my-alerts.html 降价高亮）+ 弹出小程序码引导；不再翻成「已提醒」
+
+  // 发起服务号网页授权（snsapi_base 静默授权）：回跳当前页并带 code & oa_type
+  function startOaAuth(appId, type) {
+    var redirect = global.location.origin + global.location.pathname + '?oa_type=' + encodeURIComponent(type);
+    var url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + encodeURIComponent(appId) +
+      '&redirect_uri=' + encodeURIComponent(redirect) + '&response_type=code&scope=snsapi_base&state=oa#wechat_redirect';
+    global.location.href = url;
+  }
+
+  // 点「到期/大额提醒」：探测 OA 通道 → 已开放则发起网页授权；未开放 / 缺 appid 则文案引导（未关注二维码由回调分支展示）
+  function showRemindGuide() {
+    var type = 'expiry';
+    fetchJson(oaConfigUrl(type)).then(function (cfg) {
+      if (!cfg || !cfg.enabled) { openRemindModal('提醒暂未开放', '公众号到期/大额提醒暂未开通，可先前往榜单浏览在券好物。'); return; }
+      if (!cfg.appId) { openRemindModal('请在微信内开启提醒', '请在微信中打开本页面并关注服务号，即可开启到期/大额券提醒。', cfg.qr); return; }
+      startOaAuth(cfg.appId, type);
+    }).catch(function () { openRemindModal('网络异常', '暂时无法连接提醒服务，请稍后再试。'); });
+  }
+
+  // 网页授权回跳处理：命中 code(+state=oa/oa_type) → 服务端换公众号 openid 订阅；未关注展示关注二维码
+  function handleOaCallback(code, type) {
+    postJson(oaSubscribeUrl(), { code: code, type: type }).then(function (res) {
+      if (res && res.needFollow) {
+        openRemindModal('还差一步：关注服务号', '长按识别下方二维码关注服务号，关注后回到本页再次点击「开启提醒」，即可接收到期/大额券直达提醒。', res.qr);
+      } else {
+        openRemindModal('提醒已开启', '到期/大额券提醒已开启，届时服务号会发送消息并直达本站券详情页，无需再做任何操作。');
+      }
+    }).catch(function () { openRemindModal('开启失败', '订阅失败，请稍后再试。'); });
+  }
+
+  // 点「到期/大额提醒」：记入本机清单（供 /my-alerts.html 降价高亮）+ 走 OA 订阅引导
   function remindNow(item) {
     try { if (item && item.id && !isAlert(item.id)) toggleAlert(item); } catch (e) { /* 忽略 */ }
     showRemindGuide(item);
   }
 
-  // 把「降价提醒」按钮挂到券卡价格行（点击 → 带参小程序码引导，杜绝 H5「已提醒」假承诺）
+  // 把「到期提醒」按钮挂到券卡价格行（点击 → 公众号网页授权订阅引导）
   function attachAlert(cardEl, item) {
     if (!cardEl || !item || !item.id) return;
     var price = cardEl.querySelector ? cardEl.querySelector('.cp-price') : null;
@@ -262,8 +304,8 @@
     var btn = doc.createElement('button');
     btn.type = 'button';
     btn.className = 'cp-alert';
-    btn.textContent = '降价提醒';
-    btn.setAttribute('aria-label', '订阅该券的降价/到期提醒（弹出小程序码）');
+    btn.textContent = '到期提醒';
+    btn.setAttribute('aria-label', '订阅该券的到期/大额提醒（公众号消息直达本站）');
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -305,7 +347,7 @@
     if (global.CouponShare && global.CouponShare.attach) {
       try { global.CouponShare.attach(cell, item); } catch (e) { /* 忽略 */ }
     }
-    // 降价提醒按钮（M2）：挂到券卡价格行内联
+    // 到期/大额提醒按钮（M2）：挂到券卡价格行内联
     if (global.CouponStore && global.CouponStore.attachAlert) {
       try { global.CouponStore.attachAlert(cell, item); } catch (e) { /* 忽略 */ }
     }
@@ -321,6 +363,24 @@
     });
   }
 
+  // 网页授权回跳自动处理：命中 code + (state=oa 或 oa_type) 即完成订阅并清理 URL（code 一次性、防刷新重放）
+  function initOaCallback() {
+    try {
+      var p = new URLSearchParams(global.location.search || '');
+      var code = p.get('code');
+      if (!code) return;
+      var state = p.get('state');
+      var oaType = p.get('oa_type');
+      if (state !== 'oa' && !oaType) return; // 非本流程授权回跳，交还其它逻辑
+      var type = oaType === 'bigAmount' ? 'bigAmount' : 'expiry';
+      p.delete('code'); p.delete('state'); p.delete('oa_type'); p.delete('appid');
+      var qs = p.toString();
+      var clean = global.location.pathname + (qs ? ('?' + qs) : '') + (global.location.hash || '');
+      if (global.history && global.history.replaceState) global.history.replaceState(null, '', clean);
+      handleOaCallback(code, type);
+    } catch (e) { /* 忽略 */ }
+  }
+
   function boot() {
     Array.prototype.forEach.call(doc.querySelectorAll('.cp-grid'), enhance);
     // 点击券卡 = 视为「看过」，写最近看过快照（星标按钮在 a 外，不会误触）
@@ -330,6 +390,7 @@
       if (a.getAttribute('href') === '#' || !a.getAttribute('href')) return;
       pushRecent(itemFromCard(a));
     });
+    initOaCallback();
   }
 
   global.CouponStore = {

@@ -172,6 +172,8 @@ async function safeList(p) {
 function buildCard(c) {
   const link = cardLink(c);
   const cid = String(c.tao_id || c._id || '');
+  // 详情页统一以 _id（24hex 无损、可逆）为 URL 键：卡上带 data-id=<_id> 供运行时（my-alerts 等）构造 /p/<_id>.html
+  const did = detailIdOf(c);
   const off = Number(c.couponDiscount) || 0;
   const quota = Number(c.couponQuota) || 0;
   const finalPrice = Number(c.price) || 0;
@@ -179,6 +181,7 @@ function buildCard(c) {
   const href = link ? esc(link) : '#';
   let html = `<a class="cp-card" href="${href}"${rel} target="_blank" data-track="coupon_click"`;
   if (cid) html += ` data-case="coupon:${esc(cid)}"`;
+  if (did) html += ` data-id="${esc(did)}"`;
   html += '>';
   const imgSrc = safeUrl(c.pict_url);
   if (imgSrc) {
@@ -576,10 +579,24 @@ const P_DIR = path.join(ROOT, 'p');
 const DETAIL_LIMIT = 120; // sitemap/文件数上限控制（防抓取配额稀释）
 const DROPS_LIMIT = 24;   // 降价热榜预渲染张数
 
-// 详情/热榜共用文件安全名（tao_id 理论仅字母数字，兼容兼容异常字符）
+// 旧「清洗截断 tao_id」文件安全名：仅作 URL 迁移期旧链 301 映射的 legacy 键（safeId(tao_id)→_id），不再用于新页命名
 function safeId(c) {
   const raw = String(c.tao_id || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
   return raw;
+}
+
+// 详情页 URL 键：统一 Mongo _id（24 位 hex，无损、可被 jd/detail?id= 直接命中）；无 _id 返回空串（该券不生成静态页）。
+// 兼容 _id 的多种 JSON 形态：已序列化为 hex 字符串 / 驱动扩展 JSON 的 { $oid } / ObjectId 实例（toString）。
+function detailIdOf(c) {
+  const v = c && c._id;
+  if (!v) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'object') {
+    if (typeof v.$oid === 'string') return v.$oid;
+    if (typeof v.toHexString === 'function') return v.toHexString();
+    if (v.id) return String(v.id);
+  }
+  return String(v);
 }
 
 // 相关推荐：标题二元字重合 + 到手价接近度打分，取 topN（同类目/同价位近似）
@@ -603,8 +620,10 @@ function relatedFor(c, pool, n) {
 }
 
 function detailPageShell(c, related) {
-  const id = safeId(c);
-  const url = SITE_URL + '/p/' + id + '.html';
+  const did = detailIdOf(c); // URL 键＝_id（24hex）
+  const id = did;            // 埋点/分享 coupon_id 同用 _id
+  const taoId = String(c.tao_id || ''); // 真实 tao_id：供 detail-page.js 拉 priceTrend（priceTrend 按 tao_id）
+  const url = SITE_URL + '/p/' + did + '.html';
   const off = Number(c.couponDiscount) || 0;
   const quota = Number(c.couponQuota) || 0;
   const price = Number(c.price) || 0;
@@ -664,7 +683,7 @@ function detailPageShell(c, related) {
   <link rel="stylesheet" href="/assets/css/coupon.css" />
 </head>
 <body data-page="detail" data-theme-default="light"
-      data-tao-id="${esc(id)}" data-title="${esc(c.title || '')}" data-img="${esc(img)}"
+      data-id="${esc(id)}" data-tao-id="${esc(taoId)}" data-title="${esc(c.title || '')}" data-img="${esc(img)}"
       data-price="${esc(price)}" data-quota="${esc(quota)}" data-off="${esc(off)}"
       data-url="${esc(link)}" data-platform="${esc(c.platform || 'jd')}" data-end="${esc(c.couponEndTime || '')}">
   <a class="skip-link" href="#main">跳到主内容</a>
@@ -741,6 +760,113 @@ function detailPageShell(c, related) {
   <script src="/assets/js/ad-slots.js" defer></script>
   <script>window.ImgSlotConfig={mainUrl:"coupon.zangeng.com",moreUrl:"https://img.fangkelianmeng.com/"};</script>
   <script src="/assets/js/img-slot.js" defer></script>
+</body>
+</html>
+`;
+}
+
+/* ---------------- W1b 动态回退壳 /p/_shell.html（nginx ^~ /p/ try_files 回退目标，200 非 404）----------------
+   未预渲染的券（长尾/新券/旧链）落到此壳：detail-shell.js 从 pathname 取券键 → jd/detail?id= 水合 hero，
+   取到券后改 canonical=title=desc=robots(index) 并加载 detail-page.js 补价格趋势/倒计时/订阅；取不到展示空态引导 rank。
+   裸壳缺省 noindex（防 /p/_shell.html 直接访问被收录），水合成功后前端翻 index,follow。*/
+function detailShellPage() {
+  const title = '优惠券详情 | 小满券仓';
+  const desc = '查看优惠券力度、到手价与历史价格走势，先领券再下单更省；最终优惠以商家活动页为准。';
+  return `<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${esc(title)}</title>
+  <meta name="description" content="${esc(desc)}">
+  <meta name="robots" content="noindex,follow">
+  <link rel="icon" href="/assets/img/favicon.svg">
+  <link rel="canonical" href="${esc(SITE_URL + '/rank.html')}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="小满券仓">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="${esc(title)}">
+  <meta property="og:description" content="${esc(desc)}">
+  <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="/assets/css/coupon.css" />
+</head>
+<body data-page="detail" data-theme-default="light" data-shell="1"
+      data-id="" data-tao-id="" data-title="" data-img=""
+      data-price="0" data-quota="0" data-off="0"
+      data-url="" data-platform="jd" data-end="">
+  <a class="skip-link" href="#main">跳到主内容</a>
+  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
+
+  ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
+
+  <main id="main">
+    <section class="section pd-hero">
+      <div class="container">
+        <div id="pdEmpty" hidden>
+          <h1>该优惠券已下架或暂未收录</h1>
+          <p class="section-desc">券可能已失效或不在当前在售列表。去榜单看看其它在券好物。</p>
+          <p><a class="btn btn-primary" href="/rank.html">前往优惠券榜单</a> <a class="btn btn-ghost" href="/browse.html">浏览全部好物</a></p>
+        </div>
+        <div id="pdContent">
+        <nav class="pd-crumbs" aria-label="面包屑">
+          <a href="/">首页</a> › <a href="/rank.html">榜单</a> › <span>券详情</span>
+        </nav>
+        <div class="pd-grid">
+          <div class="pd-media" id="pdMedia"></div>
+          <div class="pd-info">
+            <h1 class="pd-title" id="pdTitle">优惠券详情</h1>
+            <div class="pd-power" id="pdPower"></div>
+            <div class="pd-final" id="pdFinal"></div>
+            <div class="pd-expire" id="pdExpire"></div>
+            <div class="pd-cta-row">
+              <a class="btn btn-primary pd-claim" id="pdClaim" href="#" rel="sponsored noopener" target="_blank" data-track="coupon_click">立即领取</a>
+              <button class="btn pd-alert" id="pAlert" type="button" aria-pressed="false">订阅降价提醒</button>
+              <button class="btn pd-share" id="pShare" type="button">分享海报</button>
+            </div>
+            <p class="pd-note">券力度与价格由各平台联盟实时同步，可能随时变动，领券后以商家活动页为准。</p>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-soft" id="pdTrendSec">
+      <div class="container">
+        <div class="section-head left">
+          <h2>价格走势</h2>
+          <p class="section-desc" id="pTrendSummary">正在加载历史力度快照…</p>
+        </div>
+        <div id="pTrend" class="pd-trend" role="img" aria-label="券价格历史走势折线图"></div>
+      </div>
+    </section>
+
+    <section class="section" id="pdRecSec">
+      <div class="container">
+        <div class="section-head left">
+          <h2>相关推荐</h2>
+          <p class="section-desc">同类目 / 同价位的在券好物，先领券再下单更省。</p>
+        </div>
+        <div class="cp-grid" role="list" id="pdRec"></div>
+        <div class="cp-more-wrap"><a class="btn btn-ghost" href="/browse.html">查看全部好物</a></div>
+      </div>
+    </section>
+  </main>
+
+  ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
+
+  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/conversion.js"></script>
+  <script src="/assets/js/app.js"></script>
+  <script src="/assets/js/store.js"></script>
+  <script src="/assets/js/qrcode.js"></script>
+  <script src="/assets/js/share.js"></script>
+  <script src="/assets/js/detail-shell.js"></script>
+  <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
+  <script src="/assets/js/ad-slots.js" defer></script>
 </body>
 </html>
 `;
@@ -953,10 +1079,11 @@ function articleToHtml(text) {
   return out.join('\n    ');
 }
 
-// 文章关联券 id：仅当 /p/<id> 本次已生成（detailIds 白名单）才内链，避免 404
-function guideRelated(a, detailIdSet) {
-  if (!a.sourceId || !detailIdSet || !detailIdSet.has(String(a.sourceId))) return '';
-  return `<p class="gd-coupon-cta"><a class="btn" href="/p/${esc(String(a.sourceId))}.html">查看本文对应优惠券详情</a></p>`;
+// 文章关联券 sourceId → 新详情页：仅当 detailIdMap 能解析到 _id（本次已生成 /p/<_id>）才内链，避免 404
+function guideRelated(a, detailIdMap) {
+  const did = detailIdMap && detailIdMap.get(String(a.sourceId || ''));
+  if (!did) return '';
+  return `<p class="gd-coupon-cta"><a class="btn" href="/p/${esc(did)}.html">查看本文对应优惠券详情</a></p>`;
 }
 
 function guideIndexShell(articles) {
@@ -1027,7 +1154,7 @@ function guideIndexShell(articles) {
 `;
 }
 
-function guidePageShell(a, others, detailIdSet) {
+function guidePageShell(a, others, detailIdMap) {
   const url = SITE_URL + '/guides/' + a.slug + '.html';
   const title = (a.title || '导购长文') + ' | 小满券仓';
   const desc = String(a.excerpt || a.title || '').slice(0, 120);
@@ -1038,8 +1165,9 @@ function guidePageShell(a, others, detailIdSet) {
     .map(t => `<a class="gd-tag" href="/guides.html">#${esc(t)}</a>`).join(' ');
   const more = (others || []).slice(0, 6)
     .map(o => `<a class="gd-more" href="/guides/${esc(o.slug)}.html">${esc(o.title)}</a>`).join('\n        ');
-  const crumbCat = a.sourceId && detailIdSet && detailIdSet.has(String(a.sourceId))
-    ? [{ name: '券详情', url: SITE_URL + '/p/' + String(a.sourceId) + '.html' }]
+  const crumbDid = a.sourceId && detailIdMap ? detailIdMap.get(String(a.sourceId)) : '';
+  const crumbCat = crumbDid
+    ? [{ name: '券详情', url: SITE_URL + '/p/' + crumbDid + '.html' }]
     : [];
   const ld = JSON.stringify([
     {
@@ -1096,7 +1224,7 @@ function guidePageShell(a, others, detailIdSet) {
         <div class="gd-body">
     ${articleToHtml(a.content)}
         </div>
-        ${guideRelated(a, detailIdSet)}
+        ${guideRelated(a, detailIdMap)}
         <p class="gd-note">本文为内容流水线基于联盟实时数据自动撰写，仅供比价参考；下单前以商家活动页为准。本站无账号、不收集个人信息。</p>
         ${tags ? '<p class="gd-tags">' + tags + '</p>' : ''}
         ${more ? '<section class="gd-related"><h2>相关长文</h2><div class="gd-more-list">\n        ' + more + '\n        </div></section>' : ''}
@@ -1207,14 +1335,14 @@ async function run() {
   })).slice(0, D11_LIMIT);
 
   // W1 详情池：本次构建已拉取的 featured + rank(day/week/month) + browse + d11 合集去重，
-  // 仅留带 tao_id 且可用的券，按省钱力度取前 DETAIL_LIMIT 张逐券生成 /p/<id>.html。
+  // 仅留带 _id 且可用的券，按省钱力度取前 DETAIL_LIMIT 张逐券生成 /p/<_id>.html（_id 无损、可被 jd/detail 直接命中）。
   const poolSeen = new Set();
   const detailPool = [];
   for (const c of usable(featured.concat(week, rankList, dayRank, browseList, d11Rank, d11Feat))) {
-    const id = safeId(c);
-    if (!id || poolSeen.has(id)) continue;
-    poolSeen.add(id);
-    detailPool.push(Object.assign({}, c, { tao_id: id }));
+    const did = detailIdOf(c);
+    if (!did || poolSeen.has(did)) continue;
+    poolSeen.add(did);
+    detailPool.push(c);
     if (detailPool.length >= DETAIL_LIMIT) break;
   }
   // W2 降价热榜兜底版：力度（券面额）降序取 top N（正式版待中台 topDrops 接口）
@@ -1248,9 +1376,9 @@ async function run() {
   } catch (e) { console.warn('[build] double11 异常（忽略）：', e.message); }
 
   // W5 详情白名单：先取本次详情池 id；池空时沿用上一次 /p/* 产物（与 3.5 同口径），供快照写入
-  let snapshotDetailIds = detailPool.map(c => String(c.tao_id));
+  let snapshotDetailIds = detailPool.map(c => detailIdOf(c));
   if (!snapshotDetailIds.length) {
-    try { snapshotDetailIds = fs.readdirSync(P_DIR).filter(f => f.endsWith('.html')).map(f => f.slice(0, -5)); } catch (e) { /* 无目录 */ }
+    try { snapshotDetailIds = fs.readdirSync(P_DIR).filter(f => f.endsWith('.html') && f !== '_shell.html').map(f => f.slice(0, -5)); } catch (e) { /* 无目录 */ }
   }
 
   // 2.6) 快照：运行时后端不可达时的兜底数据源（配合 nginx 放行 /data/coupon-snapshot.json）
@@ -1305,7 +1433,7 @@ async function run() {
     } catch (e) { console.warn('[build] 生成品类页异常（忽略）：', e.message); }
   }
 
-  // 3.5) W1 详情页 /p/<id>.html：逐券写盘（接口不可达时池为空也写壳？否——无 id 无法命名，
+  // 3.5) W1 详情页 /p/<_id>.html：逐券写盘（接口不可达时池为空也写壳？否——无 _id 无法命名，
   //      空池时跳过生成保留上一次产物，fail-soft 与 cat 页同口径：有券必写，无券不 404）
   let detailIds = [];
   try {
@@ -1313,17 +1441,38 @@ async function run() {
       fs.mkdirSync(P_DIR, { recursive: true });
       detailIds = [];
       for (const c of detailPool) {
-        const id = String(c.tao_id);
+        const id = detailIdOf(c);
         const html = detailPageShell(c, relatedFor(c, detailPool, 6));
         fs.writeFileSync(path.join(P_DIR, id + '.html'), NAV.injectIntoHtml(html, { site: 'coupon' }));
         detailIds.push(id);
       }
-      console.log('[build] /p/* 详情页：生成 ' + detailIds.length + ' 张');
+      console.log('[build] /p/* 详情页：生成 ' + detailIds.length + ' 张（键=_id）');
     } else {
-      try { detailIds = fs.readdirSync(P_DIR).filter(f => f.endsWith('.html')).map(f => f.slice(0, -5)); } catch (e) { /* 无目录 */ }
+      try { detailIds = fs.readdirSync(P_DIR).filter(f => f.endsWith('.html') && f !== '_shell.html').map(f => f.slice(0, -5)); } catch (e) { /* 无目录 */ }
       console.warn('[build] 详情池为空，保留上一次 /p/* 产物（' + detailIds.length + ' 张）进 sitemap');
     }
   } catch (e) { console.warn('[build] 生成详情页异常（忽略）：', e.message); }
+
+  // 3.5.1) URL 迁移旧链重定向表：导出 safeId(tao_id)→_id 映射（仅同券旧新键不同者），供 nginx 301 include。
+  //      一次性运维产物；行数=本次可迁移旧链数（selfcheck 校核）。取数异常不阻断部署。
+  try {
+    const redirectMap = {};
+    for (const c of detailPool) {
+      const did = detailIdOf(c); if (!did) continue;
+      const legacy = safeId(c); if (legacy && legacy !== did) redirectMap[legacy] = did;
+    }
+    fs.mkdirSync(path.join(ROOT, 'data'), { recursive: true });
+    fs.writeFileSync(path.join(ROOT, 'data', 'p-redirect-map.json'), JSON.stringify(redirectMap));
+    console.log('[build] 旧链重定向映射 data/p-redirect-map.json：' + Object.keys(redirectMap).length + ' 条 safeId(tao_id)→_id');
+  } catch (e) { console.warn('[build] 写旧链重定向映射异常（忽略）：', e.message); }
+
+  // 3.5.2) 动态回退壳 /p/_shell.html（恒存在、内容固定）：nginx ^~ /p/ try_files 回退目标，未预渲染券不 404。
+  //      与 /p/<_id>.html 同 chrome；裸壳 noindex，由 detail-shell.js 水合后翻 index 并设 canonical。
+  try {
+    fs.mkdirSync(P_DIR, { recursive: true });
+    fs.writeFileSync(path.join(P_DIR, '_shell.html'), NAV.injectIntoHtml(detailShellPage(), { site: 'coupon' }));
+    console.log('[build] /p/_shell.html：动态回退壳已写盘');
+  } catch (e) { console.warn('[build] 写 /p/_shell.html 异常（忽略）：', e.message); }
 
   // 3.6) W2 降价热榜页：壳始终写盘（空列表时前端用快照兜底渲染）
   try {
@@ -1338,13 +1487,20 @@ async function run() {
     const guides = await safeGuides();
     if (guides.length) {
       fs.mkdirSync(GUIDES_DIR, { recursive: true });
-      const detailIdSet = new Set(detailIds.map(String));
+      // 文章关联券 sourceId → 新详情页 URL 键(_id) 解析表：同时收录 _id 自身与旧 safeId(tao_id) 键，
+      //   使旧格式 sourceId 仍能链到统一的 /p/<_id>.html（未命中则不给内链，避免 404）。
+      const detailIdMap = new Map();
+      for (const c of detailPool) {
+        const did = detailIdOf(c); if (!did) continue;
+        detailIdMap.set(did, did);
+        const legacy = safeId(c); if (legacy) detailIdMap.set(legacy, did);
+      }
       guideSlugs = [];
       for (let i = 0; i < guides.length; i++) {
         const a = guides[i];
         if (!a || !/^[A-Za-z0-9_-]{6,40}$/.test(String(a.slug || ''))) continue;
         const others = guides.filter((o, j) => j !== i && o && o.slug).slice(0, 6);
-        const html = guidePageShell(a, others, detailIdSet);
+        const html = guidePageShell(a, others, detailIdMap);
         fs.writeFileSync(path.join(GUIDES_DIR, a.slug + '.html'), NAV.injectIntoHtml(html, { site: 'coupon' }));
         guideSlugs.push(String(a.slug));
       }

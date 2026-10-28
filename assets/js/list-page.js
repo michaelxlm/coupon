@@ -173,6 +173,17 @@
     return list.filter(function (c) { return (c.platform || 'jd') === state.platform; });
   }
   function currentView() { return sortList(filterPlat(state.list).filter(matchPrice)); }
+
+  /* 组合筛选（平台/价格/排序）回写 URL：可分享、刷新保持；仅 browse/category */
+  function syncUrl() {
+    if (mode !== 'browse' && mode !== 'category') return;
+    var p = new URLSearchParams(global.location.search);
+    if (state.sort) p.set('sort', state.sort); else p.delete('sort');
+    if (state.price) p.set('price', state.price); else p.delete('price');
+    if (state.platform) p.set('plat', state.platform); else p.delete('plat');
+    var q = p.toString();
+    try { global.history.replaceState(null, '', global.location.pathname + (q ? '?' + q : '')); } catch (e) {}
+  }
   // 平台展示名（chip 标签用）
   var PLATFORM_LABELS = { jd: '京东', taobao: '淘宝', pdd: '拼多多', douyin: '抖音', other: '其他' };
   function ensurePlatBar() {
@@ -205,6 +216,7 @@
       b.setAttribute('data-plat', o[0]);
       b.addEventListener('click', function () {
         state.platform = o[0];
+        syncUrl();
         Array.prototype.forEach.call(bar.children, function (x) { x.classList.toggle('is-active', x.getAttribute('data-plat') === o[0]); });
         if (!state.list.length) return;
         // 榜单：筛选后回到第一页（rankView 自带 slice，避免把 100 条一次铺满）
@@ -395,6 +407,7 @@
       moreBtn.hidden = true;
       moreBtn.textContent = '加载更多';
     }
+    global.setTimeout(tryAutoMore, 350);
   }
   function setRankData(list) {
     state.rankAll = list || [];
@@ -479,6 +492,7 @@
       var count = Number(d && d.count) || 0;
       state.hasMore = state.page * PAGE_SIZE < count;
       if (moreBtn) moreBtn.hidden = !(state.hasMore && list.length);
+      global.setTimeout(tryAutoMore, 350);
     }, { cache: false });
   }
 
@@ -495,6 +509,26 @@
     if (activeTabId && grid) grid.setAttribute('aria-labelledby', activeTabId);
   }
 
+  // P1 无限滚动：观察「加载更多」按钮进入视口即自动触发既有 handler（保留按钮本身，
+  // 兼容不支持 IntersectionObserver 或偏好手动的场景）。browse/category 走分页、rank 走本地追加。
+  var autoMoreIO = null;
+  function tryAutoMore() {
+    if (!moreBtn || moreBtn.hidden || state.loading) return;
+    if (mode !== 'rank' && !state.hasMore) return;
+    if (!global.IntersectionObserver) return;
+    var rect = moreBtn.getBoundingClientRect();
+    var vh = global.innerHeight || doc.documentElement.clientHeight || 800;
+    if (rect.top - vh > 600) return; // 仍离视口较远，交给 IO 自然相交再触发，避免过早拉取
+    moreBtn.click();
+  }
+  function initAutoMore() {
+    if (!moreBtn || !global.IntersectionObserver || autoMoreIO) return;
+    autoMoreIO = new global.IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) { if (entries[i].isIntersecting) tryAutoMore(); }
+    }, { rootMargin: '600px 0px' });
+    autoMoreIO.observe(moreBtn);
+  }
+
   function init() {
     grid = $('listGrid'); statusEl = $('listState'); moreBtn = $('listMore');
     tabs = $('rankTabs'); sortSelect = $('listSort'); priceSelect = $('listPrice');
@@ -502,10 +536,17 @@
     ensurePlatBar();
     // 默认排序跟随 select 初始选中项（省钱力度↓），与预渲染顺序一致
     if (sortSelect) state.sort = sortSelect.value || '';
+    // 从 URL 恢复组合筛选（刷新/分享链接保持一致）：先于首次 render
+    var usp = new URLSearchParams(global.location.search);
+    var uSort = usp.get('sort'), uPrice = usp.get('price'), uPlat = usp.get('plat');
+    if (uSort && sortSelect) { sortSelect.value = uSort; state.sort = uSort; }
+    if (uPrice && priceSelect) { priceSelect.value = uPrice; state.price = uPrice; }
+    if (uPlat) state.platform = uPlat;
 
     if (sortSelect) {
       sortSelect.addEventListener('change', function () {
         state.sort = sortSelect.value;
+        syncUrl();
         if (!state.list.length) return;
         // 榜单排序变化回到第一页，避免已展开条数显得「越排越少」
         if (mode === 'rank') {
@@ -521,6 +562,7 @@
     if (priceSelect) {
       priceSelect.addEventListener('change', function () {
         state.price = priceSelect.value;
+        syncUrl();
         if (!state.list.length) return;
         if (mode === 'rank') {
           state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
@@ -568,6 +610,7 @@
       if (tabs && tabs.querySelector('.is-active')) initial = tabs.querySelector('.is-active').getAttribute('data-period') || 'week';
       setActiveTab(initial);
       loadRank(initial);
+      initAutoMore();
       return;
     }
 
@@ -580,6 +623,7 @@
       });
     }
     loadPaging(true);
+    initAutoMore();
   }
 
   if (doc.readyState === 'loading') {

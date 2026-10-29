@@ -1,7 +1,7 @@
 ---
 title: 小满券仓（coupon.zangeng.com）
 owner: Michaelxlm
-updated: 2026-10-26
+updated: 2026-10-29
 scope: coupon（coupon.zangeng.com · 京东/淘宝优惠券聚合静态站）
 status: 有效
 tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页, 收藏, 凑单计算器, 大促日历, 券详情页, 扫码海报, 降价热榜, 长文导购, 降价提醒, 小程序码引导, 省钱挑战, 导航单一源, 视觉审计]
@@ -166,6 +166,15 @@ python -m http.server 8080
 - **官方活动直链卡（项 4 / WO-90）**：线上 `GET /coupon/activity/list?mainUrl=coupon.zangeng.com` 返回 `HTTP 200` + `PASS` + `list.Count=8`（taobao×2 / jd×6，均带官方直链）；`assets/js/activities.js` 拉取同接口、渲染 `#cpActs`、`rel="sponsored noopener"`，与中台 `service/coupon/activity.js` 字段白名单（`title/cover/url/platform/tag/startAt/endAt`）对齐。
 - **广告三域分离（项 3）**：`scripts/check-coupon-ads.js` 实跑 **14/14 通过**（六站兜底 JSON 无 `type=coupon` + `OWN_TYPES=['self','domain','next']` 不含 coupon + 部署 `ad-slots.js` 0 处 coupon 残留）；本站 `data/ad-slots.json` 仅 `self` 同族互推，券内容走独立接口不回流广告位。
 - **待改进（非阻塞）**：`main/scripts/check-coupon-ads.js` 的 `SITES` 列表未含 `coupon`，故该门禁不扫描本站兜底 JSON；建议把 `coupon` 加入 `SITES`（路径 `data/ad-slots.json`、探针 `index.html`）以闭环解耦守护（该项在 `main-api` 仓库，不在本站）。
+
+## 活动卡数据扩容与封面转存（2026-10-29）
+
+官方活动直链卡（`assets/js/activities.js` → `#cpActs`）的数据源在中台 `couponActivities`，本日只动数据与中台调度，**接口契约与本站代码均未改**：
+
+- **池子扩容**：中台一次性脚本 `main-api/scripts/import-taobao-activities.js` 从阿里妈妈官方会场页抓的 TSV 导入 146 条（`source='taobao_auto'`，与运营手工条目隔离、幂等可重跑），`platform=taobao` 活动 22 → 168 条；本站仍只渲染 8 卡，所以视觉不变、可选面变大。
+- **封面转存自家 OSS**：导入时带的热链（`img.alicdn.com` / `gw.alicdn.com`）已全量转存 `admin/activity-covers/<ID>.<ext>`（146 张 0 失败、热链归零），消除热链防盗链与图床变动带来的卡片无图风险；另有 20 条历史条目本就无封面（不属本次范围）。
+- **同步成本**：中台任务 `coupon.taobao.syncActivities` 由每日 3 轮全池改为**每日一次 + 配额过滤**（只同步缺链 / 临期默认 7 天窗口 / 已过期未下架），日接口调用 504 → 约 27 次（与商品采集共用同一 appKey）。
+- **复验**：`GET /api/v1/front/coupon/activity/list?mainUrl=coupon.zangeng.com` 返回 `HTTP 200` + `X-Source-Guard: PASS` + 8 条，8 条 `cover` 均为自家 OSS（HEAD `200 image/*`）、`url` 仍为 `s.click.taobao.com` 直链。口径见知识库 `projects/coupon/README.md` 与中台 `main/app/docs/05-API文档/08-定时GET接口清单.md`。
 
 ## 改造落地（2026-10-13 评估后实施）
 

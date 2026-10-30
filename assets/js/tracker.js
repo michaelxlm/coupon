@@ -1,41 +1,36 @@
 /* ==========================================================================
    tracker.js · 统一埋点 SDK（Web 端）
    上报地址：POST https://api.xuyiheng.com/api/v1/public/track
-   来源：与 aiWeb / color-tool / visitor 共用同一份 SDK（main-api 中台口径）
 
-   设计原则：
+   设计原则（沿用并扩展原 pv.js）：
      - 静默失败：接口挂了 / 离线 / file:// 打开 / 存储被禁用，都不影响页面使用
      - body 用 text/plain，避免 application/json 触发跨域 CORS 预检
      - 优先 sendBeacon（页面关闭也能发出），降级 fetch keepalive + no-cors
      - 劫持 history.pushState / replaceState，捕获单页内切换的虚拟 PV
      - 零依赖、纯静态可用，直接以 <script src> 引入
 
-   能力：
+   相比原 pv.js 新增：
      1. 自动生成并持久化匿名 visitorId（localStorage），作为 UV 统计口径
      2. 会话 sessionId（30 分钟滚动续期），支撑会话级分析
      3. track(event, props) 手动打点 API
      4. [data-track] 元素点击自动打点（无需在业务代码里逐个绑定）
-     5. 事件队列 + 批量 flush，pagehide / 隐藏时兜底 flush
+     5. 事件队列 + 批量 flush（减少请求数），pagehide / 隐藏时兜底 flush
 
    接入方式（二选一）：
-     A. 部署前修改下方 CONFIG.project（推荐，零额外配置；本项目为 coupon-zangeng）
+     A. 部署前修改下方 CONFIG.project（推荐，零额外配置）
      B. 在引入本脚本前声明 window.TrackerConfig = { project: 'xxx', ... } 覆盖
-        （构建脚本 scripts/build.js 会按 data/site.json 的 track 字段自动注入）
-   用法：
-     <button data-track="cta_click" data-track-props='{"pos":"hero"}'>免费试用</button>
-     Tracker.track('form_submit', { topic: 'trial' });
    ========================================================================== */
 
 (function (global) {
   'use strict';
 
-  // SDK 版本：与中台 main-api 的 SDK 保持同步
-  var SDK_VERSION = '2.1.0';
+  // SDK 版本：所有接入项目必须保持一致（由 scripts/check-tracker-consistency.js 守卫）
+  var SDK_VERSION = '2.4.0'; // 2.4.0 WO-138：渠道归因升级为一级字段 src（会话持久 + 全事件携带 + 白名单校验）
 
   var CONFIG = {
     // 上报端点（中台统一埋点端点）
     endpoint: 'https://api.xuyiheng.com/api/v1/public/track',
-    // 项目代号：本项目为 coupon-zangeng
+    // 项目代号：每个站点部署时修改（color-tool / visitor / aiWeb / ...）
     project: 'coupon-zangeng',
     // 终端类型：Web 站点固定 web
     terminal: 'web',
@@ -44,12 +39,16 @@
     // 存储键
     visitorKey: '__tk_vid',
     sessionKey: '__tk_sid',
+    // 渠道归因存储键（WO-138）：会话级，新会话重新归因，不做跨会话长尾归因
+    srcKey: '__tk_src',
     // 会话有效期（毫秒）：30 分钟无操作视为新会话
     sessionTTL: 30 * 60 * 1000,
     // 批量 flush 间隔（毫秒）
     flushInterval: 1000,
     // 单次批量上报最大条数
     maxBatch: 20,
+    // Core Web Vitals 采集开关（WO-94）：置 false 可关闭 LCP/INP/CLS 上报
+    webVitals: true,
   };
 
   // 允许接入方在引入脚本前用 window.TrackerConfig 覆盖默认配置
@@ -64,6 +63,50 @@
   var queue = [];
   var flushTimer = null;
   var lastPath = null;
+
+  /* ------------------------------ 渠道归因（WO-138） ------------------------------ */
+  /**
+   * 客户端白名单：与中台 app/utils/channelSrcHelper.js 的登记口径一致。
+   * 服务端会再做一次权威校验（白名单外降级未归因），本层过滤只是不把
+   * 任意 query 字符串发出去（兼防注入值污染），不是安全边界。
+   */
+  var SRC_ALLOWED = [
+    'gg', 'baidu', 'bing', 'gzh', 'xcx',
+    'wx-mp', 'dy-mp', 'ks-mp',
+    'juejin', 'zhihu', 'v2ex', 'sspai', 'smzdm', 'sheji', 'shequ', 'mcp-landing',
+    'wx-menu', 'wx-reply', 'wx-qrcode', 'hub', // WO-138 add: wx local-life entries + hub cross-site, keep in sync with CHANNEL_LABELS
+  ];
+
+  /** 渠道值归一：只保留小写字母/数字/下划线/短横线，且必须在白名单内 */
+  function normalizeSrc(value) {
+    var v = String(value || '').trim().toLowerCase().slice(0, 32);
+    if (!/^[a-z0-9_-]+$/.test(v)) return '';
+    for (var i = 0; i < SRC_ALLOWED.length; i++) {
+      if (SRC_ALLOWED[i] === v) return v;
+    }
+    return '';
+  }
+
+  /**
+   * 落地页首触归因：首次进页时若 URL 带合法 ?src= 则写入会话存储，
+   * 之后站内切页（即使 URL 已不含 src）仍沿用同一渠道，避免 UV 归因丢失。
+   * 会话级隔离：同一标签页会话只认首触渠道（first-touch in session）。
+   */
+  function persistSrcFromUrl() {
+    if (readStore(global.sessionStorage, CONFIG.srcKey) !== null) return; // 本会话已归因，不覆盖
+    try {
+      var qs = global.location && global.location.search;
+      if (!qs) return;
+      var sp = new URLSearchParams(qs);
+      var src = normalizeSrc(sp.get('src'));
+      if (src) writeStore(global.sessionStorage, CONFIG.srcKey, src);
+    } catch (e) { /* URLSearchParams / 存储不可用时忽略归因 */ }
+  }
+
+  /** 当前会话的渠道标识（无则空串 = 未归因） */
+  function getSrc() {
+    return normalizeSrc(readStore(global.sessionStorage, CONFIG.srcKey));
+  }
 
   /* ------------------------------ 存储工具 ------------------------------ */
   // localStorage / sessionStorage 在隐私模式、跨域 iframe 下可能抛异常，全部包 try
@@ -110,11 +153,16 @@
   }
 
   /* ------------------------------ 页面信息 ------------------------------ */
-  /** 页面标识取 body 上的 data-page，没有则回落 'unknown' */
+  /**
+   * 页面标识优先取 body 上的 data-page-id（color-tool 约定），
+   * 再取 data-page（visitor / aiWeb 约定），都没有则回落 'unknown'
+   */
   function pageType() {
     var body = global.document && global.document.body;
     if (!body) return 'unknown';
-    return body.getAttribute('data-page') || 'unknown';
+    return body.getAttribute('data-page-id')
+      || body.getAttribute('data-page')
+      || 'unknown';
   }
 
   function currentPath() {
@@ -136,7 +184,7 @@
     try {
       body = JSON.stringify(events.length === 1 ? events[0] : { events: events });
     } catch (e) {
-      return; // 序列化失败直接放弃，绝不影响页面
+      return; // 序列化失败（循环引用等）直接放弃，绝不影响页面
     }
 
     if (CONFIG.debug && global.console) {
@@ -173,7 +221,10 @@
     send(events);
   }
 
-  /** 入队并按间隔批量上报 */
+  /**
+   * 入队并按间隔批量上报
+   * @param event
+   */
   function enqueue(event) {
     if (queue.length >= CONFIG.maxBatch * 5) queue.shift(); // 极端情况下丢弃最旧，防内存膨胀
     queue.push(event);
@@ -185,7 +236,7 @@
   /* ------------------------------ 事件构造 ------------------------------ */
   /**
    * 构造完整事件 payload（补齐公共字段）
-   * @param {String} event - 事件名（pv / cta_click / 自定义）
+   * @param {String} event - 事件名（pv / click / search / 自定义）
    * @param {Object} [props] - 自定义属性（扁平键值对，禁止携带 PII 与用户输入内容）
    * @return {Object}
    */
@@ -196,6 +247,8 @@
       event: event || 'custom',
       page: pageType(),
       path: currentPath(),
+      // 渠道归因（WO-138）：一级字段，非 pv 事件也携带
+      src: getSrc(),
       visitorId: getVisitorId(),
       sessionId: getSessionId(),
       ts: Date.now(),
@@ -235,10 +288,20 @@
     var path = currentPath();
     if (path === lastPath) return;
     lastPath = path;
-    track('pv', null, true); // PV 立即上报，避免用户快速跳走丢数
+    // WO-21：来源归因——读取 URL 的 ?src= 随 pv 上报，使小程序导流可拆分
+    var props = null;
+    try {
+      var qs = global.location && global.location.search;
+      if (qs) {
+        var sp = new URLSearchParams(qs);
+        var src = sp.get('src');
+        if (src) props = { src: String(src).slice(0, 32) };
+      }
+    } catch (e) { /* URLSearchParams 不可用时忽略来源归因 */ }
+    track('pv', props, true); // PV 立即上报，避免用户快速跳走丢数
   }
 
-  /** 允许强制重新上报当前页 PV */
+  /** 允许强制重新上报当前页 PV（如页面内容切换但 URL 未变） */
   function refreshPv() {
     lastPath = null;
     trackPv();
@@ -262,7 +325,8 @@
 
   /**
    * [data-track] 元素点击自动打点
-   * 用法：<button data-track="cta_click" data-track-props='{"pos":"hero"}'>免费试用</button>
+   * 用法：<button data-track="copy_color">复制</button>
+   *       <a data-track="aff_click" data-track-props='{"id":"123"}'>去购买</a>
    * 采用事件委托，动态插入的元素同样生效，无需逐个绑定
    */
   function bindDataTrack() {
@@ -301,6 +365,104 @@
     }
   }
 
+  /* ------------------------------ Core Web Vitals（WO-94 自有 RUM 源） ------------------------------ */
+  // Google field 阈值：据此给单条样本打 good/ni/po 标签，与中台 webVitals 看板口径一致
+  var CWV_THRESHOLD = {
+    LCP: { good: 2500, poor: 4000 },
+    INP: { good: 200, poor: 500 },
+    CLS: { good: 0.1, poor: 0.25 },
+  };
+
+  function cwvRating(name, value) {
+    var t = CWV_THRESHOLD[name];
+    if (!t) return '';
+    if (value <= t.good) return 'good';
+    if (value > t.poor) return 'po';
+    return 'ni';
+  }
+
+  /**
+   * 采集并上报 LCP / INP / CLS（真实用户 field 数据，非实验室分）
+   * 每指标每页仅上报一次（sent 去重），结算时机：load 后尽早出 LCP、页面隐藏/关闭结算、
+   * 以及 10s 兜底（保证长驻页面也有读数）。PerformanceObserver / 对应 entryType 不支持时静默跳过。
+   */
+  function initWebVitals() {
+    try {
+      if (!global.PerformanceObserver || !global.performance) return;
+      var supported = global.PerformanceObserver.supportedEntryTypes || [];
+      var current = {};
+      var sent = {};
+
+      var supports = function(type) { return supported.indexOf(type) !== -1; };
+      var report = function(name) {
+        if (sent[name] || current[name] === undefined || current[name] === null) return;
+        sent[name] = true;
+        var v = name === 'CLS' ? Math.round(current[name] * 1000) / 1000 : Math.round(current[name]);
+        track('cwv', { name: name, value: v, rating: cwvRating(name, v) }, true);
+      };
+      var reportAll = function() { report('LCP'); report('INP'); report('CLS'); };
+
+      // LCP：取最近一次条目的 startTime
+      if (supports('largest-contentful-paint')) {
+        try {
+          var lcpPo = new global.PerformanceObserver(function (list) {
+            var entries = list.getEntries();
+            var last = entries[entries.length - 1];
+            if (last) current.LCP = last.startTime;
+          });
+          lcpPo.observe({ type: 'largest-contentful-paint', buffered: true });
+        } catch (e) { /* ignore */ }
+      }
+
+      // CLS：累加非“最近变更”引发的布局偏移
+      if (supports('layout-shift')) {
+        try {
+          var clsValue = 0;
+          var clsPo = new global.PerformanceObserver(function (list) {
+            list.getEntries().forEach(function (entry) {
+              if (!entry.hadRecentChange) clsValue += entry.value;
+            });
+            current.CLS = clsValue;
+          });
+          clsPo.observe({ type: 'layout-shift', buffered: true });
+        } catch (e) { /* ignore */ }
+      }
+
+      // INP：以 event timing 的最大 duration 近似（需 durationThreshold 支持）
+      if (supports('event')) {
+        try {
+          var inpValue = 0;
+          var inpPo = new global.PerformanceObserver(function (list) {
+            list.getEntries().forEach(function (entry) {
+              if (entry.duration > inpValue) inpValue = entry.duration;
+            });
+            current.INP = inpValue;
+          });
+          inpPo.observe({ type: 'event', durationThreshold: 16, buffered: true });
+        } catch (e) { /* ignore */ }
+      }
+
+      // 页面首次隐藏 / 关闭时结算
+      var flushed = false;
+      var onLeave = function() {
+        if (flushed) return;
+        flushed = true;
+        reportAll();
+      };
+      if (global.document && global.document.addEventListener) {
+        global.document.addEventListener('visibilitychange', function () {
+          if (global.document.visibilityState === 'hidden') onLeave();
+        });
+      }
+      if (global.addEventListener) {
+        global.addEventListener('pagehide', onLeave);
+        global.addEventListener('load', function () { global.setTimeout(function () { report('LCP'); }, 100); });
+      }
+      // 兜底：长驻页面 10s 后结算一次，确保看板有真实读数
+      global.setTimeout(reportAll, 10000);
+    } catch (e) { /* CWV 采集失败绝不影响页面 */ }
+  }
+
   /* ------------------------------ 启动 ------------------------------ */
   function boot() {
     try {
@@ -310,7 +472,9 @@
     patchHistory();
     bindDataTrack();
     bindFlushOnLeave();
+    persistSrcFromUrl(); // 渠道归因先于首次 PV，保证落地页那一条就带上 src
     trackPv();
+    if (CONFIG.webVitals) initWebVitals();
   }
 
   if (global.document && global.document.readyState === 'loading') {
@@ -320,14 +484,18 @@
   }
 
   /* ------------------------------ 对外 API ------------------------------ */
-  global.Tracker = {
+  var api = {
     track: track,
     trackPv: trackPv,
     refreshPv: refreshPv,
     flush: flush,
     config: CONFIG,
     visitorId: getVisitorId,
-    sessionId: getSessionId,
+    src: getSrc, // 当前会话渠道（WO-138，供接入方自查）
     sdkVersion: SDK_VERSION,
   };
+
+  global.Tracker = api;
+  // 兼容旧版 pv.js 的全局名与调用方式（PVTrack.track()）
+  global.PVTrack = { track: trackPv, endpoint: CONFIG.endpoint };
 })(window);

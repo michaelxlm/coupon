@@ -103,16 +103,16 @@ function renderHeader(site, page, links, opts) {
 /* ------------------------------ 跨站推荐（单一源） ------------------------------ */
 /** 所有站点 footer「更多站点」列统一数据，改此处即全站同步 */
 const SISTER_SITES = [
-  { label: '明先生日常 · xuliming.com', url: 'https://xuliming.com/' },
-  { label: 'cs调色盘 · 2002cs.com', url: 'https://2002cs.com/' },
-  { label: '访客小站 · fangkelianmeng.com', url: 'https://fangkelianmeng.com/' },
-  { label: '小满美图 · img.fangkelianmeng.com', url: 'https://img.fangkelianmeng.com/' },
-  { label: '小满手记 · zangeng.com', url: 'https://zangeng.com/' },
-  { label: '实测手记 · 585.ink', url: 'https://585.ink/' },
-  { label: '年表拾遗 · 20101115.com', url: 'https://20101115.com/' },
-  { label: '小满券仓 · coupon.zangeng.com', url: 'https://coupon.zangeng.com/' },
-  { label: '一成长笔记 · xuyiheng.com', url: 'https://xuyiheng.com/' },
-  { label: '东北电动车汇 · store.fangkelianmeng.com', url: 'https://store.fangkelianmeng.com/' },
+  { label: '明先生日常 · xuliming.com', url: 'https://xuliming.com/?src=hub' },
+  { label: 'cs调色盘 · 2002cs.com', url: 'https://2002cs.com/?src=hub' },
+  { label: '访客小站 · fangkelianmeng.com', url: 'https://fangkelianmeng.com/?src=hub' },
+  { label: '小满美图 · img.fangkelianmeng.com', url: 'https://img.fangkelianmeng.com/?src=hub' },
+  { label: '小满手记 · zangeng.com', url: 'https://zangeng.com/?src=hub' },
+  { label: '实测手记 · 585.ink', url: 'https://585.ink/?src=hub' },
+  { label: '年表拾遗 · 20101115.com', url: 'https://20101115.com/?src=hub' },
+  { label: '小满券仓 · coupon.zangeng.com', url: 'https://coupon.zangeng.com/?src=hub' },
+  { label: '一成长笔记 · xuyiheng.com', url: 'https://xuyiheng.com/?src=hub' },
+  { label: '东北电动车汇 · store.fangkelianmeng.com', url: 'https://store.fangkelianmeng.com/?src=hub' },
 ];
 
 /** 单列超过此数量时自动分两列，控制底部区域高度 */

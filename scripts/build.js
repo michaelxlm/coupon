@@ -545,7 +545,7 @@ ${faqPairs.map(function (qa) { return '      <details>\n        <summary>' + esc
 
   ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
 
-  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/conversion.js"></script>
   <script src="/assets/js/app.js"></script>
   <script src="/assets/js/store.js"></script>
@@ -749,7 +749,7 @@ function detailPageShell(c, related) {
 
   ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
 
-  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/conversion.js"></script>
   <script src="/assets/js/app.js"></script>
   <script src="/assets/js/store.js"></script>
@@ -858,7 +858,7 @@ function detailShellPage() {
 
   ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
 
-  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/conversion.js"></script>
   <script src="/assets/js/app.js"></script>
   <script src="/assets/js/store.js"></script>
@@ -945,7 +945,7 @@ ${grid}
 
   ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
 
-  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/conversion.js"></script>
   <script src="/assets/js/app.js"></script>
   <script src="/assets/js/store.js"></script>
@@ -1147,7 +1147,7 @@ function guideIndexShell(articles) {
 
   ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
 
-  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/app.js"></script>
 </body>
 </html>
@@ -1234,7 +1234,7 @@ function guidePageShell(a, others, detailIdMap) {
 
   ${P.renderFooter(COUPON_SITE, {}, { contactTitle: '联系', showSocial: false, showFooterLinks: false, footerAdSlot: 'footer' })}
 
-  <script src="/assets/js/tracker.js"></script>
+  <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/app.js"></script>
 </body>
 </html>

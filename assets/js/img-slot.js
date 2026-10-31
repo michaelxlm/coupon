@@ -62,15 +62,6 @@
     return u && u.indexOf('http://') === 0 ? 'https://' + u.slice(7) : u;
   }
 
-  function safeUrl(url) {
-    if (typeof url !== 'string') return '';
-    var v = url.trim();
-    if (!v) return '';
-    if (/^https?:\/\//i.test(v)) return v;
-    if (/^\/\//.test(v)) return 'https:' + v;
-    return '';
-  }
-
   // 相对路径（OSS 键名）拼接基址；已是绝对地址则原样返回
   function absUrl(u) {
     var v = toHttps(u || '');

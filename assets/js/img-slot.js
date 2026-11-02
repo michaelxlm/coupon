@@ -19,7 +19,9 @@
    静默失败：接口异常 / 无数据 / 无容器，都不报错、不占位。
 
    可选配置（引入本脚本前声明）：
-     <script>window.ImgSlotConfig = { limit:4, mainUrl:'zangeng.com', debug:true };</script>
+     <script>window.ImgSlotConfig = { limit:4, mainUrl:'zangeng.com', debug:true, scheme:'auto' };</script>
+     scheme：auto（默认，跟随宿主页面明暗）/ light / dark。宿主用 data-theme="dark|light" 或
+     不透明的页面背景色供组件度量（Shadow DOM 拿不到宿主样式，但读得到计算样式）。
    ========================================================================== */
 
 (function (global) {
@@ -34,6 +36,7 @@
     title: '小满美图 · 高清壁纸',
     moreText: '更多 →',
     debug: false,
+    scheme: 'auto', // auto | light | dark：图条是自带配色的独立卡片，宿主开深色时必须换色板
   };
 
   // OSS 基址：otherUrls/ali_url 为相对路径时拼接（与美图站 gallery.js 同口径）
@@ -90,6 +93,82 @@
     return main;
   }
 
+  /* ------------------------- 宿主明暗判定 -------------------------
+     图条渲染在 Shadow DOM 里，宿主的 [data-theme="dark"] 选择器进不来，所以整套
+     色板是写死的亮色：深色站上正文 #1f2328 直接落在 #0d1119 背景上（对比度≈1.2:1，
+     连 WCAG 最小值 4.5:1 的一半都不到，2026-11-02 实测）。这里按优先级判一次：
+       1) 配置强制（scheme=light/dark）
+       2) html/body 的 data-theme（各静态站与 uni-app H5 都用它，包含手动切换）
+       3) html/body 的计算背景亮度（取第一个不透明色）
+     三项都判不出来就算亮色，宁可维持旧观感，也不拿系统的 prefers-color-scheme 猜：
+     很多站不做深色，猜错反而把白底页上的图条染成黑块。                       */
+  function parseRgb(str) {
+    var m = /rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)(?:[\s,/]+([\d.]+))?\s*\)/.exec(String(str || ''));
+    if (!m) return null;
+    return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : parseFloat(m[4]) };
+  }
+
+  function relLuminance(c) {
+    var f = function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+  }
+
+  function hostIsDark() {
+    var doc = global.document;
+    if (!doc) return false;
+    if (CONFIG.scheme === 'dark') return true;
+    if (CONFIG.scheme === 'light') return false;
+    var nodes = [ doc.documentElement, doc.body ];
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      if (!el || typeof el.getAttribute !== 'function') continue;
+      var t = el.getAttribute('data-theme');
+      if (t === 'dark') return true;
+      if (t === 'light') return false;
+    }
+    for (var j = 0; j < nodes.length; j++) {
+      var n = nodes[j];
+      if (!n || !global.getComputedStyle) continue;
+      try {
+        var c = parseRgb(global.getComputedStyle(n).backgroundColor);
+        if (c && c.a > 0.01) return relLuminance(c) < 0.35;
+      } catch (e) { /* 取不到就当判不出，继续下一个 */ }
+    }
+    return false;
+  }
+
+  // 已渲染过的容器：主题切换只换类名，不重新拉数据也不重画图片
+  var renderedHosts = [];
+  var schemeWatched = false;
+
+  function rememberHost(host) {
+    if (renderedHosts.indexOf(host) < 0) renderedHosts.push(host);
+  }
+
+  function applyScheme() {
+    var dark = hostIsDark();
+    for (var i = 0; i < renderedHosts.length; i++) {
+      var host = renderedHosts[i];
+      var root = host.shadowRoot || host;
+      var wrap = root.querySelector ? root.querySelector('.isl') : null;
+      if (!wrap) continue;
+      if (dark) wrap.classList.add('isl--dark');
+      else wrap.classList.remove('isl--dark');
+    }
+  }
+
+  function watchScheme() {
+    if (schemeWatched || !global.MutationObserver || !global.document) return;
+    schemeWatched = true;
+    var mo = new global.MutationObserver(function () { applyScheme(); });
+    var opts = { attributes: true, attributeFilter: [ 'data-theme', 'class', 'style' ] };
+    if (global.document.documentElement) mo.observe(global.document.documentElement, opts);
+    if (global.document.body) mo.observe(global.document.body, opts);
+  }
+
   var STYLE = [
     // 组件自带样式，渲染在 Shadow DOM 内：宿主页面样式进不来、本组件样式也不外泄
     // .isl 显式声明可继承属性（font/color/line-height 等），切断宿主经继承渗入的默认值
@@ -117,6 +196,18 @@
     '.isl-skel{pointer-events:none;}',
     '.isl-skel .isl-name{display:block;width:78%;background:#eef1f4;border-radius:6px;}',
     '.isl-skel .isl-tag{display:block;width:46%;background:#f1eafd;border-radius:6px;}',
+    // 深色宿主专用色板：只改前景/边框/底色，布局与尺寸与亮色完全一致。
+    // 颜色都经过对比度核算：#a5b4fc/#e6edf3/#c4b5fd 对 #111827 均 >7:1（WCAG AA/AAA）。
+    '.isl--dark{color:#e6edf3;border-color:rgba(165,180,252,.28);',
+    'background:linear-gradient(180deg,rgba(129,140,248,.10),rgba(167,139,250,.04)),#111827;}',
+    '.isl--dark .isl-title,.isl--dark .isl-more{color:#a5b4fc;}',
+    '.isl--dark .isl-card,.isl--dark .isl-name{color:#e6edf3;}',
+    '.isl--dark .isl-tag{color:#c4b5fd;}',
+    '.isl--dark .isl-thumb{border-color:rgba(165,180,252,.22);background:#1f2937;}',
+    '.isl--dark .isl-thumb img{background:#1f2937;}',
+    '.isl--dark .isl-card:hover .isl-thumb{border-color:rgba(165,180,252,.5);box-shadow:0 6px 18px rgba(0,0,0,.4);}',
+    '.isl--dark .isl-skel .isl-name{background:#1f2937;}',
+    '.isl--dark .isl-skel .isl-tag{background:#2b2440;}',
   ].join('');
 
   function injectStyle(doc) {
@@ -286,6 +377,9 @@
     if (host.shadowRoot) host.shadowRoot.innerHTML = '';
     host.innerHTML = '';
     host.style.display = 'none';
+    // 从主题监听名单里移除：内容已清空，下次 applyScheme 再找不到它的 .isl
+    var idx = renderedHosts.indexOf(host);
+    if (idx !== -1) renderedHosts.splice(idx, 1);
     var sec = sectionOf(host);
     if (isSlotOnlySection(sec)) sec.style.display = 'none';
   }
@@ -315,6 +409,7 @@
 
     var wrap = doc.createElement('div');
     wrap.className = 'isl';
+    if (hostIsDark()) wrap.classList.add('isl--dark'); // 宿已是深色：色板必须在首帧就对上，不能等切换事件
 
     // 头部：标题（带 🖼 图标）居左、「更多 →」居右，同一行
     var head = doc.createElement('div');
@@ -358,6 +453,8 @@
     }
     root.appendChild(wrap);
     if (!skeleton) host.setAttribute('data-img-filled', '1');
+    // 骨架也入名单：它同样要先跟着宿主变暗，不能等数据回来才换色板
+    rememberHost(host);
   }
 
   function renderAll(hosts, images) {
@@ -372,6 +469,7 @@
     if (!doc) return;
     var hosts = collectHosts(doc);
     if (!hosts.length) return;
+    watchScheme(); // 主题切换（手动或跟随系统）后只换类名，不重拉接口
 
     function paint(images) {
       if (!images || !images.length) {

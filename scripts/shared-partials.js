@@ -101,7 +101,15 @@ function renderHeader(site, page, links, opts) {
 }
 
 /* ------------------------------ 跨站推荐（单一源） ------------------------------ */
-/** 所有站点 footer「更多站点」列统一数据，改此处即全站同步 */
+/** 所有站点 footer「更多站点」列统一数据，改此处即全站同步。
+ *  口径（2026-11-03 定）：跨站裸链统一带 ?src=hub，与归因字典里的「九站互推」渠道对齐
+ *  （main-api/app/utils/channelSrcHelper.js: hub: '九站互推'）。不带 hub 的页脚互推会全部落到
+ *  未归因，这条渠道等于白做。本站条目在渲染时按域名自我排除、不会出现在自己页脚里，
+ *  因此给全部 10 条加参不会造成任何站把自己 hub 化（那会污染 canonical，
+ *  check-tracker-consistency.js 的 B1 自检会报）。
+ *  历史教训：该参数一度只在各站本地副本里手改、没回写本单源，两边轮流覆盖导致
+ *  sync-partials / sync-more-sites 两道守卫长期报漂移。改清单只改这里，然后：
+ *  node scripts/sync-partials.js → node scripts/sync-more-sites.js --write → 各站重新发布。 */
 const SISTER_SITES = [
   { label: '明先生日常 · xuliming.com', url: 'https://xuliming.com/?src=hub' },
   { label: 'cs调色盘 · 2002cs.com', url: 'https://2002cs.com/?src=hub' },
@@ -110,7 +118,7 @@ const SISTER_SITES = [
   { label: '小满手记 · zangeng.com', url: 'https://zangeng.com/?src=hub' },
   { label: '实测手记 · 585.ink', url: 'https://585.ink/?src=hub' },
   { label: '年表拾遗 · 20101115.com', url: 'https://20101115.com/?src=hub' },
-  { label: '小满券仓 · coupon.zangeng.com', url: 'https://coupon.zangeng.com/' },
+  { label: '小满券仓 · coupon.zangeng.com', url: 'https://coupon.zangeng.com/?src=hub' },
   { label: '一成长笔记 · xuyiheng.com', url: 'https://xuyiheng.com/?src=hub' },
   { label: '东北电动车汇 · store.fangkelianmeng.com', url: 'https://store.fangkelianmeng.com/?src=hub' },
 ];

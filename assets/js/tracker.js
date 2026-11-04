@@ -31,7 +31,7 @@
     // 上报端点（中台统一埋点端点）
     endpoint: 'https://api.xuyiheng.com/api/v1/public/track',
     // 项目代号：每个站点部署时修改（color-tool / visitor / aiWeb / ...）
-    project: 'coupon-zangeng',
+    project: 'unknown',
     // 终端类型：Web 站点固定 web
     terminal: 'web',
     // 调试模式：置 true 时在控制台打印上报内容（生产请保持 false）
@@ -74,12 +74,15 @@
     'gg', 'baidu', 'bing', 'gzh', 'xcx',
     'wx-mp', 'dy-mp', 'ks-mp',
     'juejin', 'zhihu', 'v2ex', 'sspai', 'smzdm', 'sheji', 'shequ', 'mcp-landing',
-    'wx-menu', 'wx-reply', 'wx-qrcode', 'hub', // WO-138 add: wx local-life entries + hub cross-site, keep in sync with CHANNEL_LABELS
+    // WO-138 补齐：微信本地生活入口（wechatLocalCommerce 生成链）+ 九站互推，
+    //   与中台 utils/channelSrcHelper.CHANNEL_LABELS 同步登记，客户端不先拦才能到服务端归一
+    'wx-menu', 'wx-reply', 'wx-qrcode', 'hub',
   ];
 
   /** 渠道值归一：只保留小写字母/数字/下划线/短横线，且必须在白名单内 */
   function normalizeSrc(value) {
-    var v = String(value || '').trim().toLowerCase().slice(0, 32);
+    var raw = String(value || '').trim();
+    var v = raw.toLowerCase().slice(0, 32);
     if (!/^[a-z0-9_-]+$/.test(v)) return '';
     for (var i = 0; i < SRC_ALLOWED.length; i++) {
       if (SRC_ALLOWED[i] === v) return v;

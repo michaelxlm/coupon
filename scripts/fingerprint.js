@@ -1,26 +1,20 @@
 #!/usr/bin/env node
 /* =============================================================================
- * fingerprint.js · 内容哈希指纹（零依赖，Node 18+）
+ * fingerprint.js · 内容哈希指纹（零依赖，Node 18+）· 双模式单源
  *
- * 目标：把站内被 HTML/CSS 字面引用的静态资源（css/js/图片/字体）复制成带内容
- * 哈希的文件名（name.<hash>.ext），并把引用改写到哈希名。内容不变 → URL 不变
- * → 浏览器/CDN 强缓存命中；内容变 → 文件名变 → 精确 bust。配合服务器 Nginx 对
- * 资源加 `immutable` 长缓存、对 HTML 加 `no-cache`，实现"无手工版本号"的最优缓存。
- *
- * 关键设计（降风险）：
- *   - 哈希产物是「新增副本」，原始文件保留不删。因此任何未纳入本脚本改写的引用
- *     （运行时 JS 动态拼接的路径、data/*.json 里的路径、绝对 canonical URL）仍指向
- *     原文件名，照常可访问，不会 404。
- *   - 只改写 HTML 的 (href|src) 与 CSS 的 url() 里「解析到本地磁盘、且命中资源」的
- *     字面引用；外链（http(s):// / 协议相对 // / data: / mailto:）一律跳过。
- *   - og-cover.png / favicon / webmanifest 等被爬虫与分享按固定绝对地址消费，显式
- *     排除、保持原名 + 长缓存。
- *   - CSS 的 url() 引用的图片/字体也纳入指纹（会级联处理）。
+ * 背景（2026-11 改造）：此前各站各自存一份 fingerprint.js，已分叉为两种不兼容方案：
+ *   - Gen-1（store-web / xuyiheng-tools）：生成 assets/manifest.json（path→token），
+ *     prerender 引用资源时按 manifest 追加 ?v=<token>（查询串缓存失效）。
+ *   - Gen-2（其余 8 站）：把资源复制为 name.<hash>.ext 并改写 HTML/CSS 引用（文件名失效）。
+ * 本文件为两者唯一事实源，由 site.json 的 build.fingerprintMode 选择，行为完全等价于原方案：
+ *   - 'manifest'（默认无声明时不走此分支，避免误伤 8 站）：复刻 Gen-1；
+ *   - 其余（默认）：复刻 Gen-2 文件名重命名。
  *
  * 用法：
- *   node scripts/fingerprint.js            就地改写运行副本（CI 用）
- *   node scripts/fingerprint.js --dry      只报告命中，不落盘（本地验证）
- *   node scripts/fingerprint.js --verbose  打印每条改写明细
+ *   node scripts/fingerprint.js            # 按 site.json 模式运行（CI 用）
+ *   node scripts/fingerprint.js --dry      # 仅报告命中，不落盘（rename 模式）
+ *   node scripts/fingerprint.js --verbose  # 打印每条改写明细（rename 模式）
+ *   require('./fingerprint').run()         # build.js 调用，返回 manifest（manifest 模式）
  * ============================================================================= */
 
 'use strict';
@@ -56,6 +50,55 @@ const SRC_SKIP_DIRS = new Set(['scripts', 'deploy', 'data', 'reports', '.devtool
 // 已带指纹的 basename（幂等判定：name.<8~12位哈希>.ext）
 const HASHED_RE = /\.([A-Za-z0-9_-]{8,12})\.[A-Za-z0-9]+$/;
 
+/* ------------------------------------------------------------------ *
+ * 模式判定：site.json -> build.fingerprintMode（缺省 'rename'）
+ * ------------------------------------------------------------------ */
+function resolveMode() {
+  try {
+    const site = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'site.json'), 'utf8'));
+    const m = site && site.build && site.build.fingerprintMode;
+    if (m === 'manifest' || m === 'rename') return m;
+  } catch (e) {}
+  return 'rename';
+}
+
+/* ==========================================================================
+ * Gen-1 · manifest 模式：复刻原 store-web/xuyiheng-tools fingerprint.js
+ *   扫描 assets 下 .min.css/.min.js，对每个取 sha256 前 10 位作为 token，
+ *   生成 assets/manifest.json：{ "/assets/css/theme.min.css": "a1b2c3d4e5", ... }
+ *   prerender 引用资源时按 manifest 追加 ?v=<token>。
+ *   返回 manifest 对象（供 build.js 取用）。
+ * ========================================================================== */
+function runManifest() {
+  const ASSETS = path.join(ROOT, 'assets');
+  const SEARCH_DIRS = ['css', 'css/pages', 'js', 'js/pages'].map((d) => path.join(ASSETS, d));
+
+  function hashFile(file) {
+    const buf = fs.readFileSync(file);
+    return crypto.createHash('sha256').update(buf).digest('hex').slice(0, 10);
+  }
+
+  const manifest = {};
+  SEARCH_DIRS.forEach((dir) => {
+    if (!fs.existsSync(dir)) return;
+    fs.readdirSync(dir).forEach((f) => {
+      if (!/\.min\.(css|js)$/.test(f)) return;
+      const abs = path.join(dir, f);
+      const rel = '/' + path.relative(ROOT, abs).replace(/\\/g, '/');
+      manifest[rel] = hashFile(abs);
+    });
+  });
+  const target = path.join(ASSETS, 'manifest.json');
+  fs.writeFileSync(target, JSON.stringify(manifest, null, 2) + '\n');
+  console.log('fingerprint：写入 manifest.json（' + Object.keys(manifest).length + ' 个资源版本）');
+  return manifest;
+}
+
+/* ==========================================================================
+ * Gen-2 · rename 模式：复刻原 8 站的「文件名内容哈希」指纹
+ *   把站内被 HTML/CSS 字面引用的静态资源复制成 name.<hash>.ext 并改写引用；
+ *   原始文件保留不删，配合 Nginx 对资源加 immutable 长缓存。
+ * ========================================================================== */
 function contentHash(buf) {
   return crypto.createHash('sha256').update(buf).digest('base64url').slice(0, HASH_LEN);
 }
@@ -87,7 +130,6 @@ function walk(dir, out, filterFn) {
   return out;
 }
 
-/** 收集所有可能含引用的源文件（HTML + CSS，排除 scripts/deploy/data 等） */
 function collectSourceFiles() {
   const html = walk(ROOT, [], (f) => f.endsWith('.html'));
   const css = [];
@@ -107,12 +149,6 @@ function collectSourceFiles() {
   return { html, css };
 }
 
-/**
- * 把一个引用字符串解析为磁盘绝对路径。
- *  - 以 "/" 开头：相对站点根
- *  - 否则：相对引用所在文件目录
- * 返回 null（外链、越界、不存在）。
- */
 function resolveRef(refRaw, fromFile) {
   const clean = stripQueryHash(refRaw);
   if (!clean || isExternal(refRaw)) return null;
@@ -120,7 +156,7 @@ function resolveRef(refRaw, fromFile) {
     ? path.join(ROOT, clean)
     : path.resolve(path.dirname(fromFile), clean);
   const rel = path.relative(ROOT, abs);
-  if (rel.startsWith('..') || path.isAbsolute(rel)) return null; // 越界
+  if (rel.startsWith('..') || path.isAbsolute(rel)) return null;
   let st;
   try { st = fs.statSync(abs); } catch (e) { return null; }
   if (!st.isFile()) return null;
@@ -132,7 +168,6 @@ function baseOf(p) { return path.basename(p); }
 function isExcluded(absPath) {
   const b = baseOf(absPath);
   if (EXCLUDE_BASE.has(b)) return true;
-  // 已经是指纹名（幂等）
   const m = HASHED_RE.exec(b);
   if (m) return true;
   return false;
@@ -150,17 +185,12 @@ function hashedName(absPath, hashCache) {
   return hashCache.get(absPath);
 }
 
-/* ------------------------------------------------------------------ *
- * 正则：HTML 的 (href|src) 与 CSS 的 url()
- * 用函数替换，回调里再解析，避免误伤外部 URL / data URI。
- * ------------------------------------------------------------------ */
 const RE_HTML_REF = /(href|src)="([^"]+)"/gi;
 const RE_CSS_URL = /url\(\s*(['"]?)([^'")]+)\1\s*\)/gi;
 
-/** 遍历源文件，发现被字面引用的本地资源，递归把 CSS url() 里的资源也纳入 */
 function discoverTargets(src) {
-  const targets = new Set();      // 绝对磁盘路径
-  const queue = [...src.css];      // CSS 需要额外扫描其 url()
+  const targets = new Set();
+  const queue = [...src.css];
   const seenCss = new Set(src.css);
 
   function addFromHtml(file) {
@@ -188,7 +218,6 @@ function discoverTargets(src) {
       if (!ASSET_EXT.has(extOf(ref))) continue;
       if (isExcluded(abs)) continue;
       targets.add(abs);
-      // 嵌套 CSS（@import 少见，但 url() 引到别的 css 也纳入扫描）
       if (extOf(ref) === '.css' && !seenCss.has(abs)) { seenCss.add(abs); queue.push(abs); }
     }
   }
@@ -198,7 +227,6 @@ function discoverTargets(src) {
   return targets;
 }
 
-/** 改写单个源文件里命中 manifest 的本地引用为哈希名；返回 [新内容, 改写次数] */
 function rewriteFile(file, manifest, hashCache) {
   const isCss = file.endsWith('.css');
   const txt = fs.readFileSync(file, 'utf8');
@@ -209,7 +237,6 @@ function rewriteFile(file, manifest, hashCache) {
   const out = txt.replace(re, (whole, ...args) => {
     let prefix, ref, suffix;
     if (isCss) {
-      // groups: quote, url
       const quote = args[0];
       ref = args[1];
       const h = resolveRef(ref, file);
@@ -223,7 +250,6 @@ function rewriteFile(file, manifest, hashCache) {
       if (VERBOSE) console.log(`  ${path.relative(ROOT, file)} :: ${ref} -> ${rebuilt}`);
       return prefix + rebuilt + suffix;
     } else {
-      // groups: attr, value
       const attr = args[0];
       ref = args[1];
       const h = resolveRef(ref, file);
@@ -240,11 +266,10 @@ function rewriteFile(file, manifest, hashCache) {
   return [out, count];
 }
 
-function main() {
+function runRename() {
   const src = collectSourceFiles();
   const targets = discoverTargets(src);
 
-  // 生成 manifest：绝对路径 -> {name, buf...}，并把哈希副本落盘（同目录）
   const hashCache = new Map();
   const manifest = new Map();
   for (const abs of targets) {
@@ -256,7 +281,6 @@ function main() {
     }
   }
 
-  // 改写目标：所有 HTML + 所有被纳入的 CSS（改写后写回；CSS 同时把改写内容写入哈希副本）
   let touchedFiles = 0;
   let touchedRefs = 0;
 
@@ -271,7 +295,6 @@ function main() {
   for (const abs of targets) {
     if (extOf(abs) !== '.css') continue;
     const [out, n] = rewriteFile(abs, manifest, hashCache);
-    // 哈希副本内容 = 原 CSS 改写 url() 后的内容
     const info = hashCache.get(abs);
     if (!DRY && info) fs.writeFileSync(path.join(path.dirname(abs), info.name), out, 'utf8');
     if (n > 0) { touchedFiles++; touchedRefs += n; }
@@ -280,7 +303,6 @@ function main() {
   const label = DRY ? '[dry-run 未落盘] ' : '';
   console.log(`${label}指纹完成：资源 ${manifest.size} 个，改写引用 ${touchedRefs} 处，涉及 ${touchedFiles} 个文件`);
 
-  // 拦 CI：有字面引用的 css/js 资源却一个都没命中，多半是引用形态未适配（异常），报错
   const localAssets = [...targets];
   if (!DRY && src.html.length > 0 && touchedRefs === 0 && localAssets.length > 0) {
     console.error('[fingerprint] 发现本地资源但改写引用为 0，疑似引用解析未适配，终止');
@@ -288,4 +310,18 @@ function main() {
   }
 }
 
-main();
+/* ------------------------------------------------------------------ *
+ * 统一入口：按 site.json 模式分发
+ * ------------------------------------------------------------------ */
+function run(opts) {
+  const mode = (opts && opts.mode) || resolveMode();
+  if (mode === 'manifest') return runManifest();
+  runRename();
+  return null;
+}
+
+if (require.main === module) {
+  run();
+}
+
+module.exports = { run, resolveMode };

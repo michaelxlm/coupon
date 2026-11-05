@@ -23,7 +23,14 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const ROOT = path.resolve(__dirname, '..');
+// 站点根目录双态解析：被站点 build.js require 时（WO-164 ④ 私有包化，模块位于
+// node_modules/@xuyiheng/static-build-kit）以进程入口为基准；直接 CLI 运行
+// （各站 scripts/ 本地副本）时以自身位置为基准；无入口（node -e）时约定 cwd 即站点根。
+const ROOT = require.main === module
+  ? path.resolve(__dirname, '..')
+  : require.main
+    ? path.resolve(path.dirname(require.main.filename), '..')
+    : process.cwd();
 const HASH_LEN = 10;
 
 const DRY = process.argv.includes('--dry');

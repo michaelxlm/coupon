@@ -10,6 +10,9 @@
   /* 白字专用深阶：凡 background:accent + 白字 的载体一律用它，保 WCAG AA ≥4.5:1（审计 T4） */
   --accent-solid: #2b52d8;
   --accent-solid-hover: #3560e8;
+  /* 品牌主色令牌（WCAG 门禁直标，审计 T4；白字深阶同 --accent-solid） */
+  --primary: #2b52d8;
+  --primary-strong: #2245b5;
   /* 「即将失效」徽标文字色：浅底深字/深底亮字，替代硬编码 #b45309（对比 2.34） */
   --expire-fg: #92400e;
 

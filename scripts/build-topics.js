@@ -26,7 +26,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const P = require('./shared-partials');
+const P = require('@xuyiheng/static-build-kit/shared-partials'); // WO-164 ④ 私有包化
 const { COUPON_SITE, TOPIC_NAV } = require('./site-config');
 
 const ROOT = path.resolve(__dirname, '..');

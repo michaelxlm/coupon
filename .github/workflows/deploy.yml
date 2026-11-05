@@ -26,6 +26,19 @@ jobs:
           mkdir -p /root/.ssh && chmod 700 /root/.ssh
           ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /root/.ssh/known_hosts 2>/dev/null
       - uses: actions/checkout@v4
+      - name: Install @xuyiheng/static-build-kit (WO-164 ④ private file: dep)
+        shell: bash
+        env:
+          HOME: /root
+        run: |
+          # 克隆 packages 单源仓到工作区兄弟目录，npm ci 建立 file: 依赖软链
+          # （node_modules/@xuyiheng/static-build-kit -> ../packages/static-build-kit）
+          TOP="$(dirname "$GITHUB_WORKSPACE")"
+          rm -rf "$TOP/packages"
+          git clone --depth 1 git@github.com:michaelxlm/packages.git "$TOP/packages"
+          export PATH="/www/server/nodejs/v20.18.3/bin:$PATH"
+          cd "$GITHUB_WORKSPACE"
+          npm ci --no-audit --no-fund
       - name: Encoding gate (UTF-8 only)
         shell: bash
         run: |
@@ -67,4 +80,4 @@ jobs:
       - name: Sync to /www/wwwroot/coupon.zangeng.com
         shell: bash
         run: |
-          tar cf - --exclude=.git --exclude=.github --exclude=.user.ini --exclude=.workbuddy --exclude=deploy . | ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=accept-new root@60.205.214.88 "mkdir -p /www/wwwroot/coupon.zangeng.com ; cd /www/wwwroot/coupon.zangeng.com ; tar xmf -"
+          tar cf - --exclude=.git --exclude=.github --exclude=.user.ini --exclude=.workbuddy --exclude=deploy --exclude=node_modules --exclude=package-lock.json . | ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=accept-new root@60.205.214.88 "mkdir -p /www/wwwroot/coupon.zangeng.com ; cd /www/wwwroot/coupon.zangeng.com ; tar xmf -"

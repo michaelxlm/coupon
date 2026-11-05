@@ -28,9 +28,9 @@
 
 const fs = require('fs');
 const path = require('path');
-const P = require('./shared-partials'); // WO-85 阶段二：header/footer/ad-slot 委托跨站单一源
+const P = require('@xuyiheng/static-build-kit/shared-partials'); // WO-85 阶段二：header/footer/ad-slot 委托跨站单一源（WO-164 ④ 私有包化）
 const { COUPON_SITE } = require('./site-config'); // 站点导航单一源（build-topics 场景页共用，防止菜单漂移）
-const NAV = require('./shared-navigation'); // WO-93：原生导航无缝化（Speculation Rules 预取 + View Transitions）单一源
+const NAV = require('@xuyiheng/static-build-kit/shared-navigation'); // WO-93：原生导航无缝化（Speculation Rules 预取 + View Transitions）单一源（WO-164 ④ 私有包化）
 const { buildTopics } = require('./build-topics'); // WO-125：AI 场景导购 + 实时比价落地页（复用本次快照对象预渲染）
 const { buildCommercial } = require('./build-commercial'); // WO-121：高商业意图省钱攻略长尾页（复用 build-topics 同口径助手）
 

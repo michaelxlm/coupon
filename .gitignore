@@ -13,3 +13,6 @@
 .DS_Store
 .user.ini
 .workbuddy
+
+# 依赖（WO-164 ④ 私有包化：CI 每次 clone 后 npm ci 重建软链，无需入库）
+node_modules/

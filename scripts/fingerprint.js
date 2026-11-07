@@ -273,6 +273,37 @@ function rewriteFile(file, manifest, hashCache) {
   return [out, count];
 }
 
+// 清理同 stem 的旧指纹变体：rename 模式只写新 hash、不删旧 hash，旧 name.<hash>.ext
+// 会在仓库/服务器累积成死文件。生成新 hash 文件后，删除同目录下同 stem 的旧变体，
+// 仅保留源文件（abs）与被引用的最新 hash 文件（newName）。DRY 模式仅打印、不删除。
+function pruneStaleVariants(abs, info) {
+  const dir = path.dirname(abs);
+  const newName = info.name; // e.g. pv.min.<hash>.js
+  const ext = path.extname(newName);
+  const srcBase = path.basename(abs); // e.g. pv.min.js（源，始终保留）
+  const newBaseNoExt = path.basename(newName, ext); // pv.min.<hash>
+  const m = newName.match(HASHED_RE);
+  if (!m) return; // 非标准指纹名，跳过
+  const hash = m[1];
+  const stem = newBaseNoExt.slice(0, newBaseNoExt.length - (hash.length + 1)); // pv.min
+  let pruned = 0;
+  for (const e of fs.readdirSync(dir)) {
+    if (e === newName || e === srcBase) continue;
+    if (path.extname(e) !== ext) continue;
+    const eBase = path.basename(e, ext);
+    // 必须精确匹配 stem + .<8~12位hash> 形式，避免误删 style.min.css 等带点的源文件
+    const suffix = eBase.slice(stem.length);
+    if (!/^\.[A-Za-z0-9_-]{8,12}$/.test(suffix)) continue;
+    const full = path.join(dir, e);
+    if (DRY) {
+      console.log(`  [dry] 将清理旧指纹变体: ${path.relative(ROOT, full)}`);
+    } else {
+      if (fs.existsSync(full)) { fs.unlinkSync(full); pruned++; }
+    }
+  }
+  if (!DRY && pruned > 0) console.log(`  清理 ${pruned} 个旧指纹变体 (stem=${stem})`);
+}
+
 function runRename() {
   const src = collectSourceFiles();
   const targets = discoverTargets(src);
@@ -286,6 +317,7 @@ function runRename() {
     if (!DRY) {
       if (!fs.existsSync(dest)) fs.writeFileSync(dest, info.buf);
     }
+    pruneStaleVariants(abs, info); // 生成新 hash 后清理同 stem 旧变体（防死文件累积）
   }
 
   let touchedFiles = 0;

@@ -409,8 +409,18 @@
     }
     global.setTimeout(tryAutoMore, 350);
   }
+  // 榜单接口会返回同一商品的多个不同券（同 pict_url/title、不同 tao_id），按商品身份去重，避免前排全是同一件
+  function dedupeCoupons(arr) {
+    var seen = Object.create(null);
+    return (arr || []).filter(function (c) {
+      var key = String(c.pict_url || c.title || c.item_url || c.couponUrl || '').trim();
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
   function setRankData(list) {
-    state.rankAll = list || [];
+    state.rankAll = dedupeCoupons(list);
     state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
     state.list = state.rankAll;
     render(rankView(), false);

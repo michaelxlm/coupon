@@ -756,8 +756,18 @@
       moreBtn.textContent = '加载更多';
     }
   }
+  // 榜单接口会返回同一商品的多个不同券（同 pict_url/title、不同 tao_id），按商品身份去重，避免首页前排全是同一件
+  function dedupeCoupons(arr) {
+    var seen = Object.create(null);
+    return (arr || []).filter(function (c) {
+      var key = String(c.pict_url || c.title || c.item_url || c.couponUrl || '').trim();
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
   function setRankData(list) {
-    state.rankAll = list || [];
+    state.rankAll = dedupeCoupons(list);
     state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
     state.list = state.rankAll;
     render(rankView(), false);
@@ -897,14 +907,43 @@
       });
     }
 
+    // 搜索/筛选状态写回 URL，支持分享、回退与搜索引擎收录
+    function syncUrl() {
+      if (!global.history || !global.URLSearchParams) return;
+      var p = new URLSearchParams();
+      if (state.search) p.set('s', state.search);
+      if (state.period && state.period !== 'week') p.set('period', state.period);
+      if (state.sort) p.set('sort', state.sort);
+      if (state.platform) p.set('platform', state.platform);
+      var qs = p.toString();
+      var url = global.location.pathname + (qs ? ('?' + qs) : '');
+      global.history.replaceState(null, '', url);
+    }
+    function applyUrlState() {
+      var s = '';
+      if (global.URLSearchParams) {
+        try { s = (new URLSearchParams(global.location.search).get('s') || '').trim(); } catch (e) { /* 忽略 */ }
+      }
+      if (s) {
+        if (searchInput) searchInput.value = s;
+        state.search = s;
+        setActiveTab('');
+        if (global.CouponStore) global.CouponStore.pushSearch(s);
+        loadSearch(true);
+        syncUrl();
+      }
+    }
+    global.addEventListener('popstate', applyUrlState);
+
     searchForm.addEventListener('submit', function (e) {
       e.preventDefault();
       hideSuggest();
       state.search = (searchInput.value || '').trim();
       setActiveTab('');
-      if (!state.search) { loadFeatured(); return; }
+      if (!state.search) { loadFeatured(); syncUrl(); return; }
       if (global.CouponStore) global.CouponStore.pushSearch(state.search);
       loadSearch(true);
+      syncUrl();
       renderHistory();
     });
 

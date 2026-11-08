@@ -760,7 +760,7 @@
   function dedupeCoupons(arr) {
     var seen = Object.create(null);
     return (arr || []).filter(function (c) {
-      var key = String(c.pict_url || c.title || c.item_url || c.couponUrl || '').trim();
+      var key = String((c.tao_id != null && c.tao_id !== '') ? c.tao_id : (c.pict_url || c.title || c.item_url || c.couponUrl || '')).trim();
       if (!key || seen[key]) return false;
       seen[key] = true;
       return true;

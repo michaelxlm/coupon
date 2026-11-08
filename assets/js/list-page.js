@@ -31,12 +31,16 @@
     var tt = $('topicTitle'); if (tt) tt.textContent = global.__TOPIC__.title || '';
   }
 
-  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', list: [], rankAll: [], rankShown: 0 };
+  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', disc: '', cats: [], list: [], rankAll: [], rankShown: 0 };
 
-  var grid, statusEl, moreBtn, tabs, sortSelect, priceSelect, countEl;
+  var grid, statusEl, moreBtn, tabs, sortSelect, priceSelect, discSelect, catBar, countEl;
   var loadActions = {};
   var memCache = {};
   var viewToken = 0;
+  // 折扣力度区间（券面额）：与价格区间并列的前端筛选，不改后端分页语义
+  var DISCOUNT_LABELS = { ge50: '≥50元', d20_50: '20–50元', lt20: '<20元' };
+  // 品类（与 category.html / cat/*.html 的 data-kw 对齐）：列表页可叠加筛选
+  var CATEGORIES = [ [ '', '全部' ], [ 'digital', '手机数码' ], [ 'appliance', '家用电器' ], [ 'home', '家居生活' ], [ 'beauty', '美妆个护' ], [ 'baby', '母婴玩具' ], [ 'food', '食品生鲜' ], [ 'apparel', '服饰鞋包' ], [ 'pet', '宠物生活' ], [ 'stationery', '文具耗材' ], [ 'pc', '电脑办公' ], [ 'bags', '箱包配饰' ], [ 'outdoor', '运动户外' ] ];
 
   function $(id) { return doc.getElementById(id); }
 
@@ -172,7 +176,7 @@
     if (!state.platform) return list;
     return list.filter(function (c) { return (c.platform || 'jd') === state.platform; });
   }
-  function currentView() { return sortList(filterPlat(state.list).filter(matchPrice)); }
+  function currentView() { return sortList(filterPlat(state.list).filter(matchPrice).filter(matchDiscount).filter(matchCategory)); }
 
   /* 组合筛选（平台/价格/排序）回写 URL：可分享、刷新保持；仅 browse/category */
   function syncUrl() {
@@ -181,6 +185,8 @@
     if (state.sort) p.set('sort', state.sort); else p.delete('sort');
     if (state.price) p.set('price', state.price); else p.delete('price');
     if (state.platform) p.set('plat', state.platform); else p.delete('plat');
+    if (state.disc) p.set('disc', state.disc); else p.delete('disc');
+    if (state.cats.length) p.set('cat', state.cats.join(',')); else p.delete('cat');
     var q = p.toString();
     try { global.history.replaceState(null, '', global.location.pathname + (q ? '?' + q : '')); } catch (e) {}
   }
@@ -226,6 +232,64 @@
           updateRankMore();
           return;
         }
+        render(currentView(), false);
+      });
+      bar.appendChild(b);
+    });
+  }
+
+  /* 折扣力度筛选（动态注入 select，无需改每个 HTML；与价格区间并列） */
+  function ensureDiscBar() {
+    if (discSelect && discSelect.parentNode) return;
+    var host = global.document.querySelector('.cp-toolbar-controls');
+    if (!host) host = global.document.querySelector('.cp-toolbar');
+    if (!host) return;
+    var lab = el('label', 'cp-sort');
+    lab.innerHTML = '<span class="cp-sort-label">折扣</span>';
+    var sel = el('select', '', '');
+    sel.id = 'listDiscount';
+    sel.setAttribute('aria-label', '折扣力度筛选');
+    [ [ '', '全部折扣' ] ].concat(Object.keys(DISCOUNT_LABELS).map(function (k) { return [ k, DISCOUNT_LABELS[k] ]; })).forEach(function (o) {
+      var opt = el('option', '', o[1]); opt.value = o[0]; sel.appendChild(opt);
+    });
+    lab.appendChild(sel);
+    host.appendChild(lab);
+    discSelect = sel;
+  }
+
+  /* 品类叠加筛选（动态注入 chip 栏；仅当数据确有 category 字段才显示） */
+  function ensureCatBar() {
+    var bar = $('cpCat');
+    if (bar) { rebuildCatBar(); return; }
+    if (!hasCategoryField()) return;
+    var host = global.document.querySelector('.cp-toolbar');
+    if (!host) return;
+    bar = el('div', 'cp-cat');
+    bar.id = 'cpCat';
+    bar.setAttribute('role', 'group');
+    bar.setAttribute('aria-label', '品类筛选');
+    host.appendChild(bar);
+    rebuildCatBar();
+  }
+  function rebuildCatBar() {
+    var bar = $('cpCat');
+    if (!bar) return;
+    bar.innerHTML = '';
+    CATEGORIES.forEach(function (o) {
+      var b = el('button', 'cp-cat-chip' + (state.cats.indexOf(o[0]) >= 0 ? ' is-active' : ''), o[0] ? o[1] : '全部');
+      b.type = 'button';
+      b.setAttribute('data-cat', o[0]);
+      b.addEventListener('click', function () {
+        var v = o[0];
+        if (!v) { state.cats = []; }
+        else {
+          var i = state.cats.indexOf(v);
+          if (i >= 0) state.cats.splice(i, 1); else state.cats.push(v);
+        }
+        syncUrl();
+        Array.prototype.forEach.call(bar.children, function (x) { x.classList.toggle('is-active', state.cats.indexOf(x.getAttribute('data-cat')) >= 0); });
+        if (!state.list.length && !state.rankAll.length) return;
+        if (mode === 'rank') { state.rankShown = Math.min(PAGE_SIZE, rankFiltered().length); render(rankView(), false); updateRankMore(); return; }
         render(currentView(), false);
       });
       bar.appendChild(b);
@@ -321,6 +385,26 @@
     return true;
   }
 
+  // 折扣力度（券面额）前端筛选
+  function matchDiscount(c) {
+    if (!state.disc) return true;
+    var d = Number(c.couponDiscount) || 0;
+    if (state.disc === 'ge50') return d >= 50;
+    if (state.disc === 'd20_50') return d >= 20 && d < 50;
+    if (state.disc === 'lt20') return d > 0 && d < 20;
+    return true;
+  }
+  // 品类叠加筛选：仅当已加载数据确有 category 字段时才生效（fail-soft，避免无数据空栏误导）
+  function matchCategory(c) {
+    if (!state.cats.length) return true;
+    var kw = ((c.category || '') + ' ' + (c.keywords || '') + ' ' + (c.title || '')).toLowerCase();
+    return state.cats.some(function (cat) { return kw.indexOf(String(cat).toLowerCase()) >= 0; });
+  }
+  function hasCategoryField() {
+    return state.list.some(function (c) { return c && c.category; }) ||
+           state.rankAll.some(function (c) { return c && c.category; });
+  }
+
   // 收藏星标（store.js 提供）：运行时卡与预渲染卡同一套交互
   function attachStar(cardEl, c) {
     if (!global.CouponStore) return;
@@ -348,6 +432,8 @@
 
   function render(list, append) {
     rebuildPlatBar();
+    ensureCatBar();
+    rebuildCatBar();
     updateListCount();
     if (!append) grid.innerHTML = '';
     if (!list.length) {
@@ -416,7 +502,7 @@
   }
 
   // 榜单本地分页：一次取满 RANK_LIMIT 条存 rankAll，rankShown 控制已展示条数（筛选/排序作用于全量后截断）
-  function rankFiltered() { return sortList(filterPlat(state.rankAll).filter(matchPrice)); }
+  function rankFiltered() { return sortList(filterPlat(state.rankAll).filter(matchPrice).filter(matchDiscount).filter(matchCategory)); }
   function rankView() { return rankFiltered().slice(0, state.rankShown); }
   function updateRankMore() {
     if (!moreBtn || mode !== 'rank') return;
@@ -574,17 +660,21 @@
       countEl.hidden = true;
       grid.parentNode.insertBefore(countEl, grid);
     }
-    tabs = $('rankTabs'); sortSelect = $('listSort'); priceSelect = $('listPrice');
+    tabs = $('rankTabs'); sortSelect = $('listSort'); priceSelect = $('listPrice'); discSelect = $('listDiscount');
     if (!grid || !statusEl) return;
     ensurePlatBar();
+    ensureDiscBar();
     // 默认排序跟随 select 初始选中项（省钱力度↓），与预渲染顺序一致
     if (sortSelect) state.sort = sortSelect.value || '';
     // 从 URL 恢复组合筛选（刷新/分享链接保持一致）：先于首次 render
     var usp = new URLSearchParams(global.location.search);
     var uSort = usp.get('sort'), uPrice = usp.get('price'), uPlat = usp.get('plat');
+    var uDisc = usp.get('disc'), uCat = usp.get('cat');
     if (uSort && sortSelect) { sortSelect.value = uSort; state.sort = uSort; }
     if (uPrice && priceSelect) { priceSelect.value = uPrice; state.price = uPrice; }
     if (uPlat) state.platform = uPlat;
+    if (uDisc && discSelect) { discSelect.value = uDisc; state.disc = uDisc; }
+    if (uCat) state.cats = uCat.split(',').filter(Boolean);
 
     if (sortSelect) {
       sortSelect.addEventListener('change', function () {
@@ -613,6 +703,16 @@
           updateRankMore();
           return;
         }
+        render(currentView(), false);
+      });
+    }
+
+    if (discSelect) {
+      discSelect.addEventListener('change', function () {
+        state.disc = discSelect.value;
+        syncUrl();
+        if (!state.list.length && !state.rankAll.length) return;
+        if (mode === 'rank') { state.rankShown = Math.min(PAGE_SIZE, rankFiltered().length); render(rankView(), false); updateRankMore(); return; }
         render(currentView(), false);
       });
     }

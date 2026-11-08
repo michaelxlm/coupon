@@ -26,6 +26,9 @@ jobs:
           mkdir -p /root/.ssh && chmod 700 /root/.ssh
           ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /root/.ssh/known_hosts 2>/dev/null
       - uses: actions/checkout@v4
+        with:
+          # 强制清理工作树：前次构建会改写源码树(list-page.js 等)，若不复位会用陈旧源码被指纹化
+          clean: true
       - name: "Install @xuyiheng/static-build-kit (WO-164 ④ private file: dep)"
         shell: bash
         env:

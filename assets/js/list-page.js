@@ -33,7 +33,7 @@
 
   var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', list: [], rankAll: [], rankShown: 0 };
 
-  var grid, statusEl, moreBtn, tabs, sortSelect, priceSelect;
+  var grid, statusEl, moreBtn, tabs, sortSelect, priceSelect, countEl;
   var loadActions = {};
   var memCache = {};
   var viewToken = 0;
@@ -348,6 +348,7 @@
 
   function render(list, append) {
     rebuildPlatBar();
+    updateListCount();
     if (!append) grid.innerHTML = '';
     if (!list.length) {
       if (!append) { showStatus(state.price && state.list.length ? '已加载的券里没有符合该价格区间的，试试更大区间或加载更多。' : '暂无优惠券，换个关键词或稍后再试。'); }
@@ -356,6 +357,26 @@
     hideStatus();
     list.forEach(function (c) { var card = buildCard(c); grid.appendChild(card); attachStar(card, c); });
     if (global.Conv && global.Conv.reobserve) global.Conv.reobserve();
+  }
+
+  // 统计文案（诚实口径，审计 line 852）：rank 区分「全站在架」（本周期去重后在架全集）与
+  // 「当前列表」（按平台/价格筛选后条数）；browse/category 仅显示真实结果数，不复用「全站在架」虚高口径
+  function updateListCount() {
+    if (!countEl) return;
+    if (mode === 'rank') {
+      var total = (state.rankAll || []).length;
+      if (!total) { countEl.hidden = true; return; }
+      var filtered = rankFiltered().length;
+      countEl.hidden = false;
+      countEl.textContent = state.platform
+        ? ('当前列表 ' + filtered + ' 张 · 全站在架 ' + total + ' 张（已按平台筛选）')
+        : ('全站在架 ' + total + ' 张');
+      return;
+    }
+    var k = (state.list || []).length;
+    if (!k) { countEl.hidden = true; return; }
+    countEl.hidden = false;
+    countEl.textContent = '正在展示 ' + k + ' 张优惠券';
   }
 
   function showStatus(text, retryFn) {
@@ -541,6 +562,18 @@
 
   function init() {
     grid = $('listGrid'); statusEl = $('listState'); moreBtn = $('listMore');
+    // 诚实统计文案落点（审计 line 852）：动态注入独立计数元素，避免逐个改 25 个列表页 HTML
+    countEl = $('listCount');
+    if (!countEl && grid && grid.parentNode) {
+      countEl = doc.createElement('div');
+      countEl.id = 'listCount';
+      countEl.className = 'cp-count';
+      countEl.setAttribute('role', 'status');
+      countEl.setAttribute('aria-live', 'polite');
+      countEl.style.cssText = 'margin:10px 2px;color:#6b7280;font-size:13px;';
+      countEl.hidden = true;
+      grid.parentNode.insertBefore(countEl, grid);
+    }
     tabs = $('rankTabs'); sortSelect = $('listSort'); priceSelect = $('listPrice');
     if (!grid || !statusEl) return;
     ensurePlatBar();

@@ -24,7 +24,7 @@
 
   var state = { mode: 'rank', period: 'week', search: '', page: 1, hasMore: false, loading: false, sort: '', platform: '', list: [], rankAll: [], rankShown: 0 };
 
-  var grid, statusEl, moreBtn, tabs, searchForm, searchInput, sortSelect, listStateEl;
+  var grid, statusEl, moreBtn, tabs, searchForm, searchInput, sortSelect;
   var recGrid, recSection;
   var loadActions = {}; // name -> function，供错误态「重试」复用最近一次加载动作
 
@@ -634,7 +634,6 @@
 
   function render(list, append) {
     rebuildPlatBar();
-    updateListState();
     if (!append) grid.innerHTML = '';
     if (!list.length) {
       if (!append) { showStatus('暂无优惠券，换个关键词或稍后再试。'); }
@@ -646,34 +645,6 @@
     if (global.Conv && global.Conv.reobserve) global.Conv.reobserve();
     // W4：情报条 / Top10 / 氛围条（基于当前已加载集合，静默降级）
     try { renderIntelBar(); renderTop10(); renderMoodBar(); } catch (e) { /* 忽略 */ }
-  }
-
-  // 统计文案（诚实口径，审计 line 852）：rank 区分「全站在架」（本周期去重后在架全集）与
-  // 「当前列表」（按平台筛选后条数）；search 态只显示真实结果数，不复用「全站在架」虚高口径；
-  // featured/drops 等其他列表态同样只显示真实结果数。
-  function updateListState() {
-    if (!listStateEl) return;
-    var mode = state.mode;
-    if (mode === 'search') {
-      var n = (state.list || []).length;
-      listStateEl.hidden = false;
-      listStateEl.textContent = n > 0 ? ('找到 ' + n + ' 张相关优惠券') : '未找到相关优惠券，换个关键词试试';
-      return;
-    }
-    if (mode === 'rank') {
-      var total = (state.rankAll || []).length;
-      if (total === 0) { listStateEl.hidden = false; listStateEl.textContent = '本周期暂无在架优惠券'; return; }
-      var filtered = rankFiltered().length;
-      listStateEl.hidden = false;
-      listStateEl.textContent = state.platform
-        ? ('当前列表 ' + filtered + ' 张 · 全站在架 ' + total + ' 张（已按平台筛选）')
-        : ('全站在架 ' + total + ' 张');
-      return;
-    }
-    // featured / drops 等其他列表态：仅显示真实结果数（不复用全站在架虚高口径）
-    var k = (state.list || []).length;
-    listStateEl.hidden = false;
-    listStateEl.textContent = k > 0 ? ('正在展示 ' + k + ' 张优惠券') : '暂无优惠券';
   }
 
   // 状态区（aria-live 已在 index.html 上声明），带错误态重试按钮
@@ -892,7 +863,7 @@
   }
 
   function init() {
-    grid = $('cpGrid'); statusEl = $('cpState'); moreBtn = $('cpMore'); listStateEl = $('listState');
+    grid = $('cpGrid'); statusEl = $('cpState'); moreBtn = $('cpMore');
     tabs = $('cpTabs'); searchForm = $('cpSearchForm'); searchInput = $('cpSearchInput');
     sortSelect = $('cpSort');
     if (!grid || !statusEl) return;

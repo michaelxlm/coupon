@@ -80,6 +80,14 @@ jobs:
           NODE=/www/server/nodejs/v20.18.3/bin/node
           [ -x "$NODE" ] || NODE=node
           $NODE scripts/selfcheck.js
+      - name: Apply unified site shell (footer / about / ads / cross-links)
+        shell: bash
+        run: |
+          # 展示层统一规范：预渲染/指纹/selfcheck 之后的最后一步；保留 CHROME:FOOTER 标记，产物不入库
+          NODE=/www/server/nodejs/v20.18.3/bin/node
+          [ -x "$NODE" ] || NODE=node
+          $NODE scripts/apply-site-shell.js
+          $NODE scripts/apply-site-shell.js --check
       - name: Sync to /www/wwwroot/coupon.zangeng.com
         shell: bash
         run: |

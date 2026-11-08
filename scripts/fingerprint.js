@@ -291,7 +291,10 @@ function pruneStaleVariants(abs, info) {
     if (e === newName || e === srcBase) continue;
     if (path.extname(e) !== ext) continue;
     const eBase = path.basename(e, ext);
-    // 必须精确匹配 stem + .<8~12位hash> 形式，避免误删 style.min.css 等带点的源文件
+    // 必须精确匹配 stem + .<8~12位hash> 形式：先校验前缀等于 stem，再校验后缀为 .<hash>。
+    // 否则长度相同的不同 stem（如 list-page 与 favorites 同为 9 字符）会互相误删对方刚生成的
+    // 新指纹文件，导致 HTML 引用指向一个被删的死文件（计数 JS 404 / 修复永不生效）。WO 缺陷修复。
+    if (eBase.slice(0, stem.length) !== stem) continue;
     const suffix = eBase.slice(stem.length);
     if (!/^\.[A-Za-z0-9_-]{8,12}$/.test(suffix)) continue;
     const full = path.join(dir, e);

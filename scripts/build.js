@@ -448,6 +448,8 @@ function catPageShell(cat, list) {
   <meta name="description" content="${esc(desc)}">
   <meta name="keywords" content="${esc('全网' + cat.name + '优惠券,' + cat.name + '券,领券中心,满减券')}">
   <meta name="robots" content="index,follow">
+  <link rel="dns-prefetch" href="//api.xuyiheng.com">
+  <link rel="preconnect" href="https://api.xuyiheng.com" crossorigin>
   <link rel="icon" href="/assets/img/favicon.svg">
   <link rel="canonical" href="${esc(url)}">
   <meta property="og:type" content="website">
@@ -667,6 +669,8 @@ function detailPageShell(c, related) {
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="index,follow">
+  <link rel="dns-prefetch" href="//api.xuyiheng.com">
+  <link rel="preconnect" href="https://api.xuyiheng.com" crossorigin>
   <link rel="icon" href="/assets/img/favicon.svg">
   <link rel="canonical" href="${esc(url)}">
   <meta property="og:type" content="website">
@@ -780,6 +784,8 @@ function detailShellPage() {
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="noindex,follow">
+  <link rel="dns-prefetch" href="//api.xuyiheng.com">
+  <link rel="preconnect" href="https://api.xuyiheng.com" crossorigin>
   <link rel="icon" href="/assets/img/favicon.svg">
   <link rel="canonical" href="${esc(SITE_URL + '/rank.html')}">
   <meta property="og:type" content="website">
@@ -895,6 +901,8 @@ function dropsPageShell(list) {
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="index,follow">
+  <link rel="dns-prefetch" href="//api.xuyiheng.com">
+  <link rel="preconnect" href="https://api.xuyiheng.com" crossorigin>
   <link rel="icon" href="/assets/img/favicon.svg">
   <link rel="canonical" href="${esc(url)}">
   <meta property="og:type" content="website">
@@ -1107,6 +1115,8 @@ function guideIndexShell(articles) {
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="index,follow">
+  <link rel="dns-prefetch" href="//api.xuyiheng.com">
+  <link rel="preconnect" href="https://api.xuyiheng.com" crossorigin>
   <link rel="icon" href="/assets/img/favicon.svg">
   <link rel="canonical" href="${esc(url)}">
   <meta property="og:type" content="website">
@@ -1193,6 +1203,8 @@ function guidePageShell(a, others, detailIdMap) {
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="index,follow">
+  <link rel="dns-prefetch" href="//api.xuyiheng.com">
+  <link rel="preconnect" href="https://api.xuyiheng.com" crossorigin>
   <link rel="icon" href="/assets/img/favicon.svg">
   <link rel="canonical" href="${esc(url)}">
   <meta property="og:type" content="article">

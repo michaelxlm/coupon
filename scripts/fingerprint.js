@@ -172,6 +172,43 @@ function resolveRef(refRaw, fromFile) {
 
 function baseOf(p) { return path.basename(p); }
 
+/**
+ * 把「带指纹的引用」还原成它的源文件路径。
+ * 例：/assets/js/mp-slot.MnvKqn57JW.js -> /assets/js/mp-slot.js
+ * 命中条件：文件名符合 name.<8~12位hash>.ext；返回 null 表示该引用不是指纹资源。
+ */
+function sourceOfHashedRef(refRaw, fromFile) {
+  const clean = stripQueryHash(refRaw);
+  const base = baseOf(clean);
+  const m = HASHED_RE.exec(base);
+  if (!m) return null;
+  if (!ASSET_EXT.has(extOf(refRaw))) return null;
+  const ext = path.extname(base);
+  const srcBase = base.slice(0, m.index) + ext;
+  const dir = clean.startsWith('/')
+    ? path.join(ROOT, path.dirname(clean))
+    : path.dirname(path.resolve(path.dirname(fromFile), clean));
+  const src = path.join(dir, srcBase);
+  try { if (fs.statSync(src).isFile()) return src; } catch (e) {}
+  return null;
+}
+
+/**
+ * 指纹构建统一的引用解析（WO-140 · visitor mp-slot 404 自愈）：
+ *   ① 引用指向的真实文件存在 → 原样返回；
+ *   ② 引用已是 name.<hash>.ext 但副本缺失（例如上一轮构建的产物没进本次 checkout，
+ *      而 HTML 仍带着旧指纹）→ 回落到源文件，让本轮重新算出哈希副本并改写引用；
+ *   ③ 其余返回 null。
+ * 缺了 ② 时，discoverTargets 会把这类引用整个跳过：哈希副本不生成、HTML 也不改写，
+ * 部署后就是静默 404（visitor 的 mp-slot.MnvKqn57JW.js 即此形态）。
+ */
+function resolveTargetRef(refRaw, fromFile) {
+  const hit = resolveRef(refRaw, fromFile);
+  if (hit) return hit;
+  if (isExternal(refRaw)) return null;
+  return sourceOfHashedRef(refRaw, fromFile);
+}
+
 function isExcluded(absPath) {
   const b = baseOf(absPath);
   if (EXCLUDE_BASE.has(b)) return true;
@@ -206,7 +243,7 @@ function discoverTargets(src) {
     RE_HTML_REF.lastIndex = 0;
     while ((m = RE_HTML_REF.exec(txt))) {
       const ref = m[2];
-      const abs = resolveRef(ref, file);
+      const abs = resolveTargetRef(ref, file);
       if (!abs) continue;
       if (!ASSET_EXT.has(extOf(ref))) continue;
       if (isExcluded(abs)) continue;
@@ -220,7 +257,7 @@ function discoverTargets(src) {
     RE_CSS_URL.lastIndex = 0;
     while ((m = RE_CSS_URL.exec(txt))) {
       const ref = m[2];
-      const abs = resolveRef(ref, file);
+      const abs = resolveTargetRef(ref, file);
       if (!abs) continue;
       if (!ASSET_EXT.has(extOf(ref))) continue;
       if (isExcluded(abs)) continue;
@@ -246,7 +283,7 @@ function rewriteFile(file, manifest, hashCache) {
     if (isCss) {
       const quote = args[0];
       ref = args[1];
-      const h = resolveRef(ref, file);
+      const h = resolveTargetRef(ref, file);
       if (!h || !manifest.has(h)) return whole;
       prefix = 'url(' + quote;
       suffix = quote + ')';
@@ -259,7 +296,7 @@ function rewriteFile(file, manifest, hashCache) {
     } else {
       const attr = args[0];
       ref = args[1];
-      const h = resolveRef(ref, file);
+      const h = resolveTargetRef(ref, file);
       if (!h || !manifest.has(h)) return whole;
       const newName = manifest.get(h).name;
       const base = baseOf(stripQueryHash(ref));
@@ -291,9 +328,10 @@ function pruneStaleVariants(abs, info) {
     if (e === newName || e === srcBase) continue;
     if (path.extname(e) !== ext) continue;
     const eBase = path.basename(e, ext);
-    // 必须精确匹配 stem + .<8~12位hash> 形式：先校验前缀等于 stem，再校验后缀为 .<hash>。
-    // 否则长度相同的不同 stem（如 list-page 与 favorites 同为 9 字符）会互相误删对方刚生成的
-    // 新指纹文件，导致 HTML 引用指向一个被删的死文件（计数 JS 404 / 修复永不生效）。WO 缺陷修复。
+    // 必须精确匹配「同一 stem + .<8~12位hash>」：先钉死前缀，再校验后缀。
+    // 只校验后缀时，长度恰好相同的**不同** stem 会互相误删刚生成的指纹文件
+    // （visitor 的 visitor.js 与 mp-slot.js 均为 7 字符，曾把 mp-slot.<hash>.js
+    //  当成 visitor 的旧变体删掉 → 线上 HTML 指向 404）。WO-140：回灌 coupon 既有修复到单源。
     if (eBase.slice(0, stem.length) !== stem) continue;
     const suffix = eBase.slice(stem.length);
     if (!/^\.[A-Za-z0-9_-]{8,12}$/.test(suffix)) continue;
@@ -305,6 +343,31 @@ function pruneStaleVariants(abs, info) {
     }
   }
   if (!DRY && pruned > 0) console.log(`  清理 ${pruned} 个旧指纹变体 (stem=${stem})`);
+}
+
+/**
+ * 部署前资源完整性门禁（WO-140）：扫描构建后 HTML/CSS 的全部本地资源引用，
+ * 逐个确认目标文件存在。缺一个就把 CI 打断，杜绝「HTML 指向 404」被静默发布。
+ * DRY 模式不落盘，只提示跳过，避免把尚未生成的哈希副本误报为缺失。
+ */
+function verifyRefs(src) {
+  if (DRY) { console.log('[dry-run] 跳过资源完整性门禁'); return []; }
+  const missing = [];
+  const checkFile = (file, isCss) => {
+    const txt = fs.readFileSync(file, 'utf8');
+    const re = isCss ? RE_CSS_URL : RE_HTML_REF;
+    re.lastIndex = 0;
+    let m;
+    while ((m = re.exec(txt))) {
+      const ref = m[2];
+      if (!ref || isExternal(ref) || !ASSET_EXT.has(extOf(ref))) continue;
+      if (resolveRef(ref, file)) continue;
+      missing.push({ file: path.relative(ROOT, file), ref });
+    }
+  };
+  src.html.forEach(f => checkFile(f, false));
+  src.css.forEach(f => checkFile(f, true));
+  return missing;
 }
 
 function runRename() {
@@ -346,9 +409,31 @@ function runRename() {
   console.log(`${label}指纹完成：资源 ${manifest.size} 个，改写引用 ${touchedRefs} 处，涉及 ${touchedFiles} 个文件`);
 
   const localAssets = [...targets];
-  if (!DRY && src.html.length > 0 && touchedRefs === 0 && localAssets.length > 0) {
+  // 「改写 0 处」不等于失败：HTML 可能已带指纹（自愈场景，本轮只补回缺失的哈希副本）。
+  // 只有当输出里一个指纹引用都没有时，才判为引用解析未适配。
+  const hashedRefCount = src.html.reduce((n, f) => {
+    const txt = fs.readFileSync(f, 'utf8');
+    let hit = 0;
+    RE_HTML_REF.lastIndex = 0;
+    let m;
+    while ((m = RE_HTML_REF.exec(txt))) {
+      if (HASHED_RE.test(baseOf(stripQueryHash(m[2])))) hit++;
+    }
+    return n + hit;
+  }, 0);
+  if (!DRY && src.html.length > 0 && touchedRefs === 0 && localAssets.length > 0 && hashedRefCount === 0) {
     console.error('[fingerprint] 发现本地资源但改写引用为 0，疑似引用解析未适配，终止');
     process.exitCode = 1;
+  }
+
+  const missing = verifyRefs(src);
+  if (missing.length) {
+    console.error(`[fingerprint] 资源完整性门禁失败：${missing.length} 个引用指向不存在的文件（上线即 404）`);
+    missing.slice(0, 30).forEach(x => console.error(`  - ${x.file} :: ${x.ref}`));
+    if (missing.length > 30) console.error(`  ... 另有 ${missing.length - 30} 条`);
+    process.exitCode = 1;
+  } else if (!DRY) {
+    console.log('[fingerprint] 资源完整性门禁：全部本地引用可达 ✓');
   }
 }
 

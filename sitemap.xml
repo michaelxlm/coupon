@@ -1326,4 +1326,7 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
+<!-- SITE-SHELL:SITEMAP:START -->
+<url><loc>https://coupon.zangeng.com/sites.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+<!-- SITE-SHELL:SITEMAP:END -->
 </urlset>

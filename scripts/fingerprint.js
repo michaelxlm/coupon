@@ -138,7 +138,9 @@ function walk(dir, out, filterFn) {
 }
 
 function collectSourceFiles() {
-  const html = walk(ROOT, [], (f) => f.endsWith('.html'));
+  // 只收集「源文件」：排除 name.<8~12位hash>.ext 形式的旧指纹产物，
+  // 否则 pruneStaleVariants 删除旧副本后，verifyRefs 再读取会 ENOENT。
+  const html = walk(ROOT, [], (f) => f.endsWith('.html') && !HASHED_RE.test(path.basename(f)));
   const css = [];
   (function scan(dir) {
     let entries;
@@ -148,7 +150,7 @@ function collectSourceFiles() {
       if (ent.isDirectory()) {
         if (SKIP_DIRS.has(ent.name) || SRC_SKIP_DIRS.has(ent.name)) continue;
         scan(full);
-      } else if (ent.name.endsWith('.css')) {
+      } else if (ent.name.endsWith('.css') && !HASHED_RE.test(ent.name)) {
         css.push(full);
       }
     }
@@ -354,7 +356,8 @@ function verifyRefs(src) {
   if (DRY) { console.log('[dry-run] 跳过资源完整性门禁'); return []; }
   const missing = [];
   const checkFile = (file, isCss) => {
-    const txt = fs.readFileSync(file, 'utf8');
+    let txt;
+    try { txt = fs.readFileSync(file, 'utf8'); } catch (e) { return; } // 旧指纹产物已被 prune 删除，跳过
     const re = isCss ? RE_CSS_URL : RE_HTML_REF;
     re.lastIndex = 0;
     let m;

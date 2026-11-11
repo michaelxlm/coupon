@@ -33,6 +33,9 @@ const { COUPON_SITE } = require('./site-config'); // 站点导航单一源（bui
 const NAV = require('@xuyiheng/static-build-kit/shared-navigation'); // WO-93：原生导航无缝化（Speculation Rules 预取 + View Transitions）单一源（WO-164 ④ 私有包化）
 const { buildTopics } = require('./build-topics'); // WO-125：AI 场景导购 + 实时比价落地页（复用本次快照对象预渲染）
 const { buildCommercial } = require('./build-commercial'); // WO-121：高商业意图省钱攻略长尾页（复用 build-topics 同口径助手）
+const LD = require('./product-ld'); // 商家信息「宁缺毋错」：券 Product/Offer 节点的单一口径（Search Console 严重问题源头防护）
+// WO-197：首屏主题 boot 改由 shared-partials 单源生成 —— 必须先把 auto 解析成 light/dark 再落 data-theme
+const THEME_BOOT = P.renderThemeBoot({ legacy: ['__theme'] });
 
 const API_BASE = process.env.COUPON_API_BASE || 'https://api.xuyiheng.com';
 const MAIN_URL = process.env.COUPON_MAIN_URL || 'coupon.zangeng.com';
@@ -256,24 +259,21 @@ function renderGridHtml(list) {
 }
 
 function jsonLd(list, name, url) {
-  const items = list.slice(0, 20).map((c, i) => ({
-    '@type': 'ListItem',
-    position: i + 1,
-    url: cardLink(c) || url,
-    item: {
-      '@type': 'Product',
+  const items = list.slice(0, 20).map((c, i) => {
+    const link = cardLink(c) || url;
+    const product = LD.buildProductNode({
       name: c.title || '优惠券',
-      image: safeUrl(c.pict_url) || undefined,
+      image: c.pict_url,
+      price: c.price,
+      url: link,
       description: (c.title ? c.title + '。' : '') + '京东/淘宝等平台联盟实时优惠，先领券再下单更省。',
-      offers: {
-        '@type': 'Offer',
-        price: Number(c.price) || 0,
-        priceCurrency: 'CNY',
-        url: cardLink(c) || url,
-        availability: 'https://schema.org/InStock',
-      },
-    },
-  }));
+      availability: 'https://schema.org/InStock',
+    });
+    // 快照缺合法图片或真实到手价 → 不写残缺 Product（那是严重问题），ListItem 降级为只带 url + name
+    return product
+      ? { '@type': 'ListItem', position: i + 1, url: link, item: product }
+      : { '@type': 'ListItem', position: i + 1, name: c.title || '优惠券', url: link };
+  });
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -469,7 +469,7 @@ function catPageShell(cat, list) {
 </head>
 <body data-page="category" data-mode="category" data-kw="${esc(cat.kw)}" data-theme-default="light">
   <a class="skip-link" href="#main">跳到主内容</a>
-  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, COUPON_PAGE, {}, { navAriaCurrent: true })}
@@ -634,21 +634,20 @@ function detailPageShell(c, related) {
   const title = `${c.title || '优惠券'}${off > 0 ? (' 满' + quota + '减' + off) : ''}${price > 0 ? (' 到手¥' + price) : ''} · 券详情 | 小满券仓`;
   const desc = `${c.title || '优惠券'}${off > 0 ? ('，当前券力度 满' + quota + '减' + off) : ''}${price > 0 ? ('，到手约 ¥' + price) : ''}。查看价格走势、订阅降价提醒，先领券再下单更省；最终优惠以商家活动页为准。`;
   const exLabel = expireLabel(c);
+  // 「宁缺毋错」：无合法图片则整块不写 Product（只留面包屑），无真实到手价则不写 offers；
+  // 旧写法 image: img || undefined / price: price || undefined 会留下「有节点无字段」的严重问题形态
+  const product = LD.buildProductNode({
+    context: 'https://schema.org',
+    name: c.title || '优惠券',
+    image: img,
+    price: price,
+    url: url,
+    description: desc,
+    availability: 'https://schema.org/InStock',
+    seller: { '@type': 'Organization', name: '小满券仓' },
+  });
   const ld = JSON.stringify([
-    {
-      '@context': 'https://schema.org', '@type': 'Product',
-      name: c.title || '优惠券',
-      image: img || undefined,
-      description: desc,
-      offers: {
-        '@type': 'Offer',
-        price: price || undefined,
-        priceCurrency: 'CNY',
-        url: url,
-        availability: 'https://schema.org/InStock',
-        seller: { '@type': 'Organization', name: '小满券仓' },
-      },
-    },
+    ...(product ? [product] : []),
     {
       '@context': 'https://schema.org', '@type': 'BreadcrumbList',
       itemListElement: [
@@ -692,7 +691,7 @@ function detailPageShell(c, related) {
       data-price="${esc(price)}" data-quota="${esc(quota)}" data-off="${esc(off)}"
       data-url="${esc(link)}" data-platform="${esc(c.platform || 'jd')}" data-end="${esc(c.couponEndTime || '')}">
   <a class="skip-link" href="#main">跳到主内容</a>
-  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
@@ -818,7 +817,7 @@ function detailShellPage() {
       data-price="0" data-quota="0" data-off="0"
       data-url="" data-platform="jd" data-end="">
   <a class="skip-link" href="#main">跳到主内容</a>
-  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
@@ -933,7 +932,7 @@ function dropsPageShell(list) {
 </head>
 <body data-page="drops" data-mode="drops" data-theme-default="light">
   <a class="skip-link" href="#main">跳到主内容</a>
-  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
@@ -1146,7 +1145,7 @@ function guideIndexShell(articles) {
 </head>
 <body data-page="guides" data-theme-default="light">
   <a class="skip-link" href="#main">跳到主内容</a>
-  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/guides.html' }, {}, { navAriaCurrent: true })}
@@ -1235,7 +1234,7 @@ function guidePageShell(a, others, detailIdMap) {
 </head>
 <body data-page="guide-article" data-theme-default="light">
   <a class="skip-link" href="#main">跳到主内容</a>
-  <script>(function(){try{var t=localStorage.getItem('mrx_theme')||document.documentElement.getAttribute('data-theme-default')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/guides.html' }, {}, { navAriaCurrent: true })}

@@ -31,6 +31,56 @@ function escapeAttr(input) {
   return escapeHtml(input).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+/* ------------------------- 主题契约（WO-197 · 七站统一） ------------------------- */
+/**
+ * 七站的主题键（mrx_theme）与三态（auto / light / dark）早已统一，本段再把
+ * 「首屏防闪烁脚本」与「切换控件标记」也收敛为单一写法，避免各站自定 auto 判定。
+ *
+ * - renderThemeBoot()：必须先把三态偏好**解析成 light / dark** 再落 data-theme。
+ *   直接把 localStorage 原值写进 data-theme 的旧写法有真实缺陷：新访客默认态就是
+ *   auto，于是首屏落 data-theme="auto" 命中不了任何 CSS 选择器（CSS 只认 light/dark），
+ *   暗色系统用户每帧先看到亮色、等运行期 JS 再翻色 —— 等于 auto 跟随系统在首屏失效。
+ * - renderThemeToggle()：控件骨架，全站统一 class="theme-toggle"（图标 🌗/☀/🌙 由运行期
+ *   JS 按「模式」写，静态默认给 auto 态图标，保证无 JS 时观感与默认态一致）。
+ *
+ * legacy 参数：各站历史主题键不同（notes 系 __theme；visitor / color-tool 系 theme
+ * 与 cs-color-tool:theme），只迁移不回迁；localStorage 按域隔离，各站只需读自己的旧键，
+ * 因此旧键清单允许不同，脚本结构必须一致（由 check-theme-contract.js 断言）。
+ */
+const THEME_KEY = 'mrx_theme';
+const THEME_MODES = ['auto', 'light', 'dark'];
+const THEME_ICON = { auto: '🌗', light: '☀', dark: '🌙' };
+const THEME_LABEL = { auto: '自动', light: '亮色', dark: '暗色' };
+
+/** 首屏主题预置脚本（含旧键迁移 + auto 解析），输出单行 <script> */
+function renderThemeBoot(opts) {
+  const o = opts || {};
+  const legacy = (Array.isArray(o.legacy) ? o.legacy : []).filter((k) => k && k !== THEME_KEY);
+  return '<script>(function(){try{function m(q){return !!(window.matchMedia&&window.matchMedia(q).matches);}'
+    + 'var k="' + THEME_KEY + '",t=localStorage.getItem(k);'
+    + 'if(t!=="auto"&&t!=="light"&&t!=="dark"){var o=' + JSON.stringify(legacy) + ';'
+    + 'for(var i=0;i<o.length;i++){var v=localStorage.getItem(o[i]);if(v==="light"||v==="dark"){t=v;break;}}}'
+    + 'if(t!=="light"&&t!=="dark"){t=m("(prefers-color-scheme: dark)")?"dark":m("(prefers-color-scheme: light)")?"light"'
+    + ':(document.documentElement.getAttribute("data-theme-default")==="dark"?"dark":"light");}'
+    + 'document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>';
+}
+
+/**
+ * 主题切换控件标记
+ * @param {Object} [opts] - { extraClass: 'icon-btn', id: 'themeToggle', label: '切换主题', wrapIcon: false }
+ *   id 传 false 则不输出 id（页面可能存在多处控件时）
+ *   wrapIcon：aiWeb / color-tool 的运行期 JS 往 .theme-toggle-icon 容器写图标
+ *     （写 btn.textContent 会把容器子节点换掉，两者不能混用），此处相应包一层 span
+ */
+function renderThemeToggle(opts) {
+  const o = opts || {};
+  const cls = ['theme-toggle', o.extraClass].filter(Boolean).join(' ');
+  const id = o.id === false ? '' : ` id="${escapeAttr(o.id || 'themeToggle')}"`;
+  const label = o.label || '切换主题';
+  const inner = o.wrapIcon ? `<span class="theme-toggle-icon">${THEME_ICON.auto}</span>` : THEME_ICON.auto;
+  return `<button class="${cls}"${id} type="button" aria-label="${escapeAttr(label)}" title="${escapeAttr(label)}">${inner}</button>`;
+}
+
 /* ------------------------------ 顶部推广条 ------------------------------ */
 /**
  * @param {Object} links - { global: [{ position, label, url }] }
@@ -93,7 +143,7 @@ function renderHeader(site, page, links, opts) {
     </a>
     ${navBlock}
     <div class="header-actions">
-      <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深色 / 浅色">🌙</button>
+      ${renderThemeToggle({ extraClass: 'icon-btn' })}
       <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="展开菜单" aria-expanded="false">☰</button>
     </div>
   </div>
@@ -272,6 +322,12 @@ function renderAdSlotSection(position, opts) {
 module.exports = {
   escapeHtml,
   escapeAttr,
+  THEME_KEY,
+  THEME_MODES,
+  THEME_ICON,
+  THEME_LABEL,
+  renderThemeBoot,
+  renderThemeToggle,
   renderPromoStrip,
   renderHeader,
   renderFooter,

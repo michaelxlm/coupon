@@ -5,6 +5,7 @@
  *   - 静态页 chrome 标记齐全（CHROME:HEADER/FOOTER 未丢，防 shared 同步断裂）
  *   - 兜底快照存在且为合法 JSON（运行时回退的数据源）
  *   - 指纹已生效（HTML 内不应残留手工 ?v=，应由 fingerprint 改写为哈希名）
+ *   - 商家信息结构化数据「宁缺毋错」（check-jsonld：Product 缺 image / offers 缺有效 price 即阻断）
  * 退出码：关键项失败 exit 1；仅警告项 exit 0（不阻断部署）。
  * 用法：node scripts/selfcheck.js
  * ========================================================================== */
@@ -257,6 +258,13 @@ function firstJsonLdValid(file) {
   }
   if (checked) ok('topic/* 场景导购页 ' + checked + ' 个结构完整，AI 导语 ' + aiIntroCount + '/' + checked);
   else err('未发现 topic/* 场景导购页（WO-125 构建产物缺失）');
+}
+
+// 10) 商家信息结构化数据「宁缺毋错」门禁（Search Console 严重问题回归防线）
+{
+  const problems = require('./check-jsonld')(); // 违例明细由 check-jsonld 自行打印
+  if (problems.length) err('商家信息结构化数据 ' + problems.length + ' 处违例（上游少字段时应整块不写 Product/offers，而非写残缺字段）');
+  else ok('商家信息结构化数据合规（Product 均有绝对 image，offers 均为正数 price + priceCurrency）');
 }
 
 console.log('[selfcheck] 完成：' + errors + ' 错误 / ' + warnings + ' 警告');

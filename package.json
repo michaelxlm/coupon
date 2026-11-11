@@ -7,7 +7,8 @@
     "build": "node scripts/build.js",
     "build:topics": "node scripts/build-topics.js",
     "fingerprint": "node scripts/fingerprint.js",
-    "selfcheck": "node scripts/selfcheck.js"
+    "selfcheck": "node scripts/selfcheck.js",
+    "check:jsonld": "node scripts/check-jsonld.js"
   },
   "engines": {
     "node": ">=18"

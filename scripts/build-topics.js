@@ -27,6 +27,7 @@
 const fs = require('fs');
 const path = require('path');
 const P = require('@xuyiheng/static-build-kit/shared-partials'); // WO-164 ④ 私有包化
+const LD = require('./product-ld'); // 商家信息「宁缺毋错」：券 Product/Offer 节点单一口径（与 build.js 共用）
 const { COUPON_SITE, TOPIC_NAV } = require('./site-config');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -289,24 +290,21 @@ function buildTopicIndex(topics, counts, siteUrl) {
 }
 
 function jsonLdBlock(list, scene, url, siteUrl, sceneIntro) {
-  const items = list.slice(0, 20).map((c, i) => ({
-    '@type': 'ListItem',
-    position: i + 1,
-    url: cardLink(c) || url,
-    item: {
-      '@type': 'Product',
+  const items = list.slice(0, 20).map((c, i) => {
+    const link = cardLink(c) || url;
+    const product = LD.buildProductNode({
       name: c.title || '优惠券',
-      image: safeUrl(c.pict_url) || undefined,
+      image: c.pict_url,
+      price: c.price,
+      url: link,
       description: (c.title ? c.title + '。' : '') + '京东/淘宝等平台联盟实时优惠，先领券再下单更省。',
-      offers: {
-        '@type': 'Offer',
-        price: Number(c.price) || 0,
-        priceCurrency: 'CNY',
-        url: cardLink(c) || url,
-        availability: 'https://schema.org/InStock',
-      },
-    },
-  }));
+      availability: 'https://schema.org/InStock',
+    });
+    // 快照缺合法图片或真实到手价 → 不写残缺 Product（那是严重问题），ListItem 降级为只带 url + name
+    return product
+      ? { '@type': 'ListItem', position: i + 1, url: link, item: product }
+      : { '@type': 'ListItem', position: i + 1, name: c.title || '优惠券', url: link };
+  });
   const faq = faqItems(scene.kw).map(f => ({
     '@type': 'Question',
     name: f.q,

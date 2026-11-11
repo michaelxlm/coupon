@@ -89,7 +89,10 @@ function runManifest() {
   SEARCH_DIRS.forEach((dir) => {
     if (!fs.existsSync(dir)) return;
     fs.readdirSync(dir).forEach((f) => {
-      if (!/\.min\.(css|js)$/.test(f)) return;
+      // WO-210：资产版本化统一。manifest 模式此前只哈希 .min.* 资源，导致 mp-slot.js（及合并后的
+      // slot-loader.js）等非 .min SDK 资源未带 ?v= 版本令牌（mp-slot.js 缺口即源于此）。这里把合并
+      // 加载器 slot-loader.js 与小程序码位组件 mp-slot.js 显式纳入版本化，其余 .min.* 行为不变。
+      if (!/\.min\.(css|js)$/.test(f) && !/^(slot-loader|mp-slot)\.js$/.test(f)) return;
       const abs = path.join(dir, f);
       const rel = '/' + path.relative(ROOT, abs).replace(/\\/g, '/');
       manifest[rel] = hashFile(abs);

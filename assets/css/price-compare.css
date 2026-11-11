@@ -1,0 +1,157 @@
+/* ==========================================================================
+   price-compare.css · WO-189 跨平台同款比价模块样式
+   —— 挂到券详情页（#pCompareSection）；配色复用 main.css / tokens.css 设计令牌，
+      亮/暗主题自动跟随，不引入新品牌色。零依赖，可与 coupon.css 并存。
+   ========================================================================== */
+
+.cp-compare-section .cp-compare-body {
+  margin-top: var(--space-4, 16px);
+}
+
+.cp-compare-empty,
+.cp-compare-warn,
+.cp-compare-note {
+  margin: 0 0 var(--space-3, 12px);
+  font-size: var(--text-sm, 14px);
+  line-height: 1.7;
+  color: var(--text-muted, #5a6478);
+}
+
+.cp-compare-empty {
+  padding: var(--space-4, 16px);
+  border: 1px dashed var(--border-strong, #d3dae8);
+  border-radius: var(--radius, 14px);
+  background: var(--surface-2, #f2f5fb);
+  color: var(--text, #12172a);
+  font-weight: 600;
+}
+
+.cp-compare-warn {
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-left: 3px solid var(--expire-fg, #92400e);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-2, #f2f5fb);
+  color: var(--text, #12172a);
+}
+
+.cp-compare-note {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-soft, #8a93a6);
+  border-top: 1px solid var(--border, #e6eaf2);
+  padding-top: var(--space-3, 12px);
+}
+
+/* 并排报价表：平台 / 到手价 / 差额 / 商品标题 */
+.cp-compare-table {
+  border: 1px solid var(--border, #e6eaf2);
+  border-radius: var(--radius, 14px);
+  overflow: hidden;
+  background: var(--surface, #ffffff);
+  margin-bottom: var(--space-4, 16px);
+}
+
+.cp-compare-head,
+.cp-compare-row {
+  display: grid;
+  grid-template-columns: 96px 108px 108px minmax(0, 1fr);
+  gap: var(--space-2, 8px);
+  align-items: center;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+}
+
+.cp-compare-head {
+  background: var(--surface-2, #f2f5fb);
+  font-size: var(--text-xs, 12px);
+  font-weight: 700;
+  color: var(--text-muted, #5a6478);
+}
+
+.cp-compare-row {
+  border-top: 1px solid var(--border, #e6eaf2);
+  font-size: var(--text-sm, 14px);
+}
+
+.cp-compare-row.is-lowest {
+  background: rgba(43, 191, 106, 0.08);
+}
+
+.cp-compare-plat {
+  display: inline-block;
+  justify-self: start;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--border-strong, #d3dae8);
+  font-size: var(--text-xs, 12px);
+  font-weight: 700;
+  color: var(--text, #12172a);
+  white-space: nowrap;
+}
+
+.cp-compare-plat[data-plat="jd"] { border-color: var(--coupon-red, #e4393c); color: var(--coupon-red, #e4393c); }
+.cp-compare-plat[data-plat="taobao"] { border-color: #ff7a00; color: #c05e00; }
+
+.cp-compare-price {
+  font-size: var(--text-base, 16px);
+  font-weight: 800;
+  color: var(--coupon-red, #e4393c);
+  white-space: nowrap;
+}
+
+.cp-compare-diff {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-muted, #5a6478);
+  white-space: nowrap;
+}
+
+.cp-compare-badge {
+  justify-self: start;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill, 999px);
+  background: #16a34a;
+  color: #fff;
+  font-size: var(--text-xs, 12px);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cp-compare-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted, #5a6478);
+  font-size: var(--text-xs, 12px);
+}
+
+/* 「其它可比价同款」紧凑列表 */
+.cp-compare-mini {
+  list-style: none;
+  margin: 0 0 var(--space-4, 16px);
+  padding: 0;
+  border: 1px solid var(--border, #e6eaf2);
+  border-radius: var(--radius, 14px);
+  overflow: hidden;
+}
+
+.cp-compare-mini li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+  align-items: baseline;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-top: 1px solid var(--border, #e6eaf2);
+  font-size: var(--text-sm, 14px);
+}
+
+.cp-compare-mini li:first-child { border-top: 0; }
+.cp-compare-mini .cp-compare-mini-name { flex: 1 1 240px; min-width: 0; color: var(--text, #12172a); }
+.cp-compare-mini .cp-compare-mini-meta { color: var(--text-muted, #5a6478); font-size: var(--text-xs, 12px); }
+
+@media (max-width: 640px) {
+  .cp-compare-head { display: none; }
+  .cp-compare-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px var(--space-2, 8px);
+  }
+  .cp-compare-title { grid-column: 1 / -1; white-space: normal; }
+}

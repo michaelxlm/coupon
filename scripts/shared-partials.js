@@ -225,7 +225,6 @@ function renderFooter(site, links, opts) {
         <a href="/sitemap.xml">站点地图</a>
         <a href="/about.html">关于</a>
         ${site.icp ? `<a href="${escapeAttr(site.icp_url || 'https://beian.miit.gov.cn/')}" target="_blank" rel="noopener">${escapeHtml(site.icp)}</a>` : ''}
-        ${site.gongan ? `<a href="${escapeAttr(site.gongan_url || ('https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=' + (String(site.gongan).match(/\d+/) || [ '' ])[0]))}" target="_blank" rel="noopener noreferrer">${escapeHtml(site.gongan)}</a>` : ''}
         ${footerLinks}
       </div>
     </div>

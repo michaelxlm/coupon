@@ -206,17 +206,124 @@
     for (var tok in tokenMap) { if (t.indexOf(tok) >= 0) s += tokenMap[tok]; }
     return s;
   }
+
+  /* ---------------- WO-189 P3 · 协同过滤二阶召回（可选离线产物） ----------------
+     data/cooccurrence.json 由 scripts/train-cooccurrence.js 从真实 device-events 训练得到。
+     硬约束：产物缺失 / enabled=false / sampleCount < CO_MIN_SAMPLES → 显式「样本不足则不启用」，
+     现行 /recommend + /random 内容召回 + 重排兜底链完全不变。
+     启用时：用 seenIds() 作种子做二阶召回（种子 → 共现邻居），只从已获取的真实券池解析成卡片，
+     与内容召回结果合并去重；绝不凭空生成券对象或点击数据。 */
+  var CO_URL = '/data/cooccurrence.json';
+  var CO_MIN_SAMPLES = 50;
+  var CO_TIMEOUT_MS = 2500;
+  var coState = { status: 'idle', data: null, waiters: [] };
+  var coPool = Object.create(null); // id(tao_id/_id) -> 真实券对象
+
+  function loadCooccurrence(done) {
+    if (coState.status === 'done') { done(coState.data); return; }
+    if (coState.status === 'loading') { coState.waiters.push(done); return; }
+    if (!global.fetch) { coState.status = 'done'; coState.data = null; done(null); return; }
+    coState.status = 'loading';
+    var ctrl = global.AbortController ? new global.AbortController() : null;
+    var timer = global.setTimeout(function () { if (ctrl) { try { ctrl.abort(); } catch (e) { /* 忽略 */ } } }, CO_TIMEOUT_MS);
+    var opts = { cache: 'no-store' };
+    if (ctrl) opts.signal = ctrl.signal;
+    global.fetch(CO_URL, opts)
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(function (json) { coState.data = (json && typeof json === 'object') ? json : null; })
+      .catch(function () { coState.data = null; })
+      .then(function () {
+        global.clearTimeout(timer);
+        coState.status = 'done';
+        var ws = coState.waiters.slice(); coState.waiters.length = 0;
+        for (var i = 0; i < ws.length; i++) ws[i](coState.data);
+      });
+  }
+
+  // 显式判定：产物缺失 / 训练侧标记禁用 / 样本量不足 → 不启用（保持现行链）
+  function cooccurrenceEnabled(co) {
+    if (!co || co.enabled === false) return false;
+    var n = Number(co.sampleCount) || 0;
+    if (n < CO_MIN_SAMPLES) return false;
+    var m = co.cooccurrence;
+    return !!(m && typeof m === 'object' && Object.keys(m).length);
+  }
+
+  function indexPool(list) {
+    (Array.isArray(list) ? list : []).forEach(function (c) {
+      if (!c) return;
+      [ c.tao_id, c._id ].forEach(function (k) {
+        var id = String(k || '');
+        if (id && !coPool[id]) coPool[id] = c;
+      });
+    });
+  }
+
+  // 二阶召回：seed(seenIds) → 共现邻居（按权重聚合）→ 在真实券池里解析出券对象
+  function coRecall(seen, co, baseList, limit) {
+    var seeds = Object.keys(seen || {});
+    if (!seeds.length) return [];
+    var scores = Object.create(null);
+    seeds.forEach(function (seed) {
+      var row = co.cooccurrence[seed];
+      if (!row || typeof row !== 'object') return;
+      Object.keys(row).forEach(function (nid) {
+        if (!nid || nid === seed) return;
+        var w = Number(row[nid]) || 0;
+        if (w > 0) scores[nid] = (scores[nid] || 0) + w;
+      });
+    });
+    var ranked = Object.keys(scores).sort(function (a, b) { return scores[b] - scores[a] || a.localeCompare(b); });
+    var taken = Object.create(null);
+    (baseList || []).forEach(function (c) {
+      var a = String(c.tao_id || c._id || ''), b = String(c._id || '');
+      if (a) taken[a] = 1;
+      if (b) taken[b] = 1;
+    });
+    seeds.forEach(function (s) { taken[s] = 1; }); // 已看过的不再推
+    var out = [];
+    for (var i = 0; i < ranked.length && out.length < limit; i++) {
+      var id = ranked[i];
+      if (taken[id]) continue;
+      var c = coPool[id];
+      if (!c) continue; // 只召回真实券池里存在的 id，不编造卡片
+      taken[id] = 1;
+      out.push(c);
+    }
+    return out;
+  }
+
+  // 现行内容召回结果先原样渲染（不因共现产物延迟），随后仅在「有样本且启用」时追加合并去重
+  function finalizeRecommend(list, terms, seen) {
+    indexPool(list);
+    renderRecommend(list);
+    loadCooccurrence(function (co) {
+      var st = state.co || (state.co = {});
+      st.sampleCount = co ? (Number(co.sampleCount) || 0) : 0;
+      st.minSamples = CO_MIN_SAMPLES;
+      st.enabled = cooccurrenceEnabled(co);
+      st.reason = !co ? '产物不存在' : (co.enabled === false ? '产物标记 enabled=false'
+        : (st.sampleCount < CO_MIN_SAMPLES ? '样本不足则不启用' : ''));
+      if (!st.enabled) return; // 显式：样本不足则不启用，现行结果不再改动
+      var extra = coRecall(seen, co, list, 4);
+      if (!extra.length) return;
+      renderRecommend(list.concat(extra).slice(0, 14));
+    });
+  }
+
   function loadRecommend() {
     if (!recGrid || !recSection || !global.CouponStore) return;
     var terms = global.CouponStore.recommendTerms();
     if (!terms.length) { recSection.hidden = true; return; }
     var seen = global.CouponStore.seenIds();
     var seenStr = Object.keys(seen).join(',');
+    indexPool(state.list); indexPool(state.rankAll);
+    loadCooccurrence(function () {}); // WO-189 P3：并行预热共现产物（缺省静默降级）
     // 首选后端召回（全手选池内容召回 + 热度）；失败或空则回落本地 /random 重排兜底
     var rUrl = buildUrl('/recommend', [ [ 'terms', terms.slice(0, 8).join(',') ], [ 'seen', seenStr ], [ 'limit', 10 ] ]);
     request(rUrl, function (err, d) {
       var list = err ? [] : pickList(d);
-      if (list.length) { renderRecommend(list); return; }
+      if (list.length) { finalizeRecommend(list, terms, seen); return; }
       recommendFallback(terms, seen);
     }, { cache: true });
   }
@@ -228,7 +335,9 @@
     request(url, function (err, d) {
       if (err) { recSection.hidden = true; return; }
       var scored = [];
-      pickList(d).forEach(function (c) {
+      var pool = pickList(d);
+      indexPool(pool); // WO-189 P3：把 /random 真实券池登记进候选池，供共现邻居解析
+      pool.forEach(function (c) {
         var cid = String(c.tao_id || c._id || '');
         if (seen[cid]) return;
         var s = matchScore(c.title || '', tokenMap);
@@ -238,7 +347,7 @@
       scored.sort(function (a, b) { return b.s - a.s; });
       var top = scored.slice(0, 10).map(function (x) { return x.c; });
       if (!top.length) { recSection.hidden = true; return; }
-      renderRecommend(top);
+      finalizeRecommend(top, terms, seen);
     }, { cache: true });
   }
 

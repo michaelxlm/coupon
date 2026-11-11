@@ -151,4 +151,15 @@
   wireShare();
   wireCountdown();
   fetchTrend(drawTrend);
+
+  /* WO-189 跨平台同款比价（渐进增强）：比价模块统一由本文件动态补加载，口径同
+     detail-shell.js 水合后动态加载 detail-page.js，存量 /p/*.html 无需重跑 build 即生效。
+     构建模板若已带静态 <script src="/assets/js/price-compare.js"> 且先于本文件执行，
+     CouponPriceCompare 已存在则跳过，避免重复加载。 */
+  if (!global.CouponPriceCompare) {
+    var pc = doc.createElement('script');
+    pc.src = '/assets/js/price-compare.js';
+    pc.async = false;
+    doc.body.appendChild(pc);
+  }
 })(window);

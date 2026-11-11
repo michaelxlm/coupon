@@ -259,3 +259,10 @@ python -m http.server 8080
 ## 与 zangeng.com 原 coupon.html 的关系
 
 原 `zangeng.com/coupon.html` 的领券逻辑（`zangeng/assets/js/coupon-page.js`）已整体迁移到本仓库：`index.html` + `assets/js/coupon-page.js`（`MAIN_URL` 改为 `coupon.zangeng.com`）。原 zangeng 页可保留为跳转入口，或直接 301 到本域名。
+
+## WO-189 跨平台比价与推荐补全（读路径就绪 · 采集暂缓 · owner 决定）
+
+- **跨平台比价（读路径就绪）**：`assets/js/price-compare.js` + `assets/css/price-compare.css` + 详情页模板挂载点 `#pCompareSection`（`scripts/build.js` 的 `detailPageShell`）；脚本由 `detail-page.js` 动态补加载，存量 `/p/*.html` 无需重跑 build 也生效。数据源为可选离线产物 `data/cross-platform-offers.json`，由零依赖、可复跑的 `scripts/build-cross-platform.js` 从 `data/coupon-snapshot.json` 生成。同款归并只按 `title` 归一化（去括号块 / 促销词 / 规格数字 / 分隔符号），**只使用券快照里真实存在的 `platform` 与 `price`**：当前快照仅 `jd` / `taobao` 且无跨平台同款组，故页面如实显示「当前仅 1 个平台报价，暂不构成立足比价」；产物缺省时显示「暂无可比价数据」空态。**未生成任何拼多多 / 抖音报价或点击数据**。
+- **协同过滤（P3，读路径就绪）**：`scripts/train-cooccurrence.js` 从可选 `data/device-events.jsonl`（每行 `deviceId` / `tao_id` / `event` / `ts`）训练 `data/cooccurrence.json`（item→item 对称共现权重、`updatedAt`、`sampleCount`）。输入文件缺省时不造假数据、不写产物，只打印说明；`coupon-page.js` 在 `loadRecommend()` 结果之上加一层二阶召回，仅当产物存在且 `sampleCount >= 50`（`enabled !== false`）时用 `seenIds()` 召回并与内容召回合并去重，**否则显式「样本不足则不启用」，保持现行 `/recommend` + `/random` 兜底链完全不变**。
+- **P2 多平台采集暂缓（owner 决定）**：本次**不接入拼多多 / 抖音采集写路径、不改中台、不新增任何采集代码**；上述改动全部是读路径 / 离线产物，仅落在 `coupon/` 仓内。
+- **启用采集前需要具备**：① 各平台联盟 / 开放平台的官方 `appKey` / `appSecret` / `pid`（推广位）资质；② `getProductData`（或等价商品详情接口，能取得真实售价与券后到手价）；③ `couponProvider` 分发层（按 `platform` 路由到对应 provider，统一归一 `title` / `price` / `platform` / `tao_id` / 券力度 / 跳转链字段）；④ 入库集合（中台侧券集合写入 `platform` 字段及同款归一键，并放行字段白名单）；⑤ 构建链在写完快照后追加 `node scripts/build-cross-platform.js` 与 `node scripts/train-cooccurrence.js`，以及 `sourceGuard` / `mainUrl` 来源登记。上述任一缺失都不应伪造报价或点击数据。

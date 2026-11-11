@@ -685,6 +685,7 @@ function detailPageShell(c, related) {
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
   <link rel="stylesheet" href="/assets/css/coupon.css" />
+  <link rel="stylesheet" href="/assets/css/price-compare.css" id="cpCompareCss" />
 </head>
 <body data-page="detail" data-theme-default="light"
       data-id="${esc(id)}" data-tao-id="${esc(taoId)}" data-title="${esc(c.title || '')}" data-img="${esc(img)}"
@@ -731,6 +732,19 @@ function detailPageShell(c, related) {
           <p class="section-desc" id="pTrendSummary">正在加载历史力度快照…</p>
         </div>
         <div id="pTrend" class="pd-trend" role="img" aria-label="券价格历史走势折线图"></div>
+      </div>
+    </section>
+
+    <!-- WO-189 跨平台同款比价挂载点：内容由 price-compare.js 运行时注入。
+         脚本由 detail-page.js 动态补加载（存量 /p/*.html 无需重跑 build 亦生效），
+         静态只留空态；离线产物缺省时显示「暂无可比价数据」，不编造任何平台报价。 -->
+    <section class="section section-soft cp-compare-section" id="pCompareSection" hidden data-cp-compare="1">
+      <div class="container">
+        <div class="section-head left">
+          <h2>跨平台同款比价</h2>
+          <p class="section-desc" id="cpCompareSummary">正在读取可比价数据…</p>
+        </div>
+        <div id="cpCompareBody" class="cp-compare-body"></div>
       </div>
     </section>
 

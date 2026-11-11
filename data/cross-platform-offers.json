@@ -1,0 +1,6739 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-30T07:48:25.713Z",
+  "generatedBy": "scripts/build-cross-platform.js",
+  "source": "data/coupon-snapshot.json",
+  "note": "仅使用券快照中真实存在的 platform 与到手价；未生成任何缺失平台报价、点击数据或同款猜测。单平台组不构成立足比价。",
+  "totalCoupons": 514,
+  "validOffers": 514,
+  "dedupedOffers": 320,
+  "groupCount": 320,
+  "comparableGroupCount": 0,
+  "platformsSeen": [
+    "jd",
+    "taobao"
+  ],
+  "normalizeRule": "小写去空白 → 去括号块 → 去促销词 → 去规格数量 → 去活动价数字 → 去分隔符号；键长<4 不归并",
+  "items": [
+    {
+      "key": "2027珞研教育国家电网招聘国网南网考试题库刷题资料笔试电子版小程序题库电气类电网",
+      "label": "2027珞研教育国家电网招聘国网南网考试题库刷题资料笔试电子版小程序题库电气类电网",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 24.9,
+          "tao_id": "mbMAxp9fktJ7BBMOO3UrbnIot3-0vGpwkvh5Nvn5NZ7tq",
+          "_id": "6ad9a62f7d4fa7b7a9f32498",
+          "title": "2027珞研教育国家电网招聘国网南网考试题库刷题资料笔试电子版小程序题库电气类电网"
+        }
+      ],
+      "minPrice": 24.9,
+      "maxPrice": 24.9,
+      "diff": 0
+    },
+    {
+      "key": "26秋冬复古通勤百搭定染纯棉立裁弧形灯芯绒百搭阔腿女裤休闲裤",
+      "label": "26秋冬复古通勤百搭 定染纯棉立裁弧形灯芯绒百搭阔腿女裤休闲裤",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 288,
+          "tao_id": "gaqRbWXI3t2NrGQX3gcYq4iatr-88N7bv8F5mrxYgkAtqV",
+          "_id": "6acd091672d31258e65be464",
+          "title": "26秋冬复古通勤百搭 定染纯棉立裁弧形灯芯绒百搭阔腿女裤休闲裤"
+        }
+      ],
+      "minPrice": 288,
+      "maxPrice": 288,
+      "diff": 0
+    },
+    {
+      "key": "3d打印笔儿童益智开发手工diy制作材料小学生幼儿园男6女孩子玩具",
+      "label": "3D打印笔儿童益智开发手工diy制作材料小学生幼儿园男6女孩子玩具",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 59.3,
+          "tao_id": "5Dza3VAFxtyw4Q827dFQeoFMtV-bXJm73XUG4jpogjDCW2",
+          "_id": "6ae449d37fe483af400a5495",
+          "title": "3D打印笔儿童益智开发手工diy制作材料小学生幼儿园男6女孩子玩具"
+        }
+      ],
+      "minPrice": 59.3,
+      "maxPrice": 59.3,
+      "diff": 0
+    },
+    {
+      "key": "3d打印玉米拼图儿童益智玩具拼图创意新奇高难度手工玩具生日礼物",
+      "label": "3D打印玉米拼图儿童益智玩具拼图创意新奇高难度手工玩具生日礼物",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.9,
+          "tao_id": "62eqAqyT8tGR9XboxZSVBOsot3-6RebxvRs662pbjb5UKW",
+          "_id": "6ae449e77fe483af400a5ab2",
+          "title": "3D打印玉米拼图儿童益智玩具拼图创意新奇高难度手工玩具生日礼物"
+        }
+      ],
+      "minPrice": 3.9,
+      "maxPrice": 3.9,
+      "diff": 0
+    },
+    {
+      "key": "安雅面桶家用密封面粉食品级收纳装米面专用桶防虫防潮猫粮储存罐",
+      "label": "安雅面桶家用密封面粉食品级收纳装米面专用桶防虫防潮猫粮储存罐",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 21.2,
+          "tao_id": "oKPNYbQgIrtK9nWAy5bi56QintN-xnam6ZnsONMwAxmxuJv",
+          "_id": "6ae0636823b1ea98a39d51c3",
+          "title": "安雅面桶家用密封面粉食品级收纳装米面专用桶防虫防潮猫粮储存罐"
+        }
+      ],
+      "minPrice": 21.2,
+      "maxPrice": 21.2,
+      "diff": 0
+    },
+    {
+      "key": "奥佳华按摩椅家用全身肩颈揉捏按摩太空舱智能摇摇椅送生日礼物7808pro月绸雅杏",
+      "label": "奥佳华【上市企业】按摩椅家用全身肩颈揉捏按摩京东自营太空舱智能摇摇椅送生日礼物7808pro月绸雅杏",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 13879.99,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ec4",
+          "title": "奥佳华【上市企业】按摩椅家用全身肩颈揉捏按摩京东自营太空舱智能摇摇椅送生日礼物7808pro月绸雅杏"
+        }
+      ],
+      "minPrice": 13879.99,
+      "maxPrice": 13879.99,
+      "diff": 0
+    },
+    {
+      "key": "奥佳华按摩椅家用全身全自动肩颈揉捏按摩中医太空舱智能沙发椅送老人生日礼物7898碧玺灰",
+      "label": "奥佳华【上市企业】按摩椅家用全身全自动肩颈揉捏按摩中医太空舱智能沙发椅送老人生日礼物7898碧玺灰",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 18736,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ea8",
+          "title": "奥佳华【上市企业】按摩椅家用全身全自动肩颈揉捏按摩中医太空舱智能沙发椅送老人生日礼物7898碧玺灰"
+        }
+      ],
+      "minPrice": 18736,
+      "maxPrice": 18736,
+      "diff": 0
+    },
+    {
+      "key": "百天照宝宝拍照服装出租满月百日拍摄道具婴儿摄影半岁新生儿衣服",
+      "label": "百天照宝宝拍照服装出租满月百日拍摄道具婴儿摄影半岁新生儿衣服",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 10.2,
+          "tao_id": "y3OaYk7NSRt2K4nnWX2sr3YuvtA-aR065jRsYX4NnDeZUgM",
+          "_id": "6ae4374f0f8a974ef9b32e0b",
+          "title": "百天照宝宝拍照服装出租满月百日拍摄道具婴儿摄影半岁新生儿衣服"
+        }
+      ],
+      "minPrice": 10.2,
+      "maxPrice": 10.2,
+      "diff": 0
+    },
+    {
+      "key": "保定铁球实心钢球健身球手球中老年人保健球手玩按摩球手转球",
+      "label": "保定铁球实心钢球健身球手球中老年人保健球手玩按摩球手转球包邮",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 15.9,
+          "tao_id": "4k4bb74HgtNRNz45vxin3xtNtg-J5B6mP5hMZvYbkatV0",
+          "_id": "6ae1ac06ef77c4c9a3fd8e0b",
+          "title": "保定铁球实心钢球健身球手球中老年人保健球手玩按摩球手转球包邮"
+        }
+      ],
+      "minPrice": 15.9,
+      "maxPrice": 15.9,
+      "diff": 0
+    },
+    {
+      "key": "倍益康医用级便携式制氧机pm10a家用老人吸氧机小型高原旅游专用",
+      "label": "倍益康医用级便携式制氧机PM10A家用老人吸氧机小型高原旅游专用",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5165,
+          "tao_id": "wbPDn5bCgtDYPOeYJDH3Ppfbtd-v6nmKo6I8z9ao09KFO",
+          "_id": "6ace5d593d8b63e71ea01a62",
+          "title": "倍益康医用级便携式制氧机PM10A家用老人吸氧机小型高原旅游专用"
+        }
+      ],
+      "minPrice": 5165,
+      "maxPrice": 5165,
+      "diff": 0
+    },
+    {
+      "key": "笔记本侧立电脑支架副屏竖立托架直立悬空可调节撑架散热立式外接显示屏底座宿舍桌面倒挂办公电竞架子便携式",
+      "label": "笔记本侧立电脑支架副屏竖立托架直立悬空可调节撑架散热立式外接显示屏底座宿舍桌面倒挂办公电竞架子便携式",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 28.8,
+          "tao_id": "6DowdoeS8tGRGrOGRrcVyNFot3-BAM9QKAsr8dO75drfDJ",
+          "_id": "6ae30b9541cc7fcd47927cd3",
+          "title": "笔记本侧立电脑支架副屏竖立托架直立悬空可调节撑架散热立式外接显示屏底座宿舍桌面倒挂办公电竞架子便携式"
+        }
+      ],
+      "minPrice": 28.8,
+      "maxPrice": 28.8,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑包内胆包保护套适用于苹果macbook联想小新air华为matebook拯救者华硕天选",
+      "label": "笔记本电脑包内胆包保护套适用于苹果macbook13.3寸联想小新air15.6寸华为matebook14寸拯救者华硕天选16寸",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 14.8,
+          "tao_id": "kzdpAJNcYtaYaXdZZOCB0atPtJ-0vGpwkvhBa6mqMnqHn",
+          "_id": "6ae2c5421f06011a2e4d2294",
+          "title": "笔记本电脑包内胆包保护套适用于苹果macbook13.3寸联想小新air15.6寸华为matebook14寸拯救者华硕天选16寸"
+        }
+      ],
+      "minPrice": 14.8,
+      "maxPrice": 14.8,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑包内胆包适用于苹果macbook联想小新air15华为matebook戴尔华硕pro13男小米13.3女mac16",
+      "label": "笔记本电脑包内胆包适用于苹果macbook联想小新air15华为matebook14寸戴尔华硕15.6寸pro13男小米13.3女mac16",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 16.8,
+          "tao_id": "Kx8Qqa0S3toVNZ9V5nhON3sJtW-Xq83weqU0Wbx78nAFwZ",
+          "_id": "6ae432e50f8a974ef9b3293b",
+          "title": "笔记本电脑包内胆包适用于苹果macbook联想小新air15华为matebook14寸戴尔华硕15.6寸pro13男小米13.3女mac16"
+        }
+      ],
+      "minPrice": 16.8,
+      "maxPrice": 16.8,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑双肩包女气囊防震学生百搭通勤背包大容量书包",
+      "label": "笔记本16寸电脑双肩包女14寸气囊防震学生百搭通勤背包大容量书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 149.9,
+          "tao_id": "WkOdvY7Sot2B2KXjRgiXe6uQta-D3qV9R3h6o0ZeJa2tO",
+          "_id": "6ae2f85b15f26d3db899ad0a",
+          "title": "笔记本16寸电脑双肩包女14寸气囊防震学生百搭通勤背包大容量书包"
+        }
+      ],
+      "minPrice": 149.9,
+      "maxPrice": 149.9,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑双肩包女士游戏本轻便通勤背包书包手提托特包",
+      "label": "笔记本电脑双肩包女士14寸16寸游戏本轻便通勤背包书包手提托特包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 129.9,
+          "tao_id": "qky7R8NnU2t4O4nKWq2FDKxhWt0-NO46KBOfzXODXqxvfp7",
+          "_id": "6ae2f85615f26d3db899abc2",
+          "title": "笔记本电脑双肩包女士14寸16寸游戏本轻便通勤背包书包手提托特包"
+        }
+      ],
+      "minPrice": 129.9,
+      "maxPrice": 129.9,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑支架便携隐形迷你立体式托架散热器键盘脚支撑折叠底座",
+      "label": "笔记本电脑支架便携隐形迷你立体式托架散热器键盘脚支撑折叠底座",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.9,
+          "tao_id": "m39ye8AIktJ7Ngk75WHrDDUot3-5nw8WqnsW88GGVvWiN",
+          "_id": "6ae432e70f8a974ef9b32afc",
+          "title": "笔记本电脑支架便携隐形迷你立体式托架散热器键盘脚支撑折叠底座"
+        }
+      ],
+      "minPrice": 2.9,
+      "maxPrice": 2.9,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑支架散热底座烧烤架支撑架家用桌面增高台支架托悬空办公桌宿舍加高显示器增高台铁艺散热架支架子",
+      "label": "笔记本电脑支架散热底座烧烤架支撑架家用桌面增高台支架托悬空办公桌宿舍加高显示器增高台铁艺散热架支架子",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.75,
+          "tao_id": "M0GX8deiKtXeX86o8Kcdn8UQtA-y3awR23h6vqoVnX5UD",
+          "_id": "6ae2c53b1f06011a2e4d1bf5",
+          "title": "笔记本电脑支架散热底座烧烤架支撑架家用桌面增高台支架托悬空办公桌宿舍加高显示器增高台铁艺散热架支架子"
+        }
+      ],
+      "minPrice": 9.75,
+      "maxPrice": 9.75,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑支架散热适用拯救者y9000pr7000p散热器底座z4铝合金17游戏本支撑增高平板macbook悬空便携",
+      "label": "笔记本电脑支架散热适用拯救者Y9000P/R7000P散热器底座Z4铝合金16寸17游戏本支撑增高平板MacBook悬空便携",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 12.9,
+          "tao_id": "GZG0ogmH8tYkYJz7VKc6ZyhQtJ-6RebxvRs6wa2zYgkCd",
+          "_id": "6ae2c53c1f06011a2e4d1e6a",
+          "title": "笔记本电脑支架散热适用拯救者Y9000P/R7000P散热器底座Z4铝合金16寸17游戏本支撑增高平板MacBook悬空便携"
+        }
+      ],
+      "minPrice": 12.9,
+      "maxPrice": 12.9,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑支架适用联想拯救者游戏本金属y9000pr7000p悬空散热可折叠便携增高侧立升降底座平板支撑架m2025",
+      "label": "笔记本电脑支架适用联想拯救者游戏本金属Y9000P/r7000p悬空散热可折叠便携增高侧立升降底座平板支撑架M2025",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8.19,
+          "tao_id": "GMOxdpZH8tYkYJz7YYC6RMTQtJ-Wqx6XwqUX5ovZg73hmz",
+          "_id": "6ae2c53c1f06011a2e4d1dd9",
+          "title": "笔记本电脑支架适用联想拯救者游戏本金属Y9000P/r7000p悬空散热可折叠便携增高侧立升降底座平板支撑架M2025"
+        }
+      ],
+      "minPrice": 8.19,
+      "maxPrice": 8.19,
+      "diff": 0
+    },
+    {
+      "key": "笔记本电脑支架托架桌面增高散热器折叠便携式支撑架子调节颈椎平板游戏本办公手提立式悬空升降底座",
+      "label": "笔记本电脑支架托架桌面增高散热器折叠便携式支撑架子调节颈椎平板游戏本办公手提立式悬空升降底座",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5.87,
+          "tao_id": "vxD5JonSZt6765MGaKi98OS0te-pBam27BCRVXyvbZwTj",
+          "_id": "6ae2c53b1f06011a2e4d1c5c",
+          "title": "笔记本电脑支架托架桌面增高散热器折叠便携式支撑架子调节颈椎平板游戏本办公手提立式悬空升降底座"
+        }
+      ],
+      "minPrice": 5.87,
+      "maxPrice": 5.87,
+      "diff": 0
+    },
+    {
+      "key": "笔记本摄像头遮挡贴适用苹手机平板电脑直播前置镜头盖防黑客偷窥监控保护隐私macbook会议保密贴纸薄果ipad",
+      "label": "笔记本摄像头遮挡贴适用苹手机平板电脑直播前置镜头盖防黑客偷窥监控保护隐私MacBook会议保密贴纸薄果iPad",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.54,
+          "tao_id": "O5M9XQGFzt6n6Dj4a9CVXKtMtJ-zDke3nDhW6DqRDykhJp",
+          "_id": "6ae2c5411f06011a2e4d2139",
+          "title": "笔记本摄像头遮挡贴适用苹手机平板电脑直播前置镜头盖防黑客偷窥监控保护隐私MacBook会议保密贴纸薄果iPad"
+        }
+      ],
+      "minPrice": 2.54,
+      "maxPrice": 2.54,
+      "diff": 0
+    },
+    {
+      "key": "笔记本手机摄像头遮挡贴电脑平板前置镜头遮盖偷窥保护滑盖神器",
+      "label": "笔记本手机摄像头遮挡贴电脑平板前置镜头遮盖偷窥保护滑盖神器",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.98,
+          "tao_id": "D6BG8MqiDt5Q5kZ9YrTR25Fjtn-Xq83weqU0MPkr2rNtB0",
+          "_id": "6ae2c5411f06011a2e4d2115",
+          "title": "笔记本手机摄像头遮挡贴电脑平板前置镜头遮盖偷窥保护滑盖神器"
+        }
+      ],
+      "minPrice": 3.98,
+      "maxPrice": 3.98,
+      "diff": 0
+    },
+    {
+      "key": "波司登冬季女羽绒服冰雪运动连帽短款收腰显瘦",
+      "label": "【明星同款】波司登新款冬季女羽绒服冰雪运动连帽短款收腰显瘦",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 716,
+          "tao_id": "oAVV72aurtK9j5JBaWh5eqTntN-BAM9QKAsZgMxaJ2RcDJ",
+          "_id": "6ae416bb40509ab49758dfec",
+          "title": "【明星同款】波司登新款冬季女羽绒服冰雪运动连帽短款收腰显瘦"
+        }
+      ],
+      "minPrice": 716,
+      "maxPrice": 716,
+      "diff": 0
+    },
+    {
+      "key": "伯莱塔m92手枪玩具仿真发射弹夹可拆卸儿童吃鸡道具3d打印模型",
+      "label": "伯莱塔m92手枪玩具仿真发射弹夹可拆卸儿童吃鸡道具3D打印模型",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.9,
+          "tao_id": "n4a828riMt3j5A9nwxTAwAh0tP-5nw8WqnsW2vKXQ3bIo",
+          "_id": "6ae449e77fe483af400a5ab0",
+          "title": "伯莱塔m92手枪玩具仿真发射弹夹可拆卸儿童吃鸡道具3D打印模型"
+        }
+      ],
+      "minPrice": 9.9,
+      "maxPrice": 9.9,
+      "diff": 0
+    },
+    {
+      "key": "博柏利女装双面两穿格纹羊绒斗篷披肩",
+      "label": "博柏利（BURBERRY）【礼物】女装 双面两穿格纹羊绒斗篷披肩",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 29900,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937edb",
+          "title": "博柏利（BURBERRY）【礼物】女装 双面两穿格纹羊绒斗篷披肩"
+        }
+      ],
+      "minPrice": 29900,
+      "maxPrice": 29900,
+      "diff": 0
+    },
+    {
+      "key": "彩泥超轻黏土丸棒工具套装组合新手diy搓泥压泥板软陶石塑粘土",
+      "label": "彩泥超轻黏土丸棒工具套装组合新手diy搓泥压泥板软陶石塑粘土",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.99,
+          "tao_id": "7nQV09wOu4t53QJzq7GT68wIMtV-5nw8WqnsWQ74o8X0Co",
+          "_id": "6ae449e77fe483af400a5c68",
+          "title": "彩泥超轻黏土丸棒工具套装组合新手diy搓泥压泥板软陶石塑粘土"
+        }
+      ],
+      "minPrice": 2.99,
+      "maxPrice": 2.99,
+      "diff": 0
+    },
+    {
+      "key": "车载充电器快充2026汽车点烟器充电器快充转换插头大功率",
+      "label": "车载充电器超级快充2026新款汽车点烟器充电器快充转换插头大功率",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 21.01,
+          "tao_id": "24kQamwCotgV2YnBxvc68qcDtD-Wqx6XwqUQzZzPxx3hmD",
+          "_id": "6ae445697fe483af400a521c",
+          "title": "车载充电器超级快充2026新款汽车点烟器充电器快充转换插头大功率"
+        }
+      ],
+      "minPrice": 21.01,
+      "maxPrice": 21.01,
+      "diff": 0
+    },
+    {
+      "key": "车载钓鱼摆件3d打印个性忍者笔架创意文具收纳桌面摆件装饰摆件",
+      "label": "车载钓鱼摆件3D打印个性忍者笔架创意文具收纳桌面摆件装饰摆件",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.9,
+          "tao_id": "npXVyPGtMt3j5AgbpkFAwmc0tP-pBam27BC23PVp656tjY",
+          "_id": "6ae445697fe483af400a507b",
+          "title": "车载钓鱼摆件3D打印个性忍者笔架创意文具收纳桌面摆件装饰摆件"
+        }
+      ],
+      "minPrice": 9.9,
+      "maxPrice": 9.9,
+      "diff": 0
+    },
+    {
+      "key": "车载快充充电器192w伸缩线一拖二点烟器适用苹果华为小米",
+      "label": "车载超级快充充电器192w伸缩线一拖二点烟器适用苹果华为小米",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 13.8,
+          "tao_id": "8zRrwMJSnt9NOx2XWqfOyqTbt8-9zAr5VzC5nR8Zbgpirk",
+          "_id": "6ae445697fe483af400a51d1",
+          "title": "车载超级快充充电器192w伸缩线一拖二点烟器适用苹果华为小米"
+        }
+      ],
+      "minPrice": 13.8,
+      "maxPrice": 13.8,
+      "diff": 0
+    },
+    {
+      "key": "车载临时停车挪电话免粘号码牌隐藏式汽车创意移车内停靠用品摆件",
+      "label": "车载临时停车挪电话免粘号码牌隐藏式汽车创意移车内停靠用品摆件",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 12.6,
+          "tao_id": "xrjPYQ5IktqaXBYeyohRydTAt9-D3qV9R3hPwvZRM9JT6y",
+          "_id": "6ae445697fe483af400a5238",
+          "title": "车载临时停车挪电话免粘号码牌隐藏式汽车创意移车内停靠用品摆件"
+        }
+      ],
+      "minPrice": 12.6,
+      "maxPrice": 12.6,
+      "diff": 0
+    },
+    {
+      "key": "车载迷你灭烟柱烟头灭火塞耐热熄火塞车内便携烟灰缸轻松灭烟器",
+      "label": "车载迷你灭烟柱烟头灭火塞耐热熄火塞车内便携烟灰缸轻松灭烟器",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.9,
+          "tao_id": "PMqmrzJT3t6abkOXZgcxX6hPt6-Wqx6XwqUX5zWexA9to",
+          "_id": "6ae445697fe483af400a522c",
+          "title": "车载迷你灭烟柱烟头灭火塞耐热熄火塞车内便携烟灰缸轻松灭烟器"
+        }
+      ],
+      "minPrice": 2.9,
+      "maxPrice": 2.9,
+      "diff": 0
+    },
+    {
+      "key": "车载灭火器2026水基型耐高温防爆便携式私家车家两用消防器材",
+      "label": "车载灭火器2026新款水基型耐高温防爆便携式私家车家两用消防器材",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 57.6,
+          "tao_id": "2eoWD8wuotgV2YnBGZu68VsDtD-Xq83weqU0Vr9b3yOfg",
+          "_id": "6ae445697fe483af400a51b6",
+          "title": "车载灭火器2026新款水基型耐高温防爆便携式私家车家两用消防器材"
+        }
+      ],
+      "minPrice": 57.6,
+      "maxPrice": 57.6,
+      "diff": 0
+    },
+    {
+      "key": "车载内饰扫灰尘软毛刷洗车工具键盘缝隙汽车除尘刷子出风口清洁刷",
+      "label": "车载内饰扫灰尘软毛刷洗车工具键盘缝隙汽车除尘刷子出风口清洁刷",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.01,
+          "tao_id": "YVmZ9k8HptX4z53jeWfKVwT2t6-6RebxvRs6J7NQ83wtg",
+          "_id": "6ae445697fe483af400a520e",
+          "title": "车载内饰扫灰尘软毛刷洗车工具键盘缝隙汽车除尘刷子出风口清洁刷"
+        }
+      ],
+      "minPrice": 2.01,
+      "maxPrice": 2.01,
+      "diff": 0
+    },
+    {
+      "key": "车载收纳箱汽车后备箱储物箱车内置物箱可折叠收纳盒车用整理箱子",
+      "label": "车载收纳箱汽车后备箱储物箱车内置物箱可折叠收纳盒车用整理箱子",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 19.9,
+          "tao_id": "bwN9bYaugtoRjDbB9Wcz2qHQt6-4VGxArVH9gAPv9RvTp",
+          "_id": "6ae445697fe483af400a51a0",
+          "title": "车载收纳箱汽车后备箱储物箱车内置物箱可折叠收纳盒车用整理箱子"
+        }
+      ],
+      "minPrice": 19.9,
+      "maxPrice": 19.9,
+      "diff": 0
+    },
+    {
+      "key": "车载手机支架2026磁吸吸盘强磁力汽车上专用导航固定贴片车内",
+      "label": "车载手机支架2026新款磁吸吸盘强磁力汽车上专用导航固定贴片车内",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 21.7,
+          "tao_id": "Avx95z3Uzt4XM3zNRYU87OIvtn-y3awR23h6b2WanjvIg",
+          "_id": "6ae445697fe483af400a51d6",
+          "title": "车载手机支架2026新款磁吸吸盘强磁力汽车上专用导航固定贴片车内"
+        }
+      ],
+      "minPrice": 21.7,
+      "maxPrice": 21.7,
+      "diff": 0
+    },
+    {
+      "key": "车载手机支架2026汽车多功能仪表盘无线充电防滑垫架导航专用",
+      "label": "车载手机支架2026新款汽车多功能仪表盘无线充电防滑垫架导航专用",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 64,
+          "tao_id": "yJm7jVgURt2K4qgnPyhrDDUvtA-BAM9QKAsrJPgem78SDp",
+          "_id": "6ae445697fe483af400a51c6",
+          "title": "车载手机支架2026新款汽车多功能仪表盘无线充电防滑垫架导航专用"
+        }
+      ],
+      "minPrice": 64,
+      "maxPrice": 64,
+      "diff": 0
+    },
+    {
+      "key": "车载手机支架多功能2026黑科技汽车中控台用品导航防滑垫固定",
+      "label": "车载手机支架多功能2026新款黑科技汽车中控台用品导航防滑垫固定",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 18.95,
+          "tao_id": "gWb4Mvoh3t2OnaYqxGhY8Puatr-pBam27BC2DaJ7NVrijA",
+          "_id": "6ae445697fe483af400a51bd",
+          "title": "车载手机支架多功能2026新款黑科技汽车中控台用品导航防滑垫固定"
+        }
+      ],
+      "minPrice": 18.95,
+      "maxPrice": 18.95,
+      "diff": 0
+    },
+    {
+      "key": "车载手机支架可爱吸盘式车上固定出风口汽车手机架导航女生",
+      "label": "车载手机支架新款可爱吸盘式车上固定出风口汽车手机架导航女生",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 20.4,
+          "tao_id": "GAaRp76f8tYkPNGOWoc6R9SQtJ-jG4oQqGiX7AopQK4czy",
+          "_id": "6ae445697fe483af400a5230",
+          "title": "车载手机支架新款可爱吸盘式车上固定出风口汽车手机架导航女生"
+        }
+      ],
+      "minPrice": 20.4,
+      "maxPrice": 20.4,
+      "diff": 0
+    },
+    {
+      "key": "车载手机支架汽车导航专用2026真空吸盘车用固定防抖车内支撑",
+      "label": "车载手机支架汽车导航专用2026新款真空吸盘车用固定防抖车内支撑",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 20.1,
+          "tao_id": "3pDxabZUAtYe790B2RFXN2f9tJ-eQ9mM0QIzzPJN85mC94",
+          "_id": "6ae445697fe483af400a51c2",
+          "title": "车载手机支架汽车导航专用2026新款真空吸盘车用固定防抖车内支撑"
+        }
+      ],
+      "minPrice": 20.1,
+      "maxPrice": 20.1,
+      "diff": 0
+    },
+    {
+      "key": "车载无线充气泵车用便携式汽车用打气泵电动轿车轮胎高压打气筒宝",
+      "label": "车载无线充气泵车用便携式汽车用打气泵电动轿车轮胎高压打气筒宝",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 52.7,
+          "tao_id": "v5j7Y2bhZt67zBgR84c9p7T0te-J5B6mP5haoOoMnVKcV0",
+          "_id": "6ae445697fe483af400a5225",
+          "title": "车载无线充气泵车用便携式汽车用打气泵电动轿车轮胎高压打气筒宝"
+        }
+      ],
+      "minPrice": 52.7,
+      "maxPrice": 52.7,
+      "diff": 0
+    },
+    {
+      "key": "车载香水补充液车用精油男女士古龙高档持久淡香氛汽车内香薰",
+      "label": "车载香水补充液车用精油男女士古龙高档持久淡香氛汽车内正品香薰",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.8,
+          "tao_id": "YgKrRjzCptX4z53jPRUKePC2t6-oKjmO7KfBXWdnrkeCJA",
+          "_id": "6ae445697fe483af400a51a4",
+          "title": "车载香水补充液车用精油男女士古龙高档持久淡香氛汽车内正品香薰"
+        }
+      ],
+      "minPrice": 2.8,
+      "maxPrice": 2.8,
+      "diff": 0
+    },
+    {
+      "key": "车载香薰2026持久留香高档汽车淡香香水男士女士专用香氛摆件",
+      "label": "车载香薰2026新款持久留香高档汽车淡香香水男士女士专用香氛摆件",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 29.9,
+          "tao_id": "MOQ6BAGHKtXeWywV8RUdnVIQtA-v6nmKo6I8OkB7G2gidg",
+          "_id": "6ae445697fe483af400a51d8",
+          "title": "车载香薰2026新款持久留香高档汽车淡香香水男士女士专用香氛摆件"
+        }
+      ],
+      "minPrice": 29.9,
+      "maxPrice": 29.9,
+      "diff": 0
+    },
+    {
+      "key": "车载小风车旋转陀螺创意装饰贴小摆件中控台车内饰品女士可爱",
+      "label": "车载新款小风车旋转陀螺创意装饰贴小摆件中控台车内饰品女士可爱",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4.5,
+          "tao_id": "o30wB6mhrtK9j3XdpJF5eGIntN-k3mDd03hRgzAbg8Ri5q",
+          "_id": "6ae445697fe483af400a51ca",
+          "title": "车载新款小风车旋转陀螺创意装饰贴小摆件中控台车内饰品女士可爱"
+        }
+      ],
+      "minPrice": 4.5,
+      "maxPrice": 4.5,
+      "diff": 0
+    },
+    {
+      "key": "车载支架手机magsafe磁吸折叠中控高端导航汽车合金360度旋转",
+      "label": "车载支架手机magsafe磁吸新款折叠中控高端导航汽车合金360度旋转",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 33.1,
+          "tao_id": "WBD5jyJfot2BZ8oNpmhXe9uQta-BAM9QKAsrYeQqQe6C6r",
+          "_id": "6ae445697fe483af400a51cb",
+          "title": "车载支架手机magsafe磁吸新款折叠中控高端导航汽车合金360度旋转"
+        }
+      ],
+      "minPrice": 33.1,
+      "maxPrice": 33.1,
+      "diff": 0
+    },
+    {
+      "key": "车载置物垫车内手机摆件垫车用垫子中控仪表台耐高温垫汽车防滑垫",
+      "label": "车载置物垫车内手机摆件垫车用垫子中控仪表台耐高温垫汽车防滑垫",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 12.8,
+          "tao_id": "qAzWBZdh2t4OByMWVNiDJpcWt0-djdYPBjhp2B674aktW",
+          "_id": "6ae445697fe483af400a522b",
+          "title": "车载置物垫车内手机摆件垫车用垫子中控仪表台耐高温垫汽车防滑垫"
+        }
+      ],
+      "minPrice": 12.8,
+      "maxPrice": 12.8,
+      "diff": 0
+    },
+    {
+      "key": "冲锋衣外套男女2026秋冬情侣潮牌户外防风防水夹克",
+      "label": "冲锋衣外套男女2026秋冬新款情侣潮牌户外防风防水夹克",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 149.9,
+          "tao_id": "R9VnAWxCZtjJvKeqxdskn5SMt6-oKjmO7Kfe0dYXkyduJX",
+          "_id": "6ae41b3340509ab49758eb16",
+          "title": "冲锋衣外套男女2026秋冬新款情侣潮牌户外防风防水夹克"
+        }
+      ],
+      "minPrice": 149.9,
+      "maxPrice": 149.9,
+      "diff": 0
+    },
+    {
+      "key": "冲锋衣外套男女2026秋冬情侣潮牌户外防风防水夹克xc",
+      "label": "冲锋衣外套男女2026秋冬新款情侣潮牌户外防风防水夹克XC",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 149.9,
+          "tao_id": "K6onZ5Bs3toVNdjjV5HOwWsJtW-nJamVPJHjZxNNwJQhP",
+          "_id": "6ae41b2f40509ab49758e999",
+          "title": "冲锋衣外套男女2026秋冬新款情侣潮牌户外防风防水夹克XC"
+        }
+      ],
+      "minPrice": 149.9,
+      "maxPrice": 149.9,
+      "diff": 0
+    },
+    {
+      "key": "床上书桌折叠小桌子加高实高中生网课学习桌大学生宿舍床上桌炕桌",
+      "label": "床上书桌折叠小桌子加高实高中生网课学习桌大学生宿舍床上桌炕桌",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 16.41,
+          "tao_id": "MpnAqrwcKtXeXgQXpaFdn4cQtA-oKjmO7KfBkzGPnGMc4d",
+          "_id": "6ae30b9541cc7fcd47927e3a",
+          "title": "床上书桌折叠小桌子加高实高中生网课学习桌大学生宿舍床上桌炕桌"
+        }
+      ],
+      "minPrice": 16.41,
+      "maxPrice": 16.41,
+      "diff": 0
+    },
+    {
+      "key": "床上小桌子笔记本电脑桌家用飘窗可折叠桌宿舍学习桌卧室学生书桌床上桌吃饭折叠升降寝室上铺下铺床桌折叠桌",
+      "label": "床上小桌子笔记本电脑桌家用飘窗可折叠桌宿舍学习桌卧室学生书桌床上桌吃饭折叠升降寝室上铺下铺床桌折叠桌",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 24.75,
+          "tao_id": "Weq2pQ0uot2B2WOD6KUXeBSQta-gPVmqnPhpKJabkxPIoY",
+          "_id": "6ae30b9441cc7fcd47927b20",
+          "title": "床上小桌子笔记本电脑桌家用飘窗可折叠桌宿舍学习桌卧室学生书桌床上桌吃饭折叠升降寝室上铺下铺床桌折叠桌"
+        }
+      ],
+      "minPrice": 24.75,
+      "maxPrice": 24.75,
+      "diff": 0
+    },
+    {
+      "key": "床上小桌子电脑桌床上桌可折叠笔记本大学生宿舍小桌板餐桌懒人桌宝宝阅读桌书桌学习桌写字桌飘窗升降桌收纳",
+      "label": "床上小桌子电脑桌床上桌可折叠笔记本大学生宿舍小桌板餐桌懒人桌宝宝阅读桌书桌学习桌写字桌飘窗升降桌收纳",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 17.78,
+          "tao_id": "y35X7Ar9URt2K4geO8ZirOotvtA-6RebxvRsyPdvdb64Ig",
+          "_id": "6ae432db0f8a974ef9b3259e",
+          "title": "床上小桌子电脑桌床上桌可折叠笔记本大学生宿舍小桌板餐桌懒人桌宝宝阅读桌书桌学习桌写字桌飘窗升降桌收纳"
+        }
+      ],
+      "minPrice": 17.78,
+      "maxPrice": 17.78,
+      "diff": 0
+    },
+    {
+      "key": "床上小桌子可折叠桌炕桌学习桌大学生书桌宿舍上铺笔记本电脑桌支架飘窗小桌板炕几家用卧室懒人桌儿童写字桌",
+      "label": "床上小桌子可折叠桌炕桌学习桌大学生书桌宿舍上铺笔记本电脑桌支架飘窗小桌板炕几家用卧室懒人桌儿童写字桌",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 16.43,
+          "tao_id": "7DXedBAH4t535Zv53ZF6PdtMtV-wo3mjnoHQnQnj3PgTy",
+          "_id": "6ae30b9541cc7fcd47927d02",
+          "title": "床上小桌子可折叠桌炕桌学习桌大学生书桌宿舍上铺笔记本电脑桌支架飘窗小桌板炕几家用卧室懒人桌儿童写字桌"
+        }
+      ],
+      "minPrice": 16.43,
+      "maxPrice": 16.43,
+      "diff": 0
+    },
+    {
+      "key": "床上小桌子飘窗折叠桌学生床头宿舍书桌笔记本支架床上桌可移动卧室电脑桌卧室家用学习桌子寝室上铺下铺小桌",
+      "label": "床上小桌子飘窗折叠桌学生床头宿舍书桌笔记本支架床上桌可移动卧室电脑桌卧室家用学习桌子寝室上铺下铺小桌",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 14.2,
+          "tao_id": "bde83nHgtoRoJno9ouzjOFQt6-OqmzjwqUZr3NxjKgt8e",
+          "_id": "6ae30b9541cc7fcd47927d53",
+          "title": "床上小桌子飘窗折叠桌学生床头宿舍书桌笔记本支架床上桌可移动卧室电脑桌卧室家用学习桌子寝室上铺下铺小桌"
+        }
+      ],
+      "minPrice": 14.2,
+      "maxPrice": 14.2,
+      "diff": 0
+    },
+    {
+      "key": "床桌家用床上懒人飘窗桌可折叠收纳笔记本平板电脑膝上桌宝宝吃饭餐桌宿舍寝室阅读绘本炕书桌暑假期学习神器",
+      "label": "床桌家用床上懒人飘窗桌可折叠收纳笔记本平板电脑膝上桌宝宝吃饭餐桌宿舍寝室阅读绘本炕书桌暑假期学习神器",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 18.81,
+          "tao_id": "Yqj7XGJIptX4XN6bKpSKekc2t6-OqmzjwqUZWaQX6WNS8",
+          "_id": "6ae30b8b41cc7fcd4792787f",
+          "title": "床桌家用床上懒人飘窗桌可折叠收纳笔记本平板电脑膝上桌宝宝吃饭餐桌宿舍寝室阅读绘本炕书桌暑假期学习神器"
+        }
+      ],
+      "minPrice": 18.81,
+      "maxPrice": 18.81,
+      "diff": 0
+    },
+    {
+      "key": "纯棉工装裤男宽松高腰大码休闲裤束脚战术裤多口袋劳保耐磨长裤潮",
+      "label": "纯棉工装裤男宽松高腰大码休闲裤束脚战术裤多口袋劳保耐磨长裤潮",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 49,
+          "tao_id": "gP8O7MYmh3t2Onew97BUYqdhatr-djdYPBjhpAro78eQIW",
+          "_id": "6ae41b3340509ab49758eb8e",
+          "title": "纯棉工装裤男宽松高腰大码休闲裤束脚战术裤多口袋劳保耐磨长裤潮"
+        }
+      ],
+      "minPrice": 49,
+      "maxPrice": 49,
+      "diff": 0
+    },
+    {
+      "key": "纯牛奶捏捏乐食品级硅胶捏捏爆浆牛奶砖萌趣超软仿真慢回弹网红",
+      "label": "纯牛奶捏捏乐食品级硅胶捏捏爆浆牛奶砖萌趣超软仿真慢回弹网红",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8.98,
+          "tao_id": "NOeAvgBru5tG6V7X5K0UYPNfRtB-xnam6ZnsOmrPRB94iA",
+          "_id": "6ae449e77fe483af400a5c60",
+          "title": "纯牛奶捏捏乐食品级硅胶捏捏爆浆牛奶砖萌趣超软仿真慢回弹网红"
+        }
+      ],
+      "minPrice": 8.98,
+      "maxPrice": 8.98,
+      "diff": 0
+    },
+    {
+      "key": "大东德训鞋女鞋2026秋季运动鞋小白鞋情侣板鞋百搭休闲鞋",
+      "label": "大东德训鞋女鞋2026秋季新款运动鞋小白鞋情侣同款板鞋百搭休闲鞋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 88.35,
+          "tao_id": "DaY3rY0hDt5Q5V972BHRe9cjtn-zDke3nDhoybxDdqbhJp",
+          "_id": "6ae2fcc915f26d3db899b469",
+          "title": "大东德训鞋女鞋2026秋季新款运动鞋小白鞋情侣同款板鞋百搭休闲鞋"
+        }
+      ],
+      "minPrice": 88.35,
+      "maxPrice": 88.35,
+      "diff": 0
+    },
+    {
+      "key": "大号旋转万花筒多棱镜儿童益智玩具转头望花筒学生男女孩科学实验",
+      "label": "大号旋转万花筒多棱镜儿童益智玩具转头望花筒学生男女孩科学实验",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.9,
+          "tao_id": "eQjovV2jiDtdJQOw7jxh62zHzt0-GKQ6O5Kfqvn4qqvGuj",
+          "_id": "6ae449e77fe483af400a5c6a",
+          "title": "大号旋转万花筒多棱镜儿童益智玩具转头望花筒学生男女孩科学实验"
+        }
+      ],
+      "minPrice": 3.9,
+      "maxPrice": 3.9,
+      "diff": 0
+    },
+    {
+      "key": "大脸书瞳雾视屏d1远像屏远视屏读写台护眼学习机儿童视力保护器赵阳主任d18",
+      "label": "大脸书瞳雾视屏D1远像屏远视屏读写台护眼学习机儿童视力保护器  赵阳主任推荐 D1(睿视新品数字离焦雾视屏)8+256G",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 16620,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ec5",
+          "title": "大脸书瞳雾视屏D1远像屏远视屏读写台护眼学习机儿童视力保护器  赵阳主任推荐 D1(睿视新品数字离焦雾视屏)8+256G"
+        }
+      ],
+      "minPrice": 16620,
+      "maxPrice": 16620,
+      "diff": 0
+    },
+    {
+      "key": "当当网海蒂怀孕大百科全新第5版美国妈妈人手一本的怀孕百科育儿百科父母育儿孕期保健养生百科读物正版书",
+      "label": "当当网【赠孕期运动指南】 海蒂怀孕大百科 全新第5版 美国妈妈人手一本的怀孕百科 育儿百科父母育儿 孕期保健养生百科读物正版书",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 14.5,
+          "tao_id": "Kb320n5T3toVoY8aMdTON5TJtW-7np58WnsYVb9MzMVu0e",
+          "_id": "6ae3147d48ed584415847073",
+          "title": "当当网【赠孕期运动指南】 海蒂怀孕大百科 全新第5版 美国妈妈人手一本的怀孕百科 育儿百科父母育儿 孕期保健养生百科读物正版书"
+        }
+      ],
+      "minPrice": 14.5,
+      "maxPrice": 14.5,
+      "diff": 0
+    },
+    {
+      "key": "得力3d打印笔三d儿童款立体涂鸦绘画笔低温不烫手3d打印机笔开学儿童礼物套装送礼生日diy套装多功能马良神笔",
+      "label": "得力3d打印笔三d儿童款立体涂鸦绘画笔低温不烫手3d打印机笔开学儿童礼物套装送礼生日diy套装多功能马良神笔",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 38.9,
+          "tao_id": "x2P0p9xiktqaXYKOxBiR4ZtAt9-rXaYmPXUMq0N5BxgSkv",
+          "_id": "6ae432de0f8a974ef9b327e2",
+          "title": "得力3d打印笔三d儿童款立体涂鸦绘画笔低温不烫手3d打印机笔开学儿童礼物套装送礼生日diy套装多功能马良神笔"
+        }
+      ],
+      "minPrice": 38.9,
+      "maxPrice": 38.9,
+      "diff": 0
+    },
+    {
+      "key": "迪卡侬筋膜球放松肌肉按摩球足底肩颈弹力带健身手球保健小球csh1",
+      "label": "迪卡侬筋膜球放松肌肉按摩球足底肩颈弹力带健身手球保健小球CSH1",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 19.9,
+          "tao_id": "ZrB8XBV0I6tPDvMAd9qtJXnsVt6-djdYPBjhpK67dKrxiQ",
+          "_id": "6ae432370f8a974ef9b32038",
+          "title": "迪卡侬筋膜球放松肌肉按摩球足底肩颈弹力带健身手球保健小球CSH1"
+        }
+      ],
+      "minPrice": 19.9,
+      "maxPrice": 19.9,
+      "diff": 0
+    },
+    {
+      "key": "电动指甲刀宝宝磨甲器家用全自动修甲快充儿童磨甲器升级电动指甲刀手脚两用静音宝宝电动磨甲器装",
+      "label": "新款电动指甲刀宝宝磨甲器家用全自动修甲快充儿童磨甲器升级电动指甲刀手脚两用静音宝宝 【活动专项】电动磨甲器 1个装（新老款混发）",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 3.99,
+          "tao_id": "",
+          "_id": "6ad6dfc8e2333ed439cb62b5",
+          "title": "新款电动指甲刀宝宝磨甲器家用全自动修甲快充儿童磨甲器升级电动指甲刀手脚两用静音宝宝 【活动专项】电动磨甲器 1个装（新老款混发）"
+        }
+      ],
+      "minPrice": 3.99,
+      "maxPrice": 3.99,
+      "diff": 0
+    },
+    {
+      "key": "电饭煲厨房空气炸锅置物架多功能台面小烤箱小家电分层收纳架橱柜",
+      "label": "电饭煲厨房空气炸锅置物架多功能台面小烤箱小家电分层收纳架橱柜",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 25.3,
+          "tao_id": "47dZDAVSgtNRYpDOVwin3GHNtg-7np58WnsO97evzeatVD",
+          "_id": "6adc1f00a6f20c2fbf5c9816",
+          "title": "电饭煲厨房空气炸锅置物架多功能台面小烤箱小家电分层收纳架橱柜"
+        }
+      ],
+      "minPrice": 25.3,
+      "maxPrice": 25.3,
+      "diff": 0
+    },
+    {
+      "key": "电饭煲蒸架食品级31不锈钢锅架锅垫蒸笼架6家用蒸锅蒸屉蒸菜架子",
+      "label": "电饭煲蒸架食品级31不锈钢锅架锅垫蒸笼架6家用蒸锅蒸屉蒸菜架子",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5.85,
+          "tao_id": "KqnYKvMMs3toVpnk6Q3sOwjuJtW-v6nmKo6I8rQrG8NyU0",
+          "_id": "6adc1f00a6f20c2fbf5c9901",
+          "title": "电饭煲蒸架食品级31不锈钢锅架锅垫蒸笼架6家用蒸锅蒸屉蒸菜架子"
+        }
+      ],
+      "minPrice": 5.85,
+      "maxPrice": 5.85,
+      "diff": 0
+    },
+    {
+      "key": "电饭煲蒸笼适用苏泊尔电饭锅蒸格美的蒸屉蒸层蒸架5升3通用配件",
+      "label": "电饭煲蒸笼适用苏泊尔电饭锅蒸格美的蒸屉蒸层蒸架4L5升3通用配件",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 13.41,
+          "tao_id": "88axP6byInt9wegxZRviOQoibt8-26GApP6IOgBpWw3vcv",
+          "_id": "6ad1a11b7972651e5fcfdd51",
+          "title": "电饭煲蒸笼适用苏泊尔电饭锅蒸格美的蒸屉蒸层蒸架4L5升3通用配件"
+        }
+      ],
+      "minPrice": 13.41,
+      "maxPrice": 13.41,
+      "diff": 0
+    },
+    {
+      "key": "电脑椅家用椅子靠背久坐舒服学习书桌椅宿舍升降转椅卧室办公座椅",
+      "label": "电脑椅家用椅子靠背久坐舒服学习书桌椅宿舍升降转椅卧室办公座椅",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 88.75,
+          "tao_id": "nbkYvv7TMt3jZP0nRMiA0mf0tP-oKjmO7Kfe9Nad3m4fJd",
+          "_id": "6adebc0cafae30c58cd989eb",
+          "title": "电脑椅家用椅子靠背久坐舒服学习书桌椅宿舍升降转椅卧室办公座椅"
+        }
+      ],
+      "minPrice": 88.75,
+      "maxPrice": 88.75,
+      "diff": 0
+    },
+    {
+      "key": "电脑椅舒适久坐家用学习椅宿舍书桌椅女生卧室化妆椅办公升降转椅",
+      "label": "电脑椅舒适久坐家用学习椅宿舍书桌椅女生卧室化妆椅办公升降转椅",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 98.25,
+          "tao_id": "5PVm33asxtywZ0mMdJfQAjtMtV-NO46KBOfn0Xa6ar8ip",
+          "_id": "6adebc0cafae30c58cd989e6",
+          "title": "电脑椅舒适久坐家用学习椅宿舍书桌椅女生卧室化妆椅办公升降转椅"
+        }
+      ],
+      "minPrice": 98.25,
+      "maxPrice": 98.25,
+      "diff": 0
+    },
+    {
+      "key": "冬季保暖加绒电工鞋5kv10kv绝缘劳保鞋高帮大棉鞋子防滑耐磨帆布",
+      "label": "冬季保暖加绒电工鞋5kv10kv绝缘劳保鞋高帮大棉鞋子防滑耐磨帆布",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 18.81,
+          "tao_id": "G4rwRwKF8tYkn346VKi6RPUQtJ-GKQ6O5KfbqwW89B8snj",
+          "_id": "6ad70419b52eea71220b2446",
+          "title": "冬季保暖加绒电工鞋5kv10kv绝缘劳保鞋高帮大棉鞋子防滑耐磨帆布"
+        }
+      ],
+      "minPrice": 18.81,
+      "maxPrice": 18.81,
+      "diff": 0
+    },
+    {
+      "key": "多巴胺按压旋转球创意3d打印学生解压玩具便携指尖小陀螺桌面摆件",
+      "label": "多巴胺按压旋转球创意3d打印学生解压玩具便携指尖小陀螺桌面摆件",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.9,
+          "tao_id": "wzb2jPyUgtDXNMnn24h3P6ibtd-GKQ6O5KfbGa0NQKotno",
+          "_id": "6ae449d87fe483af400a57ad",
+          "title": "多巴胺按压旋转球创意3d打印学生解压玩具便携指尖小陀螺桌面摆件"
+        }
+      ],
+      "minPrice": 3.9,
+      "maxPrice": 3.9,
+      "diff": 0
+    },
+    {
+      "key": "儿童宝宝高颜值陶瓷釉下彩happy陶瓷ins家用餐具可爱釉下彩饭碗粉猪4.5英寸碗",
+      "label": "儿童宝宝高颜值陶瓷釉下彩happy陶瓷ins家用餐具可爱釉下彩饭碗 粉猪4.5英寸碗【2碗2勺】",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 19.9,
+          "tao_id": "",
+          "_id": "6ad6dfc8e2333ed439cb629a",
+          "title": "儿童宝宝高颜值陶瓷釉下彩happy陶瓷ins家用餐具可爱釉下彩饭碗 粉猪4.5英寸碗【2碗2勺】"
+        }
+      ],
+      "minPrice": 19.9,
+      "maxPrice": 19.9,
+      "diff": 0
+    },
+    {
+      "key": "儿童电动充电泡沫飞机手工拼装户外玩具男孩滑翔机航模战斗机模型",
+      "label": "儿童电动充电泡沫飞机手工拼装户外玩具男孩滑翔机航模战斗机模型",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 13.8,
+          "tao_id": "GZyrZ3MU8tYk3xXw6ps6RDSQtJ-pBam27BCRaxGpAvvSj6",
+          "_id": "6ad6e2ace2333ed439cb6700",
+          "title": "儿童电动充电泡沫飞机手工拼装户外玩具男孩滑翔机航模战斗机模型"
+        }
+      ],
+      "minPrice": 13.8,
+      "maxPrice": 13.8,
+      "diff": 0
+    },
+    {
+      "key": "儿童迷你小家电过家家厨房玩具做饭套装电动洗衣机宝宝仿真吸尘器",
+      "label": "儿童迷你小家电过家家厨房玩具做饭套装电动洗衣机宝宝仿真吸尘器",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 19.35,
+          "tao_id": "pG80bgBUxt6pjwnBzbi5MmIptm-v6nmKo6IB6bgnqaqtOQ",
+          "_id": "6ad850e8b52eea71220cb47e",
+          "title": "儿童迷你小家电过家家厨房玩具做饭套装电动洗衣机宝宝仿真吸尘器"
+        }
+      ],
+      "minPrice": 19.35,
+      "maxPrice": 19.35,
+      "diff": 0
+    },
+    {
+      "key": "儿童遥控飞机战斗机滑翔机泡沫耐摔无人机小学生小型男孩子玩具",
+      "label": "儿童遥控飞机战斗机滑翔机泡沫耐摔无人机小学生小型男孩子玩具",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 39.8,
+          "tao_id": "v6zNqboBFZt67zBke43C9pmu0te-6RebxvRs6xnQpvVBsz",
+          "_id": "6ae449e77fe483af400a5c61",
+          "title": "儿童遥控飞机战斗机滑翔机泡沫耐摔无人机小学生小型男孩子玩具"
+        }
+      ],
+      "minPrice": 39.8,
+      "maxPrice": 39.8,
+      "diff": 0
+    },
+    {
+      "key": "耳机皮塞耳机套入耳式耳机硅胶套塞套耳塞适用三星小米索尼耳套配件耳帽帽硅胶蓝牙耳机保护套壳通用",
+      "label": "耳机皮塞耳机套入耳式耳机硅胶套塞套耳塞适用三星小米索尼耳套配件耳帽帽硅胶蓝牙耳机保护套壳通用",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8.49,
+          "tao_id": "8KaMBvPsnt9N9n89ekUOyqTbt8-oKjmO7KfAaxxWGjru4X",
+          "_id": "6ae30b9541cc7fcd47927e20",
+          "title": "耳机皮塞耳机套入耳式耳机硅胶套塞套耳塞适用三星小米索尼耳套配件耳帽帽硅胶蓝牙耳机保护套壳通用"
+        }
+      ],
+      "minPrice": 8.49,
+      "maxPrice": 8.49,
+      "diff": 0
+    },
+    {
+      "key": "耳机清洁笔手机听筒耳机壳除尘工具清理神器手机孔多功能清洁刷蓝牙耳机清理神器",
+      "label": "耳机清洁笔手机听筒耳机壳除尘工具清理神器手机孔多功能清洁刷蓝牙耳机清理神器",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.9,
+          "tao_id": "Ymd0qN3UptX4XjWbWZtKV5f2t6-nJamVPJHxYMzWgqwUzN",
+          "_id": "6ae1b07bef77c4c9a3fd9d58",
+          "title": "耳机清洁笔手机听筒耳机壳除尘工具清理神器手机孔多功能清洁刷蓝牙耳机清理神器"
+        }
+      ],
+      "minPrice": 2.9,
+      "maxPrice": 2.9,
+      "diff": 0
+    },
+    {
+      "key": "耳机清洁笔听筒除尘神器工具手机孔多功能清洁刷蓝牙耳机清理神器",
+      "label": "耳机清洁笔听筒除尘神器工具手机孔多功能清洁刷蓝牙耳机清理神器",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.68,
+          "tao_id": "xn3KqDDPHktqaqXBr4XSRyOCAt9-pBam27BCRaZqKQV7sjA",
+          "_id": "6ae16a28e944fc775085fd2d",
+          "title": "耳机清洁笔听筒除尘神器工具手机孔多功能清洁刷蓝牙耳机清理神器"
+        }
+      ],
+      "minPrice": 2.68,
+      "maxPrice": 2.68,
+      "diff": 0
+    },
+    {
+      "key": "耳机套硅胶通用入耳式耳帽适用于三星防滑硅胶套耳机上的耳塞套耳套手机软帽耳塞配件",
+      "label": "耳机套硅胶通用入耳式耳帽适用于三星防滑硅胶套耳机上的耳塞套耳套手机软帽耳塞配件",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 6.01,
+          "tao_id": "ndBqpoJCMt3j5gQjnxfAwec0tP-qkam4qkTrK6ZeBpWC7W",
+          "_id": "6ae432e70f8a974ef9b32b04",
+          "title": "耳机套硅胶通用入耳式耳帽适用于三星防滑硅胶套耳机上的耳塞套耳套手机软帽耳塞配件"
+        }
+      ],
+      "minPrice": 6.01,
+      "maxPrice": 6.01,
+      "diff": 0
+    },
+    {
+      "key": "耳机支架壁挂免打孔桌下电竞托架头戴式支架挂钩架托悬挂式耳机架",
+      "label": "耳机支架壁挂免打孔桌下电竞托架头戴式支架挂钩架托悬挂式耳机架",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5.02,
+          "tao_id": "Oq0k22eqTzt6n6zr0J4uVo3iMtJ-eQ9mM0QIG8B2YDYwFq",
+          "_id": "6ae16a1fe944fc775085f99b",
+          "title": "耳机支架壁挂免打孔桌下电竞托架头戴式支架挂钩架托悬挂式耳机架"
+        }
+      ],
+      "minPrice": 5.02,
+      "maxPrice": 5.02,
+      "diff": 0
+    },
+    {
+      "key": "耳机支架头戴式耳机支架通用耳机挂架托airpodsmax桌面收纳架子电竞游戏耳麦置物架蓝牙无线耳机支撑架展示架",
+      "label": "耳机支架头戴式耳机支架通用耳机挂架托AirPodsMax桌面收纳架子电竞游戏耳麦置物架蓝牙无线耳机支撑架展示架",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 17.7,
+          "tao_id": "KwqJBOnC3toVoWYPw0SOwvCJtW-bXJm73XUGaDaanXOUW2",
+          "_id": "6ae30b9441cc7fcd47927b3a",
+          "title": "耳机支架头戴式耳机支架通用耳机挂架托AirPodsMax桌面收纳架子电竞游戏耳麦置物架蓝牙无线耳机支撑架展示架"
+        }
+      ],
+      "minPrice": 17.7,
+      "maxPrice": 17.7,
+      "diff": 0
+    },
+    {
+      "key": "耳机转换头转接头typec适用华为vivo小米15苹果16手机安卓tpyec接口usb转换器typc有线tpc音频圆孔接线",
+      "label": "耳机转换头转接头typec适用华为vivo小米15苹果16手机3.5mm安卓tpyec接口usb转换器typc有线tpc音频圆孔接线",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5.87,
+          "tao_id": "nQzQeOmSMt3j35AwZMFA0yc0tP-Rge63NguX70W7rNrsY",
+          "_id": "6ae16a20e944fc775085fb60",
+          "title": "耳机转换头转接头typec适用华为vivo小米15苹果16手机3.5mm安卓tpyec接口usb转换器typc有线tpc音频圆孔接线"
+        }
+      ],
+      "minPrice": 5.87,
+      "maxPrice": 5.87,
+      "diff": 0
+    },
+    {
+      "key": "耳机转换头转接头typec转圆孔接口适用于华为苹果15荣耀vivo小米oppo手机二合一转换器一加转接线tpc",
+      "label": "耳机转换头转接头typec转3.5mm圆孔接口适用于华为苹果15荣耀vivo小米oppo手机二合一转换器一加转接线tpc",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.29,
+          "tao_id": "qkgV3WQzu2t4OBM5m0McDJBSWt0-Rge63NguVGrJDYOwh6v",
+          "_id": "6ae432db0f8a974ef9b32673",
+          "title": "耳机转换头转接头typec转3.5mm圆孔接口适用于华为苹果15荣耀vivo小米oppo手机二合一转换器一加转接线tpc"
+        }
+      ],
+      "minPrice": 3.29,
+      "maxPrice": 3.29,
+      "diff": 0
+    },
+    {
+      "key": "耳机转接头转换头typec适用华为vivo小米15苹果16手机安卓tpyec接口usb转换器typc有线tpc音频圆孔接线",
+      "label": "耳机转接头转换头typec适用华为vivo小米15苹果16手机3.5mm安卓tpyec接口usb转换器typc有线tpc音频圆孔接线",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5.87,
+          "tao_id": "dNjoD4GCZt3v3DgkBYH2y8Set3-Rge63NguX70W7rNrsY",
+          "_id": "6ae30b9441cc7fcd47927af5",
+          "title": "耳机转接头转换头typec适用华为vivo小米15苹果16手机3.5mm安卓tpyec接口usb转换器typc有线tpc音频圆孔接线"
+        }
+      ],
+      "minPrice": 5.87,
+      "maxPrice": 5.87,
+      "diff": 0
+    },
+    {
+      "key": "耳机转接头typec转换头适用苹果15小米华为手机有线耳机转接器vivo圆孔tpc接口音频ipad红米安卓荣耀100",
+      "label": "耳机转接头typec转换头适用苹果15小米华为手机有线耳机转接器vivo圆孔tpc接口3.5mm音频ipad红米安卓荣耀100",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 6.9,
+          "tao_id": "mKNzwYgUktJ7JNOnv7srVmCot3-zDke3nDho2W3zYG3tJo",
+          "_id": "6ae16a1fe944fc775085f985",
+          "title": "耳机转接头typec转换头适用苹果15小米华为手机有线耳机转接器vivo圆孔tpc接口3.5mm音频ipad红米安卓荣耀100"
+        }
+      ],
+      "minPrice": 6.9,
+      "maxPrice": 6.9,
+      "diff": 0
+    },
+    {
+      "key": "梵品小木马椭圆机有氧力量拉伸",
+      "label": "【李佳琦双11时尚节品牌专场】梵品小木马椭圆机有氧+力量+拉伸",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2289,
+          "tao_id": "mP2JaBG9SktJ7JP5AgbHrVQhot3-gPVmqnPhA3V8J3xeiGz",
+          "_id": "6ae30ada41cc7fcd479271f1",
+          "title": "【李佳琦双11时尚节品牌专场】梵品小木马椭圆机有氧+力量+拉伸"
+        }
+      ],
+      "minPrice": 2289,
+      "maxPrice": 2289,
+      "diff": 0
+    },
+    {
+      "key": "干燥剂相机镜头防潮剂防霉包摄影器材专用干燥包吧唧3d打印耗材电子仪器再生吸湿卡除湿盒耳机密封防潮箱袋",
+      "label": "干燥剂相机镜头防潮剂防霉包摄影器材专用干燥包吧唧3D打印耗材电子仪器再生吸湿卡除湿盒耳机密封防潮箱袋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4.63,
+          "tao_id": "55aOZeWhxtyw4Og2bQCQegsMtV-BAM9QKAsr5D2DrAZUDg",
+          "_id": "6ae432de0f8a974ef9b327f6",
+          "title": "干燥剂相机镜头防潮剂防霉包摄影器材专用干燥包吧唧3D打印耗材电子仪器再生吸湿卡除湿盒耳机密封防潮箱袋"
+        }
+      ],
+      "minPrice": 4.63,
+      "maxPrice": 4.63,
+      "diff": 0
+    },
+    {
+      "key": "格米莱鹦鹉2代g3131d咖啡机家用商用意式半自动咖啡机小家电美式浓缩",
+      "label": "格米莱(Gemilai)【保价双11】鹦鹉2代G3131D咖啡机 家用商用意式半自动咖啡机小家电美式浓缩",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 14999.4,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eb6",
+          "title": "格米莱(Gemilai)【保价双11】鹦鹉2代G3131D咖啡机 家用商用意式半自动咖啡机小家电美式浓缩"
+        }
+      ],
+      "minPrice": 14999.4,
+      "maxPrice": 14999.4,
+      "diff": 0
+    },
+    {
+      "key": "谷雨白千松露泥膜次抛控油清洁毛孔涂抹面膜",
+      "label": "【U先】谷雨白千松露泥膜次抛控油清洁毛孔涂抹面膜6g",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8499,
+          "tao_id": "MPr95qwzSKtXeZWddjzsdAyfQtA-36GWN76IX93gjQrpFq0",
+          "_id": "6ad9de702f17772579e844e6",
+          "title": "【U先】谷雨白千松露泥膜次抛控油清洁毛孔涂抹面膜6g"
+        }
+      ],
+      "minPrice": 8499,
+      "maxPrice": 8499,
+      "diff": 0
+    },
+    {
+      "key": "谷雨发光胶囊片装尝鲜试用美白精华油以油养肤",
+      "label": "【U先】谷雨发光胶囊片装尝鲜试用美白精华油以油养肤",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8499,
+          "tao_id": "Y8Bbp7OuptX4aRkRnACKe7S2t6-y3awR23hAQbRpRq6uyg",
+          "_id": "6ad9981f82db4923f4c23dbe",
+          "title": "【U先】谷雨发光胶囊片装尝鲜试用美白精华油以油养肤"
+        }
+      ],
+      "minPrice": 8499,
+      "maxPrice": 8499,
+      "diff": 0
+    },
+    {
+      "key": "谷雨山参胶原面霜抗皱紧致",
+      "label": "【顺手买1件】谷雨山参胶原面霜7g抗皱紧致",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 99499,
+          "tao_id": "ANXWdp00izt4XMzXPXWu8jocvtn-0vGpwkvhBxr87ymVux",
+          "_id": "6ae42db440509ab4975915d9",
+          "title": "【顺手买1件】谷雨山参胶原面霜7g抗皱紧致"
+        }
+      ],
+      "minPrice": 99499,
+      "maxPrice": 99499,
+      "diff": 0
+    },
+    {
+      "key": "花梨木健手球手转球养生保健球老人手部按摩健身球手握盘球练手球",
+      "label": "花梨木健手球手转球养生保健球老人手部按摩健身球手握盘球练手球",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 10.5,
+          "tao_id": "pROjww9Fxt6pA4bMdyf5MQHptm-v6nmKo6IBPXkgODecdQ",
+          "_id": "6ae4323b0f8a974ef9b322d6",
+          "title": "花梨木健手球手转球养生保健球老人手部按摩健身球手握盘球练手球"
+        }
+      ],
+      "minPrice": 10.5,
+      "maxPrice": 10.5,
+      "diff": 0
+    },
+    {
+      "key": "环草牧场新疆富硒高钙乳铁蛋白驼奶粉a",
+      "label": "环草牧场正品新疆官方旗舰店富硒高钙乳铁蛋白驼奶粉a",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 169,
+          "tao_id": "JMK409FRtqr0amRmGCYqetvta-ANPdJqNCDQVbRd9xSx",
+          "_id": "6ae4160f40509ab49758d976",
+          "title": "环草牧场正品新疆官方旗舰店富硒高钙乳铁蛋白驼奶粉a"
+        }
+      ],
+      "minPrice": 169,
+      "maxPrice": 169,
+      "diff": 0
+    },
+    {
+      "key": "霍尼韦尔高端空气净化器家用大空间全效净化tvoc异味除甲醛病菌花粉过敏原母婴认证家用净化器hmate",
+      "label": "霍尼韦尔（Honeywell）高端空气净化器家用大空间全效净化TVOC异味除甲醛病菌花粉过敏原母婴认证家用净化器H-Mate",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 7998.5,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ec9",
+          "title": "霍尼韦尔（Honeywell）高端空气净化器家用大空间全效净化TVOC异味除甲醛病菌花粉过敏原母婴认证家用净化器H-Mate"
+        }
+      ],
+      "minPrice": 7998.5,
+      "maxPrice": 7998.5,
+      "diff": 0
+    },
+    {
+      "key": "极盾gdppf隐形车衣进口tpu全车身漆面保护膜汽车哑光磨砂整车贴膜",
+      "label": "极盾GDPPF隐形车衣进口TPU全车身漆面保护膜汽车哑光磨砂整车贴膜",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3180,
+          "tao_id": "bDWMxxkUgtoRKraNwkFzrOhQt6-7np58WnswYWkqVWMSV",
+          "_id": "6add7e954470f41a875b74f0",
+          "title": "极盾GDPPF隐形车衣进口TPU全车身漆面保护膜汽车哑光磨砂整车贴膜"
+        }
+      ],
+      "minPrice": 3180,
+      "maxPrice": 3180,
+      "diff": 0
+    },
+    {
+      "key": "家用米桶防虫防潮米缸米箱密封猫粮储存装米杂粮盒米盒桶米罐狗粮",
+      "label": "家用米桶防虫防潮米缸米箱密封猫粮储存装米杂粮盒米盒桶米罐狗粮",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8.4,
+          "tao_id": "jgn42K9T0tJ7K7Rb7pTNvdTJte-xnam6Zns5wK4wgV2hJX",
+          "_id": "6ae01d2098d559306b92a301",
+          "title": "家用米桶防虫防潮米缸米箱密封猫粮储存装米杂粮盒米盒桶米罐狗粮"
+        }
+      ],
+      "minPrice": 8.4,
+      "maxPrice": 8.4,
+      "diff": 0
+    },
+    {
+      "key": "简雷240充电适用华为充电器mate60pro手机充电头闪充插头mate50pro3040适用荣耀nova89数据线6a快充线",
+      "label": "简雷240超级充电适用华为充电器Mate60pro手机充电头闪充插头mate50pro/30/40适用荣耀nova8/9数据线 1.0米6A快充线",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 2.99,
+          "tao_id": "",
+          "_id": "6ad6dfc8e2333ed439cb62a8",
+          "title": "简雷240超级充电适用华为充电器Mate60pro手机充电头闪充插头mate50pro/30/40适用荣耀nova8/9数据线 1.0米6A快充线"
+        }
+      ],
+      "minPrice": 2.99,
+      "maxPrice": 2.99,
+      "diff": 0
+    },
+    {
+      "key": "剑齿虎冲锋外套秋冬季户外防风防水男士三合一可拆卸保暖女登山服",
+      "label": "剑齿虎冲锋外套秋冬季户外防风防水男士三合一可拆卸保暖女登山服",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 139.9,
+          "tao_id": "D3pN6v8KCDt5Qq4dG6NcR2yhjtn-Wqx6XwqUX5MqWVKVtd",
+          "_id": "6ae41b3e40509ab49758ee57",
+          "title": "剑齿虎冲锋外套秋冬季户外防风防水男士三合一可拆卸保暖女登山服"
+        }
+      ],
+      "minPrice": 139.9,
+      "maxPrice": 139.9,
+      "diff": 0
+    },
+    {
+      "key": "健身球手球保健玉石按摩石球手指老人石头手部圆珠训练锻练老年人",
+      "label": "健身球手球保健玉石按摩石球手指老人石头手部圆珠训练锻练老年人",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 6.12,
+          "tao_id": "B2jbA2vC6t858xWyy3sd3jCrte-zDke3nDhoGmvqOg7UJa",
+          "_id": "6ae1ac06ef77c4c9a3fd8e72",
+          "title": "健身球手球保健玉石按摩石球手指老人石头手部圆珠训练锻练老年人"
+        }
+      ],
+      "minPrice": 6.12,
+      "maxPrice": 6.12,
+      "diff": 0
+    },
+    {
+      "key": "解压捏捏球3d打印按按乐2026爆按压旋转球解闷小玩意桌面摆件陀螺",
+      "label": "解压捏捏球3d打印按按乐2026爆按压旋转球解闷小玩意桌面摆件陀螺",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.26,
+          "tao_id": "pnW9Gr0Sxt6pAWw0bgU5XDsptm-mPamBQPhj407gN5WTYe",
+          "_id": "6ae449d37fe483af400a5541",
+          "title": "解压捏捏球3d打印按按乐2026爆按压旋转球解闷小玩意桌面摆件陀螺"
+        }
+      ],
+      "minPrice": 3.26,
+      "maxPrice": 3.26,
+      "diff": 0
+    },
+    {
+      "key": "解压玩具龙蛋3d打印旋转变形史莱姆球创意儿童成人指尖神器益智",
+      "label": "解压玩具龙蛋3D打印旋转变形史莱姆球创意儿童成人指尖神器益智",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4.01,
+          "tao_id": "yDzzVyYURt2K4q99P6tr33ivtA-KqV6okqUnNre2nnDCno",
+          "_id": "6ae449d87fe483af400a5733",
+          "title": "解压玩具龙蛋3D打印旋转变形史莱姆球创意儿童成人指尖神器益智"
+        }
+      ],
+      "minPrice": 4.01,
+      "maxPrice": 4.01,
+      "diff": 0
+    },
+    {
+      "key": "卡罗特米桶家用储存米箱容器防虫防潮密封食品级储米桶猫粮狗粮桶",
+      "label": "卡罗特米桶家用储存米箱容器防虫防潮密封食品级储米桶猫粮狗粮桶",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 31.76,
+          "tao_id": "MPR9Npq8cKtXeWnGKpncdnOFQtA-Xq83weqU3pmjvJ6Dsw6",
+          "_id": "6ae40d2040509ab49758c824",
+          "title": "卡罗特米桶家用储存米箱容器防虫防潮密封食品级储米桶猫粮狗粮桶"
+        }
+      ],
+      "minPrice": 31.76,
+      "maxPrice": 31.76,
+      "diff": 0
+    },
+    {
+      "key": "卡西欧电钢琴pxs7000pxs6000时尚便携考级演奏88键智能混合重锤击弦键盘pxs7000缃黄圆形升降琴凳",
+      "label": "卡西欧（CASIO）电钢琴PXS7000PXS6000时尚便携考级演奏88键智能混合重锤击弦键盘 PX-S7000缃黄+圆形升降琴凳",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 16500,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ed2",
+          "title": "卡西欧（CASIO）电钢琴PXS7000PXS6000时尚便携考级演奏88键智能混合重锤击弦键盘 PX-S7000缃黄+圆形升降琴凳"
+        }
+      ],
+      "minPrice": 16500,
+      "maxPrice": 16500,
+      "diff": 0
+    },
+    {
+      "key": "可复美净痘小绿膜修护皮肤屏障保湿控油润肤净痘面膜",
+      "label": "【顺买】可复美净痘小绿膜修护皮肤屏障保湿控油润肤净痘面膜1片",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9499.05,
+          "tao_id": "VJDb2K3T6tw5nO5n70HvK9tvtV-Zr56pNrFADVgndmmTO2",
+          "_id": "6ae42dc340509ab497591b0e",
+          "title": "【顺买】可复美净痘小绿膜修护皮肤屏障保湿控油润肤净痘面膜1片"
+        }
+      ],
+      "minPrice": 9499.05,
+      "maxPrice": 9499.05,
+      "diff": 0
+    },
+    {
+      "key": "可丽金重组胶原蛋白胶卷眼霜试用装",
+      "label": "【入仓】可丽金重组胶原蛋白胶卷眼霜1.5g 试用装",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8499,
+          "tao_id": "4pjoRYXfgtNROpqn6BSn3yTNtg-Q0w6kp0s9mpxgKymCP",
+          "_id": "6ad9981782db4923f4c238e8",
+          "title": "【入仓】可丽金重组胶原蛋白胶卷眼霜1.5g 试用装"
+        }
+      ],
+      "minPrice": 8499,
+      "maxPrice": 8499,
+      "diff": 0
+    },
+    {
+      "key": "可升降折叠床上小桌子简约宿舍学生写字床上书桌学习调节高度支架家用卧室坐地飘窗懒人笔记本电脑办公小桌板",
+      "label": "可升降折叠床上小桌子简约宿舍学生写字床上书桌学习调节高度支架家用卧室坐地飘窗懒人笔记本电脑办公小桌板",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 26.8,
+          "tao_id": "bXa3dM2aUgtoRoJnxmySzjJCQt6-Wqx6XwqUQe9vXb9auo",
+          "_id": "6ae30b8b41cc7fcd47927858",
+          "title": "可升降折叠床上小桌子简约宿舍学生写字床上书桌学习调节高度支架家用卧室坐地飘窗懒人笔记本电脑办公小桌板"
+        }
+      ],
+      "minPrice": 26.8,
+      "maxPrice": 26.8,
+      "diff": 0
+    },
+    {
+      "key": "可玉可求保价11.11收藏翡翠平安扣吊坠冰种飘绿玉石平安扣玉坠h1706f",
+      "label": "可玉可求保价11.11 收藏翡翠平安扣吊坠 冰种飘绿玉石平安扣玉坠 【高冰白色】H1706f",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 9046.66,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ec7",
+          "title": "可玉可求保价11.11 收藏翡翠平安扣吊坠 冰种飘绿玉石平安扣玉坠 【高冰白色】H1706f"
+        }
+      ],
+      "minPrice": 9046.66,
+      "maxPrice": 9046.66,
+      "diff": 0
+    },
+    {
+      "key": "可折叠床上小桌子学习书桌笔记本电脑桌支架懒人卧室飘窗桌坑几大学生宿舍学生写字小桌板儿童看书课桌膝上桌",
+      "label": "可折叠床上小桌子学习书桌笔记本电脑桌支架懒人卧室飘窗桌坑几大学生宿舍学生写字小桌板儿童看书课桌膝上桌",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 14.06,
+          "tao_id": "pBMy5XV0Sxt6p6m9jj4c5Maiptm-eQ9mM0QIG8kM9RXKu9d",
+          "_id": "6ae30b8d41cc7fcd47927a02",
+          "title": "可折叠床上小桌子学习书桌笔记本电脑桌支架懒人卧室飘窗桌坑几大学生宿舍学生写字小桌板儿童看书课桌膝上桌"
+        }
+      ],
+      "minPrice": 14.06,
+      "maxPrice": 14.06,
+      "diff": 0
+    },
+    {
+      "key": "拉赛龙马年典藏波尔多干红葡萄酒品鉴送礼f瓶装",
+      "label": "拉赛龙马年典藏超级波尔多干红葡萄酒 品鉴送礼F 1.5L*2 双瓶礼盒装",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 198,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ed9",
+          "title": "拉赛龙马年典藏超级波尔多干红葡萄酒 品鉴送礼F 1.5L*2 双瓶礼盒装"
+        }
+      ],
+      "minPrice": 198,
+      "maxPrice": 198,
+      "diff": 0
+    },
+    {
+      "key": "蓝氏猎鸟乳鸽猎兔冻干猫粮",
+      "label": "【李佳琦双11超级爆款+宠物节】蓝氏猎鸟乳鸽猎兔冻干猫粮6kg",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 289,
+          "tao_id": "5onyn5ATxtywZbG6XrfQe7FMtV-Zr56pNrFAQReDG7WUO",
+          "_id": "6ae00d99f6ed66cfb852a28d",
+          "title": "【李佳琦双11超级爆款+宠物节】蓝氏猎鸟乳鸽猎兔冻干猫粮6kg"
+        }
+      ],
+      "minPrice": 289,
+      "maxPrice": 289,
+      "diff": 0
+    },
+    {
+      "key": "乐扣乐扣焖烧杯hellobebe保温水杯学生粥饭桶不锈钢儿童水壶红色",
+      "label": "乐扣乐扣（LOCK&LOCK）焖烧杯 HelloBeBe保温水杯学生粥饭桶不锈钢儿童水壶 红色530ml",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 95,
+          "tao_id": "",
+          "_id": "6ac87b4467304f5988c2a4b5",
+          "title": "乐扣乐扣（LOCK&LOCK）焖烧杯 HelloBeBe保温水杯学生粥饭桶不锈钢儿童水壶 红色530ml"
+        }
+      ],
+      "minPrice": 95,
+      "maxPrice": 95,
+      "diff": 0
+    },
+    {
+      "key": "礼物飞利浦咖啡机家用小型全自动意式3系",
+      "label": "【双11狂欢】礼物飞利浦咖啡机家用小型全自动新款意式3系",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3477.94,
+          "tao_id": "n5AjJNyIMt3j3bAmN9SA0aF0tP-qkam4qkTXObGvwNGT0",
+          "_id": "6ae1b371564b7c8b3812bf6d",
+          "title": "【双11狂欢】礼物飞利浦咖啡机家用小型全自动新款意式3系"
+        }
+      ],
+      "minPrice": 3477.94,
+      "maxPrice": 3477.94,
+      "diff": 0
+    },
+    {
+      "key": "力诚玉米热狗肠热狗棒香辣香脆火腿肠烤肠办公室休闲零食即食零食礼包香辣香脆肠44根香辣肠",
+      "label": "力诚玉米热狗肠热狗棒香辣香脆火腿肠烤肠办公室休闲零食即食零食礼包 香辣香脆肠 30g*44根 【10.9到期 】 香辣肠",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 22.9,
+          "tao_id": "",
+          "_id": "6ac878338a4744aec94c133a",
+          "title": "力诚玉米热狗肠热狗棒香辣香脆火腿肠烤肠办公室休闲零食即食零食礼包 香辣香脆肠 30g*44根 【10.9到期 】 香辣肠"
+        }
+      ],
+      "minPrice": 22.9,
+      "maxPrice": 22.9,
+      "diff": 0
+    },
+    {
+      "key": "两只兔子安全座椅求知2系列08岁",
+      "label": "【李佳琦直播间双11母婴节】两只兔子安全座椅求知2系列0-8岁",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2580,
+          "tao_id": "QPb2QmahQtB0BVpGYbUW3QtatQ-MP2RaWPhV2vq2OwPhRW",
+          "_id": "6ae2e0a71f06011a2e4d5c35",
+          "title": "【李佳琦直播间双11母婴节】两只兔子安全座椅求知2系列0-8岁"
+        }
+      ],
+      "minPrice": 2580,
+      "maxPrice": 2580,
+      "diff": 0
+    },
+    {
+      "key": "两只兔子安全座椅求知2pro光晖版08岁",
+      "label": "【先加购11月1日开售】两只兔子安全座椅求知2Pro光晖版0-8岁",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2580,
+          "tao_id": "8ejovOJunt9N9dBD0zfOyqTbt8-MP2RaWPhV2vq2OwPhRW",
+          "_id": "6ae181cbe944fc7750863942",
+          "title": "【先加购11月1日开售】两只兔子安全座椅求知2Pro光晖版0-8岁"
+        }
+      ],
+      "minPrice": 2580,
+      "maxPrice": 2580,
+      "diff": 0
+    },
+    {
+      "key": "两只兔子安全座椅求知2pro光晖版儿童提篮08岁",
+      "label": "【双11】两只兔子安全座椅求知2Pro光晖版儿童提篮0-8岁",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2580,
+          "tao_id": "R6v0zVocZtjJOaP0P5FkD4SMt6-MP2RaWPhV2vq2OwPhRW",
+          "_id": "6ae0142b607067dde6635e38",
+          "title": "【双11】两只兔子安全座椅求知2Pro光晖版儿童提篮0-8岁"
+        }
+      ],
+      "minPrice": 2580,
+      "maxPrice": 2580,
+      "diff": 0
+    },
+    {
+      "key": "两只兔子求知3ai系列智能旋转语音安全座椅",
+      "label": "【老爸抽检】两只兔子新品求知3AI系列智能旋转语音安全座椅",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2380,
+          "tao_id": "rvZ5RM8FOtVe55ADpASKnViqtZ-k3mDd03hR5Z73858Sk",
+          "_id": "6ad4846a5e885feee5543eaa",
+          "title": "【老爸抽检】两只兔子新品求知3AI系列智能旋转语音安全座椅"
+        }
+      ],
+      "minPrice": 2380,
+      "maxPrice": 2380,
+      "diff": 0
+    },
+    {
+      "key": "灵梅陈高光鞋绝美水钻高跟鞋宴会女鞋婚纱新娘鞋婚鞋",
+      "label": "【婚鞋系列】灵梅陈高光鞋绝美水钻高跟鞋宴会女鞋婚纱新娘鞋婚鞋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3399,
+          "tao_id": "MB28BwVSKtXeWJe4GbUdRQTQtA-YJb6epJHjzVxJkPvCZ",
+          "_id": "6ae401f540509ab49758a54a",
+          "title": "【婚鞋系列】灵梅陈高光鞋绝美水钻高跟鞋宴会女鞋婚纱新娘鞋婚鞋"
+        }
+      ],
+      "minPrice": 3399,
+      "maxPrice": 3399,
+      "diff": 0
+    },
+    {
+      "key": "零食丑八怪坚果巧克力黑巧纯可可脂金丝猴巴旦木好吃袋装果仁",
+      "label": "零食丑八怪坚果巧克力120g黑巧纯可可脂金丝猴巴旦木好吃袋装果仁",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 30.01,
+          "tao_id": "RgxxbvzgcZtjJjvDmKMTkDvfMt6-GKQ6O5KfbxKvrmB7In2",
+          "_id": "6ae173bce944fc7750861725",
+          "title": "零食丑八怪坚果巧克力120g黑巧纯可可脂金丝猴巴旦木好吃袋装果仁"
+        }
+      ],
+      "minPrice": 30.01,
+      "maxPrice": 30.01,
+      "diff": 0
+    },
+    {
+      "key": "零食甘草枇杷糕金银花调理休闲办公罗汉果润喉糖皆宜年货果糕健康",
+      "label": "零食甘草枇杷糕金银花调理休闲办公罗汉果润喉糖皆宜年货果糕健康",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4.5,
+          "tao_id": "z5qppPrcetaVa9P7XoczDBfdt4-rXaYmPXUMKAOyx8XIkx",
+          "_id": "6ae1ba15564b7c8b3812d71d",
+          "title": "零食甘草枇杷糕金银花调理休闲办公罗汉果润喉糖皆宜年货果糕健康"
+        }
+      ],
+      "minPrice": 4.5,
+      "maxPrice": 4.5,
+      "diff": 0
+    },
+    {
+      "key": "零食焦糖奶油味爆米花膨化食品玉米花网红休闲小吃健康夜宵",
+      "label": "零食焦糖奶油味爆米花116g膨化食品玉米花网红休闲小吃健康夜宵",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5.01,
+          "tao_id": "5ndGNzVjSxtywy4djX4HQAySMtV-OqmzjwqUZYBPoy6OUN",
+          "_id": "6ae173bce944fc7750861817",
+          "title": "零食焦糖奶油味爆米花116g膨化食品玉米花网红休闲小吃健康夜宵"
+        }
+      ],
+      "minPrice": 5.01,
+      "maxPrice": 5.01,
+      "diff": 0
+    },
+    {
+      "key": "零食毛嗑瓜子西瓜子葵花籽大颗粒五香原味焦糖葵花子独立",
+      "label": "零食毛嗑瓜子西瓜子450g*3袋葵花籽大颗粒五香原味焦糖葵花子独立",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 32,
+          "tao_id": "Zrn0JkzOT6tPDPGBxzZuJX4SVt6-GKQ6O5Kfb3Q7vqQ2IZO",
+          "_id": "6ae2d2a01f06011a2e4d3de0",
+          "title": "零食毛嗑瓜子西瓜子450g*3袋葵花籽大颗粒五香原味焦糖葵花子独立"
+        }
+      ],
+      "minPrice": 32,
+      "maxPrice": 32,
+      "diff": 0
+    },
+    {
+      "key": "零食每日坚果独立小包装混合坚果果干腰果袋装健康营养即食",
+      "label": "零食每日坚果旗舰店独立小包装混合坚果果干腰果袋装健康营养即食",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 14.56,
+          "tao_id": "KMB4kdAU3toVoYxmN8fOyJsJtW-k3mDd03hRWArQWr4Un",
+          "_id": "6ae318f248ed584415847b36",
+          "title": "零食每日坚果旗舰店独立小包装混合坚果果干腰果袋装健康营养即食"
+        }
+      ],
+      "minPrice": 14.56,
+      "maxPrice": 14.56,
+      "diff": 0
+    },
+    {
+      "key": "零食小吃早餐干酪饼干优乐麦干烙蛋糕鸡蛋整箱糕点心儿童休闲散装",
+      "label": "零食小吃早餐干酪饼干优乐麦干烙蛋糕鸡蛋整箱糕点心儿童休闲散装",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 6.2,
+          "tao_id": "BbnXkMJt6t858rMaX9id9vsrte-zDke3nDhBWdrgzM3CJ",
+          "_id": "6ae1ba15564b7c8b3812d8bc",
+          "title": "零食小吃早餐干酪饼干优乐麦干烙蛋糕鸡蛋整箱糕点心儿童休闲散装"
+        }
+      ],
+      "minPrice": 6.2,
+      "maxPrice": 6.2,
+      "diff": 0
+    },
+    {
+      "key": "零食杂物收纳筐玩具整理筐日式家用塑料大储物盒厨房橱柜篮子桌面",
+      "label": "零食杂物收纳筐玩具整理筐日式家用塑料大储物盒厨房橱柜篮子桌面",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.88,
+          "tao_id": "aRX5AXa7UotMJ7qrqZDFxMvIjty-djdYPBjh0W8ybvWdSWk",
+          "_id": "6ae40d2740509ab49758cc53",
+          "title": "零食杂物收纳筐玩具整理筐日式家用塑料大储物盒厨房橱柜篮子桌面"
+        }
+      ],
+      "minPrice": 3.88,
+      "maxPrice": 3.88,
+      "diff": 0
+    },
+    {
+      "key": "绿联usb延长线3.02.0公对母数据线u盘加长线连接线手机充电电脑电视打印机连接鼠标键盘转接线13m",
+      "label": "绿联usb延长线3.0/2.0公对母数据线u盘加长线连接线手机充电电脑电视打印机连接鼠标键盘转接线1/3/5米m",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.9,
+          "tao_id": "GGpdxxbC8tYkPGxka0i6ejtQtJ-qkam4qkTjK0ygYDsoX",
+          "_id": "6ae432e50f8a974ef9b329c2",
+          "title": "绿联usb延长线3.0/2.0公对母数据线u盘加长线连接线手机充电电脑电视打印机连接鼠标键盘转接线1/3/5米m"
+        }
+      ],
+      "minPrice": 9.9,
+      "maxPrice": 9.9,
+      "diff": 0
+    },
+    {
+      "key": "绿联usb延长线3.02.0u盘连接线加长电视电脑打印机公对母数据线供电鼠标键盘充电接口转接头线车载13m",
+      "label": "绿联usb延长线3.0/2.0u盘连接线加长电视电脑打印机公对母数据线供电鼠标键盘充电接口转接头线车载1/3/5米m",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.9,
+          "tao_id": "DoZyYYXIDt5Qqzp0mmUR5AHjtn-rXaYmPXUbYbKNVXFkz",
+          "_id": "6ae432de0f8a974ef9b32724",
+          "title": "绿联usb延长线3.0/2.0u盘连接线加长电视电脑打印机公对母数据线供电鼠标键盘充电接口转接头线车载1/3/5米m"
+        }
+      ],
+      "minPrice": 9.9,
+      "maxPrice": 9.9,
+      "diff": 0
+    },
+    {
+      "key": "绿联usb延长线3.0接口公对母2.0数据高速传输充供电脑视无线打印扩展加长连接键盘车载u盘鼠标接收器0.5",
+      "label": "绿联usb延长线3.0接口公对母2.0数据高速传输充供电脑视无线打印扩展加长连接键盘车载U盘鼠标接收器0.5~10米",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.9,
+          "tao_id": "JR7k4gZfRtqr02oby8sYRZCvta-v6nmKo6IPOAVvoPsd0",
+          "_id": "6ae432db0f8a974ef9b325fc",
+          "title": "绿联usb延长线3.0接口公对母2.0数据高速传输充供电脑视无线打印扩展加长连接键盘车载U盘鼠标接收器0.5~10米"
+        }
+      ],
+      "minPrice": 9.9,
+      "maxPrice": 9.9,
+      "diff": 0
+    },
+    {
+      "key": "猫和老鼠汤姆杰瑞车载摆件卡通书桌面手办玩偶可爱车内小装饰",
+      "label": "新款猫和老鼠汤姆杰瑞车载摆件卡通书桌面手办玩偶可爱车内小装饰",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.81,
+          "tao_id": "jxJayqes0tJ7yX63rKuNoQiJte-bXJm73XUG0N0BVZJtW2",
+          "_id": "6ae445697fe483af400a516c",
+          "title": "新款猫和老鼠汤姆杰瑞车载摆件卡通书桌面手办玩偶可爱车内小装饰"
+        }
+      ],
+      "minPrice": 9.81,
+      "maxPrice": 9.81,
+      "diff": 0
+    },
+    {
+      "key": "猫和老鼠汤姆杰瑞车载摆件汽车内可爱书桌玩偶中控台内饰装饰",
+      "label": "猫和老鼠汤姆杰瑞车载摆件汽车内可爱书桌玩偶中控台内饰装饰",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8,
+          "tao_id": "gmWBPQ9H3t2Onv7QXPiYqksatr-OqmzjwqUZyRVQKGwt8e",
+          "_id": "6ae3ff1940509ab497589ff8",
+          "title": "猫和老鼠汤姆杰瑞车载摆件汽车内可爱书桌玩偶中控台内饰装饰"
+        }
+      ],
+      "minPrice": 8,
+      "maxPrice": 8,
+      "diff": 0
+    },
+    {
+      "key": "猫粮勺子宠物粮食勺喂猫狗猫咪喂食勺带封口夹小量勺猫咪用品密封",
+      "label": "猫粮勺子宠物粮食勺喂猫狗猫咪喂食勺带封口夹小量勺猫咪用品密封",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4.9,
+          "tao_id": "GKeqkr7qU8tYkPpaprjs6ZXTQtJ-gPVmqnPhpd0PV6Gxho5",
+          "_id": "6ae40d2740509ab49758cb47",
+          "title": "猫粮勺子宠物粮食勺喂猫狗猫咪喂食勺带封口夹小量勺猫咪用品密封"
+        }
+      ],
+      "minPrice": 4.9,
+      "maxPrice": 4.9,
+      "diff": 0
+    },
+    {
+      "key": "米桶家用防虫防潮密封米缸装面粉储存罐大米容器2026猫粮狗粮",
+      "label": "米桶家用防虫防潮密封米缸装面粉储存罐大米容器2026新款猫粮狗粮",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 29.9,
+          "tao_id": "YJ96Y4BVcptX4W4GPr4sKVeS2t6-Q0w6kp0sbGePbeKMHKj",
+          "_id": "6ae01d1698d559306b929ecc",
+          "title": "米桶家用防虫防潮密封米缸装面粉储存罐大米容器2026新款猫粮狗粮"
+        }
+      ],
+      "minPrice": 29.9,
+      "maxPrice": 29.9,
+      "diff": 0
+    },
+    {
+      "key": "米桶家用密封桶狗粮猫粮储存罐杂粮收纳盒",
+      "label": "【摩登主妇&黄油小熊】米桶家用密封桶狗粮猫粮储存罐杂粮收纳盒",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 29.9,
+          "tao_id": "G0rygOvF8tYkokqRZjC6RRsQtJ-wo3mjnoHMgqMm8JVudx",
+          "_id": "6ae01d2098d559306b92a1b4",
+          "title": "【摩登主妇&黄油小熊】米桶家用密封桶狗粮猫粮储存罐杂粮收纳盒"
+        }
+      ],
+      "minPrice": 29.9,
+      "maxPrice": 29.9,
+      "diff": 0
+    },
+    {
+      "key": "密封夹食物袋子强力封口夹可磁吸厨房薯条茶叶调料猫粮防潮食品级",
+      "label": "密封夹食物袋子强力封口夹可磁吸厨房薯条茶叶调料猫粮防潮食品级",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.01,
+          "tao_id": "KqPXRxm9f3toVP2b26JcOwKuJtW-k3mDd03hRYjrVxxKi5z",
+          "_id": "6adef5c32685baab6dd2271c",
+          "title": "密封夹食物袋子强力封口夹可磁吸厨房薯条茶叶调料猫粮防潮食品级"
+        }
+      ],
+      "minPrice": 2.01,
+      "maxPrice": 2.01,
+      "diff": 0
+    },
+    {
+      "key": "棉柔世家湿厕纸擦屁屁如厕湿巾儿童成人卫生湿纸巾可搭配抽纸使用80抽",
+      "label": "棉柔世家（FulCotton）湿厕纸擦屁屁如厕湿巾儿童成人卫生湿纸巾可搭配抽纸使用 【洋甘菊】 80抽 5包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 29.9,
+          "tao_id": "",
+          "_id": "6acce52948aee7397a282e18",
+          "title": "棉柔世家（FulCotton）湿厕纸擦屁屁如厕湿巾儿童成人卫生湿纸巾可搭配抽纸使用 【洋甘菊】 80抽 5包"
+        }
+      ],
+      "minPrice": 29.9,
+      "maxPrice": 29.9,
+      "diff": 0
+    },
+    {
+      "key": "女装2025休闲拉链短茄克外套巴恩风翻领时尚夹克e479208",
+      "label": "女装2025休闲拉链短茄克外套巴恩风翻领时尚夹克新款E479208",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 122,
+          "tao_id": "bXxZJwymHgtoGVK6WDYHzjpHQt6-J5B6mP5hQM4J36Pecy",
+          "_id": "6acd201c72d31258e65c1bd2",
+          "title": "女装2025休闲拉链短茄克外套巴恩风翻领时尚夹克新款E479208"
+        }
+      ],
+      "minPrice": 122,
+      "maxPrice": 122,
+      "diff": 0
+    },
+    {
+      "key": "女装2026今年流行秋季套装早秋高级感轻熟高知穿搭一整套",
+      "label": "女装2026今年流行爆款秋季新款套装早秋高级感轻熟高知穿搭一整套",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 179.9,
+          "tao_id": "eDGWd8YiDtdeBMwYnwh63ztzt0-GKQ6O5KfbN6v7XO7HZ",
+          "_id": "6acd200c72d31258e65c192c",
+          "title": "女装2026今年流行爆款秋季新款套装早秋高级感轻熟高知穿搭一整套"
+        }
+      ],
+      "minPrice": 179.9,
+      "maxPrice": 179.9,
+      "diff": 0
+    },
+    {
+      "key": "女装春夏薄款松紧腰速干运动裤宽松休闲工装长裤虞服wy483001",
+      "label": "女装 春夏薄款 松紧腰速干运动裤宽松休闲工装长裤 虞服WY483001",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 99,
+          "tao_id": "9zyxZ8mDsBtO8prpqeBtZKXUQt6-Xq83weqU3853ae6qfBp",
+          "_id": "6acd08fd72d31258e65be27f",
+          "title": "女装 春夏薄款 松紧腰速干运动裤宽松休闲工装长裤 虞服WY483001"
+        }
+      ],
+      "minPrice": 99,
+      "maxPrice": 99,
+      "diff": 0
+    },
+    {
+      "key": "女装摩托车电瓶12v7a踏板车海王星豪迈125鬼火助力车电池yt7bs",
+      "label": "女装摩托车电瓶12v7a踏板车海王星豪迈125鬼火助力车电池YT7-BS",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 61.5,
+          "tao_id": "Xb3VJeZfGtXPzj2X68U02ZtBtg-zDke3nDhWqonJVOXtp",
+          "_id": "6ace350fe13ef9a18929055a",
+          "title": "女装摩托车电瓶12v7a踏板车海王星豪迈125鬼火助力车电池YT7-BS"
+        }
+      ],
+      "minPrice": 61.5,
+      "maxPrice": 61.5,
+      "diff": 0
+    },
+    {
+      "key": "女装女靴雨鞋女时尚款外穿水鞋女士加棉雨靴短筒中筒防水防滑胶鞋",
+      "label": "女装女靴雨鞋女时尚款外穿水鞋女士加棉雨靴短筒中筒防水防滑胶鞋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 18.9,
+          "tao_id": "do0GpQjhZt3w4VGe5pU2yetet3-jG4oQqGiXX2raeZDHzX",
+          "_id": "6ad1b0127972651e5fd00ea2",
+          "title": "女装女靴雨鞋女时尚款外穿水鞋女士加棉雨靴短筒中筒防水防滑胶鞋"
+        }
+      ],
+      "minPrice": 18.9,
+      "maxPrice": 18.9,
+      "diff": 0
+    },
+    {
+      "key": "女装靴耐磨晴雨鞋女春夏季柔软时尚外穿四季防水鞋网红女雨靴胶鞋",
+      "label": "女装靴耐磨晴雨鞋女春夏季柔软时尚外穿四季防水鞋网红女雨靴胶鞋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 18.9,
+          "tao_id": "0qwQd29F7t8D28NvjPS6P7c2t6-oKjmO7KfBwOeWWZAiJd",
+          "_id": "6acd416b72d31258e65ca4ea",
+          "title": "女装靴耐磨晴雨鞋女春夏季柔软时尚外穿四季防水鞋网红女雨靴胶鞋"
+        }
+      ],
+      "minPrice": 18.9,
+      "maxPrice": 18.9,
+      "diff": 0
+    },
+    {
+      "key": "女装长袖打底衬衫韩版减龄春秋蕾丝荷叶v领木耳花边洋气套头上衣",
+      "label": "女装长袖打底衬衫韩版减龄春秋蕾丝荷叶V领木耳花边洋气套头上衣",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 29.5,
+          "tao_id": "b9gyAKPsgtoGVmqZbrHzjOFQt6-wo3mjnoHQPOwxD7gfdM",
+          "_id": "6ace56453d8b63e71ea00e1e",
+          "title": "女装长袖打底衬衫韩版减龄春秋蕾丝荷叶V领木耳花边洋气套头上衣"
+        }
+      ],
+      "minPrice": 29.5,
+      "maxPrice": 29.5,
+      "diff": 0
+    },
+    {
+      "key": "糯米纸打印蛋糕装饰周年庆纸杯奖状照片卡通生日商场大蛋糕定制",
+      "label": "糯米纸打印蛋糕装饰周年庆纸杯奖状照片卡通生日商场大蛋糕定制",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 12.5,
+          "tao_id": "0mA4ZK0H7t8bwjmvngI6rNh2t6-BAM9QKAsrAJBjKvYCDG",
+          "_id": "6ae40d1e40509ab49758c539",
+          "title": "糯米纸打印蛋糕装饰周年庆纸杯奖状照片卡通生日商场大蛋糕定制"
+        }
+      ],
+      "minPrice": 12.5,
+      "maxPrice": 12.5,
+      "diff": 0
+    },
+    {
+      "key": "糯米纸代打印数码蛋糕奖状照片定制烘焙用厚款创意糖霜纸",
+      "label": "糯米纸代打印 数码蛋糕奖状照片定制烘焙用厚款创意糖霜纸1张包邮",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 23.4,
+          "tao_id": "j07ryp8u0tJ7y85KwZUNDPsJte-y3awR23hmyWaZnRpIyp",
+          "_id": "6ae40d1e40509ab49758c536",
+          "title": "糯米纸代打印 数码蛋糕奖状照片定制烘焙用厚款创意糖霜纸1张包邮"
+        }
+      ],
+      "minPrice": 23.4,
+      "maxPrice": 23.4,
+      "diff": 0
+    },
+    {
+      "key": "欧莱雅金致臻颜黑松露套装",
+      "label": "【李佳琦直播间双11美妆节】欧莱雅金致臻颜黑松露套装*",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 1334,
+          "tao_id": "0vKPpy7yu7t8bwzbGbDS6r5t2t6-9zAr5VzC5XjYbkYwcY",
+          "_id": "6ae42db440509ab4975915c1",
+          "title": "【李佳琦直播间双11美妆节】欧莱雅金致臻颜黑松露套装*"
+        }
+      ],
+      "minPrice": 1334,
+      "maxPrice": 1334,
+      "diff": 0
+    },
+    {
+      "key": "跑步背包马拉松骑行运动双肩轻薄透气背心水壶手机包定制印logo",
+      "label": "跑步背包马拉松骑行运动双肩轻薄透气背心水壶手机包定制印logo",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 40.8,
+          "tao_id": "Zrn9P45WS6tPDPy62VXFJX8UVt6-djdYPBjhn9GezNQWsW",
+          "_id": "6ae19d454002a7c2488c6ae5",
+          "title": "跑步背包马拉松骑行运动双肩轻薄透气背心水壶手机包定制印logo"
+        }
+      ],
+      "minPrice": 40.8,
+      "maxPrice": 40.8,
+      "diff": 0
+    },
+    {
+      "key": "跑步负重背心钢板绑腿男训练沙袋隐形沙衣男铅块全套运动负重装备",
+      "label": "跑步负重背心钢板绑腿男训练沙袋隐形沙衣男铅块全套运动负重装备",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 40.8,
+          "tao_id": "0vaA8wkZU7t8b88ea8Gu6PAU2t6-Q0w6kp0sbG05mDNdUK",
+          "_id": "6ae165b6e944fc775085f2e2",
+          "title": "跑步负重背心钢板绑腿男训练沙袋隐形沙衣男铅块全套运动负重装备"
+        }
+      ],
+      "minPrice": 40.8,
+      "maxPrice": 40.8,
+      "diff": 0
+    },
+    {
+      "key": "跑步手机袋运动腰包男女款健身小包户外旅游登山轻便防水隐形腰带",
+      "label": "跑步手机袋运动腰包男女款健身小包户外旅游登山轻便防水隐形腰带",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.8,
+          "tao_id": "aPXxaqOHotMJzk5ybYFxmXIjty-POon6eOfOmPQRe05u2",
+          "_id": "6ae02f9a98d559306b92d355",
+          "title": "跑步手机袋运动腰包男女款健身小包户外旅游登山轻便防水隐形腰带"
+        }
+      ],
+      "minPrice": 3.8,
+      "maxPrice": 3.8,
+      "diff": 0
+    },
+    {
+      "key": "跑步鞋男2025夏季软底轻便运动休闲鞋冰丝透气网面鞋子防水",
+      "label": "跑步鞋男2025夏季新款软底轻便运动休闲鞋冰丝透气网面鞋子防水",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 31.3,
+          "tao_id": "36Ze5wdbUAtYeny3J0mCXNVs9tJ-zDke3nDhoQ634dRWHz",
+          "_id": "6adf0d6faf962c2b8ed56775",
+          "title": "跑步鞋男2025夏季新款软底轻便运动休闲鞋冰丝透气网面鞋子防水"
+        }
+      ],
+      "minPrice": 31.3,
+      "maxPrice": 31.3,
+      "diff": 0
+    },
+    {
+      "key": "跑步鞋男2026夏季软底轻便运动休闲鞋冰丝透气网面鞋子防水鞋",
+      "label": "跑步鞋男2026夏季新款软底轻便运动休闲鞋冰丝透气网面鞋子防水鞋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 21.56,
+          "tao_id": "5ab7ebGFxtywyOyV5DTQArUMtV-Wqx6XwqUXwK3dyz8Hd",
+          "_id": "6ae1a26e82cc38f4a105a592",
+          "title": "跑步鞋男2026夏季新款软底轻便运动休闲鞋冰丝透气网面鞋子防水鞋"
+        }
+      ],
+      "minPrice": 21.56,
+      "maxPrice": 21.56,
+      "diff": 0
+    },
+    {
+      "key": "跑步鞋鞋子男2026秋季春软底轻便运动休闲鞋皮面透气网面防滑",
+      "label": "跑步鞋鞋子男2026秋季新款春软底轻便运动休闲鞋皮面透气网面防滑",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 37.9,
+          "tao_id": "nJRy8DoGfMt3j3g3XJguAw5i0tP-djdYPBjh0qOv3kybSP5",
+          "_id": "6ae1a26382cc38f4a105a215",
+          "title": "跑步鞋鞋子男2026秋季新款春软底轻便运动休闲鞋皮面透气网面防滑"
+        }
+      ],
+      "minPrice": 37.9,
+      "maxPrice": 37.9,
+      "diff": 0
+    },
+    {
+      "key": "跑步专用鞋垫加厚女运动气垫减震久站不累超软防痛加厚男吸汗防臭",
+      "label": "跑步专用鞋垫加厚女运动气垫减震久站不累超软防痛加厚男吸汗防臭",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.55,
+          "tao_id": "yYQbQXwsRt2K22KPZoFr32hvtA-zDke3nDhB7dvOVAeuJ5",
+          "_id": "6ae16087e944fc775085dfa2",
+          "title": "跑步专用鞋垫加厚女运动气垫减震久站不累超软防痛加厚男吸汗防臭"
+        }
+      ],
+      "minPrice": 3.55,
+      "maxPrice": 3.55,
+      "diff": 0
+    },
+    {
+      "key": "佩尚purexmclaren合作款电动滑板车兰多诺里斯迈凯伦发售款purexmclarenflex三重折叠",
+      "label": "佩尚PURE x McLAREN合作款电动滑板车兰多诺里斯同款迈凯伦限量发售款 PURE x McLAREN Flex三重折叠",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 11259,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ebd",
+          "title": "佩尚PURE x McLAREN合作款电动滑板车兰多诺里斯同款迈凯伦限量发售款 PURE x McLAREN Flex三重折叠"
+        }
+      ],
+      "minPrice": 11259,
+      "maxPrice": 11259,
+      "diff": 0
+    },
+    {
+      "key": "千载一玉保价11.11翡翠观音吊坠男士淡绿色观音菩萨玉坠玉石项链挂件品牌珠宝",
+      "label": "千载一玉保价11.11 翡翠观音吊坠 男士淡绿色观音菩萨玉坠 玉石项链挂件 品牌珠宝",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 9406.75,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eb1",
+          "title": "千载一玉保价11.11 翡翠观音吊坠 男士淡绿色观音菩萨玉坠 玉石项链挂件 品牌珠宝"
+        }
+      ],
+      "minPrice": 9406.75,
+      "maxPrice": 9406.75,
+      "diff": 0
+    },
+    {
+      "key": "千载一玉翡翠龙牌吊坠男款霸气生肖龙玉坠礼赠自戴寓意步步高升qzk2108",
+      "label": "千载一玉翡翠龙牌吊坠男款霸气生肖龙玉坠 礼赠自戴 寓意步步高升 【款一】QZK2108",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 7504.05,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eda",
+          "title": "千载一玉翡翠龙牌吊坠男款霸气生肖龙玉坠 礼赠自戴 寓意步步高升 【款一】QZK2108"
+        }
+      ],
+      "minPrice": 7504.05,
+      "maxPrice": 7504.05,
+      "diff": 0
+    },
+    {
+      "key": "巧格i125踏板摩托车原装雅马哈发动机燃油代步二手摩托踏板车",
+      "label": "新款巧格i125踏板摩托车原装雅马哈发动机燃油代步二手摩托踏板车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3399.52,
+          "tao_id": "k3597jXVUYtaY6pnb5xUB07SPtJ-Xq83weqU3PQQnYN6FB",
+          "_id": "6ae408ac40509ab49758bf41",
+          "title": "新款巧格i125踏板摩托车原装雅马哈发动机燃油代步二手摩托踏板车"
+        }
+      ],
+      "minPrice": 3399.52,
+      "maxPrice": 3399.52,
+      "diff": 0
+    },
+    {
+      "key": "巧格ilius125踏板摩托车整车女装雅马哈发动机代步二手踏板车",
+      "label": "新款巧格ilius125踏板摩托车整车女装雅马哈发动机代步二手踏板车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3299,
+          "tao_id": "BXg5MMVf6t85p0oQ7Dhd4Burte-k3mDd03hRMWPAr09Sk",
+          "_id": "6ae408aa40509ab49758bd72",
+          "title": "新款巧格ilius125踏板摩托车整车女装雅马哈发动机代步二手踏板车"
+        }
+      ],
+      "minPrice": 3299,
+      "maxPrice": 3299,
+      "diff": 0
+    },
+    {
+      "key": "全新科技车灯家电除黄修复翻新剂快速清洁养护wz",
+      "label": "【下单立减50】全新科技车灯家电除黄修复翻新剂快速清洁养护WZ",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 12.9,
+          "tao_id": "jmgrG0vc0tJ7wqgVqjUNyJTJte-djdYPBjh0gPkvBZJte",
+          "_id": "6adae99f821c1f9d3c85cc35",
+          "title": "【下单立减50】全新科技车灯家电除黄修复翻新剂快速清洁养护WZ"
+        }
+      ],
+      "minPrice": 12.9,
+      "maxPrice": 12.9,
+      "diff": 0
+    },
+    {
+      "key": "荣泰按摩椅家用全身按摩太空舱2026老人用按摩沙发送父母生日礼物rt7708splus棕色",
+      "label": "荣泰（RONGTAI）按摩椅家用全身按摩太空舱2026老人用按摩沙发送父母生日礼物RT7708SPlus棕色",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 17800,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ec0",
+          "title": "荣泰（RONGTAI）按摩椅家用全身按摩太空舱2026老人用按摩沙发送父母生日礼物RT7708SPlus棕色"
+        }
+      ],
+      "minPrice": 17800,
+      "maxPrice": 17800,
+      "diff": 0
+    },
+    {
+      "key": "赛鲸k7床上小桌子可折叠升降阅读书桌飘窗写字学生宿舍电脑桌懒人家用笔记本支架办公桌儿童小桌板床上学习桌",
+      "label": "赛鲸K7床上小桌子可折叠升降阅读书桌飘窗写字学生宿舍电脑桌懒人家用笔记本支架办公桌儿童小桌板床上学习桌",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 179.9,
+          "tao_id": "bde8MkFgtoRoJno9ouzjRHQt6-ANPdJqNCG6o5d8nwuYM",
+          "_id": "6ae30b9541cc7fcd47927d41",
+          "title": "赛鲸K7床上小桌子可折叠升降阅读书桌飘窗写字学生宿舍电脑桌懒人家用笔记本支架办公桌儿童小桌板床上学习桌"
+        }
+      ],
+      "minPrice": 179.9,
+      "maxPrice": 179.9,
+      "diff": 0
+    },
+    {
+      "key": "三丽鸥床上小桌子学习桌可折叠笔记本电脑桌家用懒人卧室飘窗书桌儿童阅读桌学生宿舍吃饭写作业小桌板写字桌",
+      "label": "三丽鸥床上小桌子学习桌可折叠笔记本电脑桌家用懒人卧室飘窗书桌儿童阅读桌学生宿舍吃饭写作业小桌板写字桌",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 33.9,
+          "tao_id": "axn5V6KtotMJMx5MGecxmMtjty-Q0w6kp0sbyMkNWK3UbP",
+          "_id": "6ae30b9541cc7fcd47927dec",
+          "title": "三丽鸥床上小桌子学习桌可折叠笔记本电脑桌家用懒人卧室飘窗书桌儿童阅读桌学生宿舍吃饭写作业小桌板写字桌"
+        }
+      ],
+      "minPrice": 33.9,
+      "maxPrice": 33.9,
+      "diff": 0
+    },
+    {
+      "key": "山地冲锋裤",
+      "label": "【官方正品】山地冲锋裤（男女同款）",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 109.9,
+          "tao_id": "xnoOmJmpcktqxyM6yZbTR46uAt9-MP2RaWPhAXY90MnDiR",
+          "_id": "6ace1d5df05f5ed5406c8d24",
+          "title": "【官方正品】山地冲锋裤（男女同款）"
+        }
+      ],
+      "minPrice": 109.9,
+      "maxPrice": 109.9,
+      "diff": 0
+    },
+    {
+      "key": "上河蜀去骨猪蹄即食卤味猪脚速食熟食肉类小吃休闲解馋追剧零食品整箱去骨猪蹄",
+      "label": "上河蜀去骨猪蹄即食卤味猪脚速食熟食肉类小吃休闲解馋追剧零食品整箱 【混合味】去骨猪蹄2袋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 3.9,
+          "tao_id": "",
+          "_id": "6ad6dfc8e2333ed439cb62a3",
+          "title": "上河蜀去骨猪蹄即食卤味猪脚速食熟食肉类小吃休闲解馋追剧零食品整箱 【混合味】去骨猪蹄2袋"
+        }
+      ],
+      "minPrice": 3.9,
+      "maxPrice": 3.9,
+      "diff": 0
+    },
+    {
+      "key": "时光学绵柔太空沙玩具儿童安全无毒不沾手食品级粘土沙模具补充装",
+      "label": "时光学绵柔太空沙玩具儿童安全无毒不沾手食品级粘土沙模具补充装",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 18.8,
+          "tao_id": "XqNyvjOgHGtXa6ZQ8WeH0zmUBtg-7np58WnsOKkmVNqySV4",
+          "_id": "6ae449e77fe483af400a5c64",
+          "title": "时光学绵柔太空沙玩具儿童安全无毒不沾手食品级粘土沙模具补充装"
+        }
+      ],
+      "minPrice": 18.8,
+      "maxPrice": 18.8,
+      "diff": 0
+    },
+    {
+      "key": "适用惠普打印机数据线电脑连接线usb加长15一体机hp复印机lasernsmfp1005c延长1020nlaserjet1020plus",
+      "label": "适用惠普打印机数据线电脑连接线USB加长15一体机hp复印机Laser NS MFP1005c延长10米1020n LaserJet1020Plus",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 11.88,
+          "tao_id": "94mZz08TBtODyQJD4rCZOXcQt6-ANPdJqNCGN4G7Jg9cQ",
+          "_id": "6ae432e50f8a974ef9b3296f",
+          "title": "适用惠普打印机数据线电脑连接线USB加长15一体机hp复印机Laser NS MFP1005c延长10米1020n LaserJet1020Plus"
+        }
+      ],
+      "minPrice": 11.88,
+      "maxPrice": 11.88,
+      "diff": 0
+    },
+    {
+      "key": "收纳包便携拉链多层项链收纳袋首饰收纳包高档精致饰品网红隔层",
+      "label": "收纳包便携拉链多层项链收纳袋首饰收纳包高档精致饰品网红隔层",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 7.88,
+          "tao_id": "gP0gVr7yf3t2OXrWmezCYM9Hatr-D3qV9R3h67WYWeDVS6K",
+          "_id": "6ad6d9eae2333ed439cb5926",
+          "title": "收纳包便携拉链多层项链收纳袋首饰收纳包高档精致饰品网红隔层"
+        }
+      ],
+      "minPrice": 7.88,
+      "maxPrice": 7.88,
+      "diff": 0
+    },
+    {
+      "key": "收纳包马卡龙化妆包女2026便携卫生巾迷你小包收纳袋零钱包",
+      "label": "收纳包马卡龙化妆包女2026新款便携卫生巾迷你小包收纳袋零钱包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 10.89,
+          "tao_id": "26vpeP0QUotgV3gk3Kmh6GzCDtD-wo3mjnoHMp70NNrehz",
+          "_id": "6ad9d05efcc352a65af2ce66",
+          "title": "收纳包马卡龙化妆包女2026新款便携卫生巾迷你小包收纳袋零钱包"
+        }
+      ],
+      "minPrice": 10.89,
+      "maxPrice": 10.89,
+      "diff": 0
+    },
+    {
+      "key": "收纳袋子整理被子装棉被衣服衣物防水防潮家用透明大号搬家打包袋",
+      "label": "收纳袋子整理被子装棉被衣服衣物防水防潮家用透明大号搬家打包袋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 10.1,
+          "tao_id": "xKZ0aNWuktqaJj68Z7TRMZCAt9-nJamVPJHjNN4a8N4sBM",
+          "_id": "6ad8687462909fd2df148b69",
+          "title": "收纳袋子整理被子装棉被衣服衣物防水防潮家用透明大号搬家打包袋"
+        }
+      ],
+      "minPrice": 10.1,
+      "maxPrice": 10.1,
+      "diff": 0
+    },
+    {
+      "key": "收纳凳子储物凳可坐成人沙发小凳子家用长方形椅收纳箱神器换鞋凳",
+      "label": "收纳凳子储物凳可坐成人沙发小凳子家用长方形椅收纳箱神器换鞋凳",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 13.8,
+          "tao_id": "xRB5OBysktqaJ43OP9SR4WiAt9-ANPdJqNCGXMKz0xgTZ",
+          "_id": "6ad7275fb52eea71220b796e",
+          "title": "收纳凳子储物凳可坐成人沙发小凳子家用长方形椅收纳箱神器换鞋凳"
+        }
+      ],
+      "minPrice": 13.8,
+      "maxPrice": 13.8,
+      "diff": 0
+    },
+    {
+      "key": "收纳凳子储物凳可坐成人休息换鞋折叠式多功能玩具客厅家用收纳箱",
+      "label": "收纳凳子储物凳可坐成人休息换鞋折叠式多功能玩具客厅家用收纳箱",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 13.8,
+          "tao_id": "b869qXdIgtoRWZQpqrIz2bIQt6-pBam27BCRm3kDAzbCj8",
+          "_id": "6ad7275fb52eea71220b7978",
+          "title": "收纳凳子储物凳可坐成人休息换鞋折叠式多功能玩具客厅家用收纳箱"
+        }
+      ],
+      "minPrice": 13.8,
+      "maxPrice": 13.8,
+      "diff": 0
+    },
+    {
+      "key": "收纳盒珠子米珠配件收纳钻石串珠透明整理饰品美甲首饰盒塑料套盒",
+      "label": "收纳盒珠子米珠配件收纳钻石串珠透明整理饰品美甲首饰盒塑料套盒",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 7.9,
+          "tao_id": "6AnaRmBH8tGRKnx9o0cVBPSot3-5nw8Wqns606n6kRPFNB",
+          "_id": "6ad847dfb52eea71220ca3d7",
+          "title": "收纳盒珠子米珠配件收纳钻石串珠透明整理饰品美甲首饰盒塑料套盒"
+        }
+      ],
+      "minPrice": 7.9,
+      "maxPrice": 7.9,
+      "diff": 0
+    },
+    {
+      "key": "收纳箱车用后备箱可折叠汽车整理箱大容量车载储物盒卡通车内装饰",
+      "label": "收纳箱车用后备箱可折叠汽车整理箱大容量车载储物盒卡通车内装饰",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 66.3,
+          "tao_id": "mPMV3zX4SktJ7YMXNgPtrbKiot3-zDke3nDhoNZb27KPUJp",
+          "_id": "6ad84c13b52eea71220caaf1",
+          "title": "收纳箱车用后备箱可折叠汽车整理箱大容量车载储物盒卡通车内装饰"
+        }
+      ],
+      "minPrice": 66.3,
+      "maxPrice": 66.3,
+      "diff": 0
+    },
+    {
+      "key": "手工短保健康吐司上班早餐饱腹健康吐司门店",
+      "label": "【零食节】手工短保健康吐司上班早餐饱腹健康吐司门店热卖",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 31.9,
+          "tao_id": "k36nMdvMCYtaYaMgo7ZUBDXIPtJ-MP2RaWPhApqJ0VoXIK",
+          "_id": "6ae2d29f1f06011a2e4d3bfa",
+          "title": "【零食节】手工短保健康吐司上班早餐饱腹健康吐司门店热卖"
+        }
+      ],
+      "minPrice": 31.9,
+      "maxPrice": 31.9,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架2025吸盘式汽车用品仪表台支撑架车上固定导航驾",
+      "label": "手机车载支架2025新款吸盘式汽车用品仪表台支撑架车上固定导航驾",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 11.3,
+          "tao_id": "QvyJqN0HQtB0kenkGPFWeQuatQ-nJamVPJHQR90q3xdcB",
+          "_id": "6ae4455e7fe483af400a4b62",
+          "title": "手机车载支架2025新款吸盘式汽车用品仪表台支撑架车上固定导航驾"
+        }
+      ],
+      "minPrice": 11.3,
+      "maxPrice": 11.3,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架2026车内出风口专用加长款汽车导航支撑通用挂钩",
+      "label": "手机车载支架2026新款车内出风口专用加长款汽车导航支撑通用挂钩",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 11.8,
+          "tao_id": "dj2vRWvxcZt3vd8edPGC2AVCet3-GKQ6O5KfqzkOQdQqtnO",
+          "_id": "6ae4455e7fe483af400a4aa9",
+          "title": "手机车载支架2026新款车内出风口专用加长款汽车导航支撑通用挂钩"
+        }
+      ],
+      "minPrice": 11.8,
+      "maxPrice": 11.8,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架2026导航专用中控台仪表上吸盘式汽车内用支撑架",
+      "label": "手机车载支架2026新款导航专用中控台仪表上吸盘式汽车内用支撑架",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 12.7,
+          "tao_id": "oK5bp0bBIrtK9j3Xj4zT56ZtntN-BAM9QKAsZ6kB9oAXFz",
+          "_id": "6ae4455e7fe483af400a4ab7",
+          "title": "手机车载支架2026新款导航专用中控台仪表上吸盘式汽车内用支撑架"
+        }
+      ],
+      "minPrice": 12.7,
+      "maxPrice": 12.7,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架2026汽车内吸盘式中控台大货车导航防震固定支撑",
+      "label": "手机车载支架2026新款汽车内吸盘式中控台大货车导航防震固定支撑",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 17.14,
+          "tao_id": "4ykvZJgUgtNRrJz7YBcnvYiNtg-88N7bv8F0QmMoQyZtO",
+          "_id": "6ae445687fe483af400a4ebf",
+          "title": "手机车载支架2026新款汽车内吸盘式中控台大货车导航防震固定支撑"
+        }
+      ],
+      "minPrice": 17.14,
+      "maxPrice": 17.14,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架2026汽车内中控仪表台夹导航专用固定防抖支撑架",
+      "label": "手机车载支架2026新款汽车内中控仪表台夹导航专用固定防抖支撑架",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 10.8,
+          "tao_id": "KJYQRxdi3toVNyZ3nrcONNsJtW-Xq83weqU0PQVKromuW",
+          "_id": "6ae445687fe483af400a4f21",
+          "title": "手机车载支架2026新款汽车内中控仪表台夹导航专用固定防抖支撑架"
+        }
+      ],
+      "minPrice": 10.8,
+      "maxPrice": 10.8,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架出风口专用汽车手机架支撑导航固定车用车内2026",
+      "label": "手机车载支架出风口专用汽车手机架支撑导航固定车用车内2026新款",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 17.98,
+          "tao_id": "8YdRRxMcnt9NOx2OMJSOQDhbt8-Zr56pNrFRXveZwNxFOy",
+          "_id": "6ae445617fe483af400a4cf5",
+          "title": "手机车载支架出风口专用汽车手机架支撑导航固定车用车内2026新款"
+        }
+      ],
+      "minPrice": 17.98,
+      "maxPrice": 17.98,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架汽车导航专用2026吸盘式车用新型固定车内支撑架",
+      "label": "手机车载支架汽车导航专用2026新款吸盘式车用新型固定车内支撑架",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 19.62,
+          "tao_id": "J553nwz4HRtqr0x2kV6cYq4ivta-bXJm73XUvv3OmppniWB",
+          "_id": "6ae445617fe483af400a4e2c",
+          "title": "手机车载支架汽车导航专用2026新款吸盘式车用新型固定车内支撑架"
+        }
+      ],
+      "minPrice": 19.62,
+      "maxPrice": 19.62,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架手机贴片引磁片无线充电magsafe背贴磁吸片超薄通用",
+      "label": "手机车载支架手机贴片引磁片无线充电magsafe背贴磁吸片超薄通用",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.9,
+          "tao_id": "5DRaXvmsxtyw4QODdZiQeMiMtV-qkam4qkTna6zjx25H7",
+          "_id": "6ae445697fe483af400a51fc",
+          "title": "手机车载支架手机贴片引磁片无线充电magsafe背贴磁吸片超薄通用"
+        }
+      ],
+      "minPrice": 9.9,
+      "maxPrice": 9.9,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架吸盘式2026汽车用导航固定车内车上支撑稳固支架",
+      "label": "手机车载支架吸盘式2026新款汽车用导航固定车内车上支撑稳固支架",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 15.8,
+          "tao_id": "gPP2Ka2RS3t2OnaYvGdUY8MSatr-y3awR23h6qrapxPRsQ",
+          "_id": "6ae445617fe483af400a4e0c",
+          "title": "手机车载支架吸盘式2026新款汽车用导航固定车内车上支撑稳固支架"
+        }
+      ],
+      "minPrice": 15.8,
+      "maxPrice": 15.8,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架吸盘式加长款汽车手机导航架面包车货车专用支架防震",
+      "label": "手机车载支架吸盘式加长款汽车手机导航架面包车货车专用支架防震",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 10,
+          "tao_id": "oAB4QdRIrtK9j3Xd4GT56ZtntN-aR065jRsd0Yzy7qkHgM",
+          "_id": "6ae445687fe483af400a4e8c",
+          "title": "手机车载支架吸盘式加长款汽车手机导航架面包车货车专用支架防震"
+        }
+      ],
+      "minPrice": 10,
+      "maxPrice": 10,
+      "diff": 0
+    },
+    {
+      "key": "手机车载支架中控仪表台车载手机架粘贴汽车专用车载导航神器高端",
+      "label": "手机车载支架中控仪表台车载手机架粘贴汽车专用车载导航神器高端",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 21.5,
+          "tao_id": "poQg7Oxtxt6pAW4AKkF5XwTptm-GKQ6O5KfbN7Rn2a2HnO",
+          "_id": "6ae445617fe483af400a4c81",
+          "title": "手机车载支架中控仪表台车载手机架粘贴汽车专用车载导航神器高端"
+        }
+      ],
+      "minPrice": 21.5,
+      "maxPrice": 21.5,
+      "diff": 0
+    },
+    {
+      "key": "手机防尘塞typec硅胶粘贴式防丢失硅胶柔软适用手机充电口防",
+      "label": "手机防尘塞Type-C硅胶粘贴式防丢失硅胶柔软适用手机充电口防",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.01,
+          "tao_id": "XXa760ZiGtXa6Zp0nwU02xCBtg-Zr56pNrFRP93G9N4fRz",
+          "_id": "6ae445697fe483af400a5177",
+          "title": "手机防尘塞Type-C硅胶粘贴式防丢失硅胶柔软适用手机充电口防"
+        }
+      ],
+      "minPrice": 2.01,
+      "maxPrice": 2.01,
+      "diff": 0
+    },
+    {
+      "key": "手机壳吸铁片强力手机引磁片贴片车载手机架贴片超薄大号金属磁吸",
+      "label": "手机壳吸铁片强力手机引磁片贴片车载手机架贴片超薄大号金属磁吸",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 7.8,
+          "tao_id": "rXO4Rv7tOtVeX89XArUKn3iqtZ-mPamBQPh7BwrKDX6fN",
+          "_id": "6ae445617fe483af400a4d95",
+          "title": "手机壳吸铁片强力手机引磁片贴片车载手机架贴片超薄大号金属磁吸"
+        }
+      ],
+      "minPrice": 7.8,
+      "maxPrice": 7.8,
+      "diff": 0
+    },
+    {
+      "key": "手机支架车载2026吸盘式中控台导航支架货车真空吸附充电无线",
+      "label": "手机支架车载2026新款吸盘式中控台导航支架货车真空吸附充电无线",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 37.59,
+          "tao_id": "0RYDGWdc7t8bw0zwrbU6r7S2t6-rXaYmPXUbzkjpKw2UJ",
+          "_id": "6ae4455e7fe483af400a4ba5",
+          "title": "手机支架车载2026新款吸盘式中控台导航支架货车真空吸附充电无线"
+        }
+      ],
+      "minPrice": 37.59,
+      "maxPrice": 37.59,
+      "diff": 0
+    },
+    {
+      "key": "手机支架车载2026吸盘式中控台导航支架货车真空吸附防抖不掉",
+      "label": "手机支架车载2026新款吸盘式中控台导航支架货车真空吸附防抖不掉",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 19.91,
+          "tao_id": "6R2aor4vf8tGR9XW9VWcVy4uot3-wo3mjnoHMmYJk08jSyN",
+          "_id": "6ae445617fe483af400a4d27",
+          "title": "手机支架车载2026新款吸盘式中控台导航支架货车真空吸附防抖不掉"
+        }
+      ],
+      "minPrice": 19.91,
+      "maxPrice": 19.91,
+      "diff": 0
+    },
+    {
+      "key": "手机支架车载吸盘式可折叠汽车内仪表台通用导航固定支驾",
+      "label": "手机支架车载吸盘式新款可折叠汽车内仪表台通用导航固定支驾",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4.2,
+          "tao_id": "Q0z9mZGWfQtB0kenjXRIWeGsatQ-Wqx6XwqUQMRD38VqUdo",
+          "_id": "6ae445687fe483af400a4f89",
+          "title": "手机支架车载吸盘式新款可折叠汽车内仪表台通用导航固定支驾"
+        }
+      ],
+      "minPrice": 4.2,
+      "maxPrice": 4.2,
+      "diff": 0
+    },
+    {
+      "key": "手玩核桃健身保健手球盘球手转球练手老人手握球按摩锻炼手指神器",
+      "label": "手玩核桃健身保健手球盘球手转球练手老人手握球按摩锻炼手指神器",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 10.84,
+          "tao_id": "WKw9qZGcot2B2WKmNkuX6NuQta-6RebxvRsy4QqDPAgt2",
+          "_id": "6ae30ae341cc7fcd479275b7",
+          "title": "手玩核桃健身保健手球盘球手转球练手老人手握球按摩锻炼手指神器"
+        }
+      ],
+      "minPrice": 10.84,
+      "maxPrice": 10.84,
+      "diff": 0
+    },
+    {
+      "key": "书桌粘贴式垃圾袋小学生用桌面专用办公室课桌边清洁袋车载垃圾袋",
+      "label": "书桌粘贴式垃圾袋小学生用桌面专用办公室课桌边清洁袋车载垃圾袋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4.17,
+          "tao_id": "k32z5bKdtYtaY6vy83xFB08uPtJ-mPamBQPhjy4BQ3YahYe",
+          "_id": "6ae3ff1240509ab497589d9d",
+          "title": "书桌粘贴式垃圾袋小学生用桌面专用办公室课桌边清洁袋车载垃圾袋"
+        }
+      ],
+      "minPrice": 4.17,
+      "maxPrice": 4.17,
+      "diff": 0
+    },
+    {
+      "key": "书桌粘贴式垃圾袋小学生用桌面专用学校课桌儿童车载袋上学桌边",
+      "label": "书桌粘贴式垃圾袋小学生用桌面专用学校课桌儿童车载袋上学桌边",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 1.58,
+          "tao_id": "rYJ6XJGsOtVeXoM75jcKYKhqtZ-k3mDd03h8mZWqJrgck",
+          "_id": "6ae3ff1940509ab497589fe0",
+          "title": "书桌粘贴式垃圾袋小学生用桌面专用学校课桌儿童车载袋上学桌边"
+        }
+      ],
+      "minPrice": 1.58,
+      "maxPrice": 1.58,
+      "diff": 0
+    },
+    {
+      "key": "树脂粘土半透明面塑冷瓷面包土可比台湾日本仿真花多肉黏土1000克",
+      "label": "树脂粘土半透明面塑冷瓷面包土可比台湾日本仿真花多肉黏土1000克",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 24.8,
+          "tao_id": "J5Rwvg35uRtqr0x9Oy4iYq7Cvta-6RebxvRsv2vw8GDUB",
+          "_id": "6ae449e77fe483af400a5c63",
+          "title": "树脂粘土半透明面塑冷瓷面包土可比台湾日本仿真花多肉黏土1000克"
+        }
+      ],
+      "minPrice": 24.8,
+      "maxPrice": 24.8,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男孩小背包帅气儿童旅行外出旅游一到三3一6年级小学生书包",
+      "label": "双肩包男孩小背包帅气儿童旅行外出旅游一到三3一6年级小学生书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 46.7,
+          "tao_id": "jKY37y6s0tJ7yna0KjhNozIJte-0vGpwkvhBJZ6e0aJtn",
+          "_id": "6ae41faf40509ab49758f5eb",
+          "title": "双肩包男孩小背包帅气儿童旅行外出旅游一到三3一6年级小学生书包"
+        }
+      ],
+      "minPrice": 46.7,
+      "maxPrice": 46.7,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男士大容量电脑背包旅行包登山包男防水初中高中大学生书包",
+      "label": "双肩包男士大容量电脑背包旅行包登山包男防水初中高中大学生书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 36.85,
+          "tao_id": "w8ZbaZjugtDXN6v30aI3PrIbtd-5nw8Wqns6YMGNVGdTO",
+          "_id": "6ae41faf40509ab49758f6bc",
+          "title": "双肩包男士大容量电脑背包旅行包登山包男防水初中高中大学生书包"
+        }
+      ],
+      "minPrice": 36.85,
+      "maxPrice": 36.85,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男士大容量商务背包轻便旅游电脑出差初高中大学生书包",
+      "label": "双肩包男士大容量商务新款背包轻便旅游电脑出差初高中大学生书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 66.7,
+          "tao_id": "YbgAJ2JhptX4zv92rZSKe3f2t6-ANPdJqNCG6d8PvBcD",
+          "_id": "6ae41fa340509ab49758f271",
+          "title": "双肩包男士大容量商务新款背包轻便旅游电脑出差初高中大学生书包"
+        }
+      ],
+      "minPrice": 66.7,
+      "maxPrice": 66.7,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男士大容量商务旅行包登山包初中书包新电脑背包旅游商品",
+      "label": "双肩包男士大容量商务旅行包登山包初中书包新电脑背包旅游商品",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 17.91,
+          "tao_id": "P39p29ou3t6abnjdA7IxX3HPt6-KqV6okqUjxyogKv5hn",
+          "_id": "6ae41faf40509ab49758f6b0",
+          "title": "双肩包男士大容量商务旅行包登山包初中书包新电脑背包旅游商品"
+        }
+      ],
+      "minPrice": 17.91,
+      "maxPrice": 17.91,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男士简约百搭大容量电脑旅行背包女初中生高中大学生书包男",
+      "label": "双肩包男士简约百搭大容量电脑旅行背包女初中生高中大学生书包男",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 62.1,
+          "tao_id": "oAnxKpeUrtK9j5arRju5epUntN-YJb6epJHBjND4pk6uR",
+          "_id": "6ae41fa840509ab49758f438",
+          "title": "双肩包男士简约百搭大容量电脑旅行背包女初中生高中大学生书包男"
+        }
+      ],
+      "minPrice": 62.1,
+      "maxPrice": 62.1,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男士简约大容量大学生书包男初中生高中学生休闲旅行背包女",
+      "label": "双肩包男士简约大容量大学生书包男初中生高中学生休闲旅行背包女",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 49.84,
+          "tao_id": "4N9bWnDsgtNRr8m3kwfnvKuNtg-MP2RaWPhV3RDNNwNFZ",
+          "_id": "6ae41faf40509ab49758f58f",
+          "title": "双肩包男士简约大容量大学生书包男初中生高中学生休闲旅行背包女"
+        }
+      ],
+      "minPrice": 49.84,
+      "maxPrice": 49.84,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男士可扩容行李包大容量学生书包女出差电脑包短途旅游背包",
+      "label": "双肩包男士可扩容行李包大容量学生书包女出差电脑包短途旅游背包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 60.9,
+          "tao_id": "AQd4vJ8Hzt4XMxg50VT87nFvtn-aR065jRsjzm6ajKyHgo",
+          "_id": "6ae41fb140509ab49758f8af",
+          "title": "双肩包男士可扩容行李包大容量学生书包女出差电脑包短途旅游背包"
+        }
+      ],
+      "minPrice": 60.9,
+      "maxPrice": 60.9,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男士休闲百搭大容量旅行背包女初中生高中大学生书包电脑包",
+      "label": "双肩包男士休闲百搭大容量旅行背包女初中生高中大学生书包电脑包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 64,
+          "tao_id": "nNBBJDpIMt3j5NG7vwcAgAU0tP-qkam4qkTndJZ275Khz",
+          "_id": "6ae41fb140509ab49758f878",
+          "title": "双肩包男士休闲百搭大容量旅行背包女初中生高中大学生书包电脑包"
+        }
+      ],
+      "minPrice": 64,
+      "maxPrice": 64,
+      "diff": 0
+    },
+    {
+      "key": "双肩包男ins潮酷大容量男士背包日系休闲大学生书包男初中高中生",
+      "label": "双肩包男ins潮酷大容量男士背包日系休闲大学生书包男初中高中生",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 39.9,
+          "tao_id": "zR7dJrAuetaVOovYzrhzkrSdt4-OqmzjwqUZ0PaqD2Xio",
+          "_id": "6ae41faf40509ab49758f65f",
+          "title": "双肩包男ins潮酷大容量男士背包日系休闲大学生书包男初中高中生"
+        }
+      ],
+      "minPrice": 39.9,
+      "maxPrice": 39.9,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女2026潮韩版百搭时尚软皮女士背包网红旅行书包女小包",
+      "label": "双肩包女2026新款潮韩版百搭时尚软皮女士背包网红旅行书包女小包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 29.6,
+          "tao_id": "yjoWbd2cRt2K4bGjnaCrDWcvtA-Wqx6XwqUQo5NaXYOFm8",
+          "_id": "6ae41fa840509ab49758f4ad",
+          "title": "双肩包女2026新款潮韩版百搭时尚软皮女士背包网红旅行书包女小包"
+        }
+      ],
+      "minPrice": 29.6,
+      "maxPrice": 29.6,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女2026时尚百搭书包大容量轻便牛津布极简耐磨旅行背包",
+      "label": "双肩包女2026新款时尚百搭书包大容量轻便牛津布极简耐磨旅行背包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 59,
+          "tao_id": "k9kaJxpIYtaY6B7gyjHBDdUPtJ-GKQ6O5Kfq5m74GerUn",
+          "_id": "6ae41fb040509ab49758f6e5",
+          "title": "双肩包女2026新款时尚百搭书包大容量轻便牛津布极简耐磨旅行背包"
+        }
+      ],
+      "minPrice": 59,
+      "maxPrice": 59,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女百搭大学生上课书包四叶草背包电脑小众设计小学生书包",
+      "label": "双肩包女百搭大学生上课书包四叶草背包电脑小众设计小学生书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 40.8,
+          "tao_id": "g0YrAbjH3t2One4b3mtY84Tatr-xnam6Zns6Z2z5mjRCJ",
+          "_id": "6ae41fb140509ab49758f7f1",
+          "title": "双肩包女百搭大学生上课书包四叶草背包电脑小众设计小学生书包"
+        }
+      ],
+      "minPrice": 40.8,
+      "maxPrice": 40.8,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女户外徒步登山包撞色肩包男多巴胺大容量书包轻便旅游背包",
+      "label": "双肩包女户外徒步登山包撞色肩包男多巴胺大容量书包轻便旅游背包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 41.4,
+          "tao_id": "WB3JW79cot2BZGyVD4SX6JiQta-y3awR23hAj9e0q7QCg",
+          "_id": "6ae41faf40509ab49758f5a8",
+          "title": "双肩包女户外徒步登山包撞色肩包男多巴胺大容量书包轻便旅游背包"
+        }
+      ],
+      "minPrice": 41.4,
+      "maxPrice": 41.4,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女旅游轻便2025时尚旅行背包学生休闲简约平板包小书包",
+      "label": "双肩包女旅游轻便2025新款时尚旅行背包学生休闲简约平板包小书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 39,
+          "tao_id": "O2KeO4Vuzt6nzeKyJkIVXJCMtJ-KqV6okqUj7mVxyzkUnd",
+          "_id": "6ae41faf40509ab49758f6d4",
+          "title": "双肩包女旅游轻便2025新款时尚旅行背包学生休闲简约平板包小书包"
+        }
+      ],
+      "minPrice": 39,
+      "maxPrice": 39,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女士2026防水牛津布小背包女式旅游轻便高颜值旅行包包",
+      "label": "双肩包女士2026新款防水牛津布小背包女式旅游轻便高颜值旅行包包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 69,
+          "tao_id": "9XypM4rHBtODy0PxYpiZWVFQt6-5nw8WqnsX8Aj2wgphNO",
+          "_id": "6ae41faf40509ab49758f5db",
+          "title": "双肩包女士2026新款防水牛津布小背包女式旅游轻便高颜值旅行包包"
+        }
+      ],
+      "minPrice": 69,
+      "maxPrice": 69,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女士短途轻便大容量旅行背包户外旅游登山电脑包大学生书包",
+      "label": "双肩包女士短途轻便大容量旅行背包户外旅游登山电脑包大学生书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 65.55,
+          "tao_id": "bvnVoAkCgtoRjXNaJYczjZUQt6-nJamVPJHxNq7QAxJFBb",
+          "_id": "6ae41fa340509ab49758f363",
+          "title": "双肩包女士短途轻便大容量旅行背包户外旅游登山电脑包大学生书包"
+        }
+      ],
+      "minPrice": 65.55,
+      "maxPrice": 65.55,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女士韩版百搭潮牛津布妈妈背包时尚休闲大容量旅行书包",
+      "label": "双肩包女士新款韩版百搭潮牛津布妈妈背包时尚休闲大容量旅行书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 29.6,
+          "tao_id": "6DoORV4f8tGR9dvVz9fVyBTot3-88N7bv8FYZ9nk5gVuqx",
+          "_id": "6ae41fa840509ab49758f474",
+          "title": "双肩包女士新款韩版百搭潮牛津布妈妈背包时尚休闲大容量旅行书包"
+        }
+      ],
+      "minPrice": 29.6,
+      "maxPrice": 29.6,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女士韩版牛津布小背包女士百搭时尚大容量帆布书包包",
+      "label": "双肩包女士新款韩版牛津布小背包女士百搭时尚大容量帆布书包包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 29.6,
+          "tao_id": "rXz5vGDkTOtVeXzGpD3FKnnfqtZ-MP2RaWPh4q4pjnANcRV",
+          "_id": "6ae41fb140509ab49758f93a",
+          "title": "双肩包女士新款韩版牛津布小背包女士百搭时尚大容量帆布书包包"
+        }
+      ],
+      "minPrice": 29.6,
+      "maxPrice": 29.6,
+      "diff": 0
+    },
+    {
+      "key": "双肩包女士旅行背包大容量外出短途旅游轻便2026高颜值妈咪包",
+      "label": "双肩包女士旅行背包大容量外出短途旅游轻便2026新款高颜值妈咪包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 42.4,
+          "tao_id": "pKm9ZvpIxt6pA8vemzT5XaSptm-6RebxvRsyQyD0G0yiK",
+          "_id": "6ae41fb140509ab49758f8d7",
+          "title": "双肩包女士旅行背包大容量外出短途旅游轻便2026新款高颜值妈咪包"
+        }
+      ],
+      "minPrice": 42.4,
+      "maxPrice": 42.4,
+      "diff": 0
+    },
+    {
+      "key": "松下阿尔法衣物护理机纳诺怡除菌螨热泵变频烘干智能app远程控低温熨烫塑形皮草真丝奢品护衣柜阿尔法hccr1hm",
+      "label": "松下（Panasonic） 阿尔法衣物护理机 纳诺怡除菌螨 热泵变频烘干 智能APP远程控 低温熨烫塑形 皮草真丝奢品护衣柜 阿尔法【镜面款除菌塑形护理3件】HCC-R1HM",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 15998.7,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ed5",
+          "title": "松下（Panasonic） 阿尔法衣物护理机 纳诺怡除菌螨 热泵变频烘干 智能APP远程控 低温熨烫塑形 皮草真丝奢品护衣柜 阿尔法【镜面款除菌塑形护理3件】HCC-R1HM"
+        }
+      ],
+      "minPrice": 15998.7,
+      "maxPrice": 15998.7,
+      "diff": 0
+    },
+    {
+      "key": "松下按摩椅家用全身按摩全自动太空舱2026肩颈腰背软魔方ultra礼物送父母epma111t492灰咖色",
+      "label": "松下（Panasonic）按摩椅家用全身按摩全自动太空舱2026肩颈腰背软魔方Ultra礼物送父母EP-MA111T492灰咖色",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 33000,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ee1",
+          "title": "松下（Panasonic）按摩椅家用全身按摩全自动太空舱2026肩颈腰背软魔方Ultra礼物送父母EP-MA111T492灰咖色"
+        }
+      ],
+      "minPrice": 33000,
+      "maxPrice": 33000,
+      "diff": 0
+    },
+    {
+      "key": "松下挪威海法式多门冰箱玻璃面板超薄嵌入大容量双系统自动制冰一级能效nrtge1w",
+      "label": "松下（Panasonic）挪威海600L法式多门冰箱玻璃面板超薄嵌入大容量双系统自动制冰一级能效NR-60GTGE1-W【国家补贴】",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 10572.12,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ebf",
+          "title": "松下（Panasonic）挪威海600L法式多门冰箱玻璃面板超薄嵌入大容量双系统自动制冰一级能效NR-60GTGE1-W【国家补贴】"
+        }
+      ],
+      "minPrice": 10572.12,
+      "maxPrice": 10572.12,
+      "diff": 0
+    },
+    {
+      "key": "松下软魔方rro按摩椅太空舱家用全身电动零重力送长辈父母老人节日生日礼物高端实用mal0玄墨黑",
+      "label": "松下（Panasonic）【国家补贴】软魔方Rro按摩椅太空舱家用全身电动零重力送长辈父母老人节日生日礼物高端实用MAL0 玄墨黑【三防布质】",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 24152,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937edc",
+          "title": "松下（Panasonic）【国家补贴】软魔方Rro按摩椅太空舱家用全身电动零重力送长辈父母老人节日生日礼物高端实用MAL0 玄墨黑【三防布质】"
+        }
+      ],
+      "minPrice": 24152,
+      "maxPrice": 24152,
+      "diff": 0
+    },
+    {
+      "key": "松下新风系统家用中央吊顶式管道新风机全热交换器新风换气一体机循环净化pm2.5过敏原fv35zxc2c",
+      "label": "松下（Panasonic） 【11.11钜惠】新风系统 家用中央吊顶式管道新风机全热交换器新风换气一体机循环净化PM2.5过敏原 FV-35ZXC2C【全新升级新风除湿消毒除菌】",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 28333,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937edd",
+          "title": "松下（Panasonic） 【11.11钜惠】新风系统 家用中央吊顶式管道新风机全热交换器新风换气一体机循环净化PM2.5过敏原 FV-35ZXC2C【全新升级新风除湿消毒除菌】"
+        }
+      ],
+      "minPrice": 28333,
+      "maxPrice": 28333,
+      "diff": 0
+    },
+    {
+      "key": "苏泊尔鲜食料理机宠物辅食机小型多功能绞肉机捣蒜猫粮狗粮粉碎机",
+      "label": "苏泊尔鲜食料理机宠物辅食机小型多功能绞肉机捣蒜猫粮狗粮粉碎机",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 52.16,
+          "tao_id": "qkJev4p0S2t4OBwe0qOCDJ6tWt0-5nw8Wqns6Y333WabSoB",
+          "_id": "6ae40d2640509ab49758c891",
+          "title": "苏泊尔鲜食料理机宠物辅食机小型多功能绞肉机捣蒜猫粮狗粮粉碎机"
+        }
+      ],
+      "minPrice": 52.16,
+      "maxPrice": 52.16,
+      "diff": 0
+    },
+    {
+      "key": "特步儿童男女童运动鞋三维透气韧弹缓震防滑旋钮扣跑步鞋黑极光绿37",
+      "label": "特步（XTEP）儿童男女童运动鞋【氢风9.0】三维透气韧弹缓震防滑旋钮扣跑步鞋 黑/极光绿 【四季密网】 37",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 149.9,
+          "tao_id": "",
+          "_id": "6ad08037eb0a8e2a03211360",
+          "title": "特步（XTEP）儿童男女童运动鞋【氢风9.0】三维透气韧弹缓震防滑旋钮扣跑步鞋 黑/极光绿 【四季密网】 37"
+        }
+      ],
+      "minPrice": 149.9,
+      "maxPrice": 149.9,
+      "diff": 0
+    },
+    {
+      "key": "体验试用谷雨山参水乳霜紧致抗皱",
+      "label": "【顺手买1件】体验试用谷雨山参水乳霜紧致抗皱",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 99499,
+          "tao_id": "V6zGvjGF6tw5nO5gNrivexivtV-xnam6ZnsOKezPKBncJX",
+          "_id": "6ae42db740509ab4975917bd",
+          "title": "【顺手买1件】体验试用谷雨山参水乳霜紧致抗皱"
+        }
+      ],
+      "minPrice": 99499,
+      "maxPrice": 99499,
+      "diff": 0
+    },
+    {
+      "key": "兔头妈妈儿童牙膏抗糖含氟防蛀护齿疯狂动物城112岁果味装",
+      "label": "兔头妈妈儿童牙膏抗糖含氟防蛀护齿 疯狂动物城 1-12岁果味 40g*3支装",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 37.9,
+          "tao_id": "",
+          "_id": "6ad07fe0eb0a8e2a0321131e",
+          "title": "兔头妈妈儿童牙膏抗糖含氟防蛀护齿 疯狂动物城 1-12岁果味 40g*3支装"
+        }
+      ],
+      "minPrice": 37.9,
+      "maxPrice": 37.9,
+      "diff": 0
+    },
+    {
+      "key": "威仕力8810pro日本按摩家用按摩椅2026重磅送父母亲爱人礼物头等太空舱",
+      "label": "威仕力（VCL）8810Pro【全维旗舰座舱】日本按摩家用按摩椅京东自营 2026重磅新款 送父母亲爱人礼物头等太空舱",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 16999,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ebc",
+          "title": "威仕力（VCL）8810Pro【全维旗舰座舱】日本按摩家用按摩椅京东自营 2026重磅新款 送父母亲爱人礼物头等太空舱"
+        }
+      ],
+      "minPrice": 16999,
+      "maxPrice": 16999,
+      "diff": 0
+    },
+    {
+      "key": "威仕力9200款日本按摩家用全身按摩椅双4d机芯柔性躺平导轨太空舱送爱人豪华礼物",
+      "label": "威仕力（VCL）9200款【奢雅徜徉】日本按摩家用全身按摩椅京东自营 双4D机芯柔性躺平导轨太空舱 送爱人豪华礼物",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 27800,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ecd",
+          "title": "威仕力（VCL）9200款【奢雅徜徉】日本按摩家用全身按摩椅京东自营 双4D机芯柔性躺平导轨太空舱 送爱人豪华礼物"
+        }
+      ],
+      "minPrice": 27800,
+      "maxPrice": 27800,
+      "diff": 0
+    },
+    {
+      "key": "沃兰迪全运冠军火箭气垫跑鞋碳板竞速跑鞋训练跑步体考体测体育生柠檬绿42",
+      "label": "沃兰迪全运冠军同款火箭气垫跑鞋碳板竞速跑鞋训练跑步体考体测体育生 柠檬绿 【尺码偏小，拍大一码】 42",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 348.99,
+          "tao_id": "",
+          "_id": "6acce52948aee7397a282e16",
+          "title": "沃兰迪全运冠军同款火箭气垫跑鞋碳板竞速跑鞋训练跑步体考体测体育生 柠檬绿 【尺码偏小，拍大一码】 42"
+        }
+      ],
+      "minPrice": 348.99,
+      "maxPrice": 348.99,
+      "diff": 0
+    },
+    {
+      "key": "沃特堡原制进口涂抹奶油奶酪原味蒜香",
+      "label": "【李佳琦母婴&小家电专场】沃特堡原制进口涂抹奶油奶酪原味蒜香",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 57.8,
+          "tao_id": "opdWPzJtrtK9n4NQ33U5e7HntN-POon6eOfOGBRYMXDUGk",
+          "_id": "6adeb4aa3ef86536a93bd6a7",
+          "title": "【李佳琦母婴&小家电专场】沃特堡原制进口涂抹奶油奶酪原味蒜香"
+        }
+      ],
+      "minPrice": 57.8,
+      "maxPrice": 57.8,
+      "diff": 0
+    },
+    {
+      "key": "无毒超轻粘土太空橡皮泥安全彩泥儿童手工黏土玩具克大包24色",
+      "label": "无毒超轻粘土太空橡皮泥安全彩泥儿童手工黏土玩具100g克大包24色",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 1.48,
+          "tao_id": "7nQV09wWt4t53QJzq7GT6NRfMtV-zDke3nDhWmkmONyQFz9",
+          "_id": "6ae449e77fe483af400a5c66",
+          "title": "无毒超轻粘土太空橡皮泥安全彩泥儿童手工黏土玩具100g克大包24色"
+        }
+      ],
+      "minPrice": 1.48,
+      "maxPrice": 1.48,
+      "diff": 0
+    },
+    {
+      "key": "无穷盐焗鸡蛋鹌鹑蛋香卤鸡蛋即食爆汁卤蛋零食早餐办公室休闲零食盐焗爆鸡蛋盐焗鸡蛋",
+      "label": "无穷盐焗鸡蛋鹌鹑蛋香卤鸡蛋 即食爆汁卤蛋 零食早餐 办公室休闲零食 盐焗爆鸡蛋/12只+盐焗鸡蛋/4只",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 15.9,
+          "tao_id": "",
+          "_id": "6acce52948aee7397a282e37",
+          "title": "无穷盐焗鸡蛋鹌鹑蛋香卤鸡蛋 即食爆汁卤蛋 零食早餐 办公室休闲零食 盐焗爆鸡蛋/12只+盐焗鸡蛋/4只"
+        }
+      ],
+      "minPrice": 15.9,
+      "maxPrice": 15.9,
+      "diff": 0
+    },
+    {
+      "key": "西门子小幸熨顶奢10大容量洗烘套装ai超氧全自动滚筒洗衣机变频热泵烘干d80wu80w",
+      "label": "西门子（SIEMENS）小幸熨顶奢10+10KG大容量洗烘套装AI超氧全自动滚筒洗衣机变频热泵烘干D80W+U80W",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 13689,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eb0",
+          "title": "西门子（SIEMENS）小幸熨顶奢10+10KG大容量洗烘套装AI超氧全自动滚筒洗衣机变频热泵烘干D80W+U80W"
+        }
+      ],
+      "minPrice": 13689,
+      "maxPrice": 13689,
+      "diff": 0
+    },
+    {
+      "key": "喜临门呼呼系列乳胶气囊电动智能ai床垫h300智慧t1床架1.8",
+      "label": "喜临门呼呼系列乳胶气囊电动智能AI床垫 H300+智慧T1床架 1.8*2米",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 12999,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eae",
+          "title": "喜临门呼呼系列乳胶气囊电动智能AI床垫 H300+智慧T1床架 1.8*2米"
+        }
+      ],
+      "minPrice": 12999,
+      "maxPrice": 12999,
+      "diff": 0
+    },
+    {
+      "key": "乡野古方方子彩图精解经典详细解读实用家庭常备生活百科全书通俗易懂一册在手小病不愁中医养生保健书籍w",
+      "label": "【认准正版】乡野古方方子彩图精解经典详细解读实用家庭常备生活百科全书通俗易懂一册在手小病不愁中医养生保健书籍W",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 17.2,
+          "tao_id": "yJKadzOtRt2K4nRBW8UrD0hvtA-gPVmqnPhAnBKdjdGCon",
+          "_id": "6ae43bd00f8a974ef9b33d17",
+          "title": "【认准正版】乡野古方方子彩图精解经典详细解读实用家庭常备生活百科全书通俗易懂一册在手小病不愁中医养生保健书籍W"
+        }
+      ],
+      "minPrice": 17.2,
+      "maxPrice": 17.2,
+      "diff": 0
+    },
+    {
+      "key": "小米米家中央空调多联机双风轮大6匹一拖五超一级能效160wnoc60n2c1整机10年包修三排铜管",
+      "label": "小米米家中央空调 多联机 双风轮大6匹一拖五 超一级能效 160Wn-OC60/N2C1 整机10年包修 三排铜管",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 28499,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eb8",
+          "title": "小米米家中央空调 多联机 双风轮大6匹一拖五 超一级能效 160Wn-OC60/N2C1 整机10年包修 三排铜管"
+        }
+      ],
+      "minPrice": 28499,
+      "maxPrice": 28499,
+      "diff": 0
+    },
+    {
+      "key": "小演员萌趣早餐机电动搅拌机面包机榨汁机冰箱家电厨房过家家玩具",
+      "label": "小演员萌趣早餐机电动搅拌机面包机榨汁机冰箱家电厨房过家家玩具",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 24.4,
+          "tao_id": "a38kN3muotMJ7aeVzDsxMZFjty-nJamVPJHjpxyqpGjfz",
+          "_id": "6ae4039040509ab49758b130",
+          "title": "小演员萌趣早餐机电动搅拌机面包机榨汁机冰箱家电厨房过家家玩具"
+        }
+      ],
+      "minPrice": 24.4,
+      "maxPrice": 24.4,
+      "diff": 0
+    },
+    {
+      "key": "星鲨维生素ad滴剂ad滴剂1岁以上13岁维生素ad儿童312岁青少年1117岁长高促钙吸收非维生素d3",
+      "label": "星鲨维生素AD滴剂(胶囊型)36粒 ad滴剂1岁以上1-3岁维生素ad儿童3-12岁青少年11-17岁长高促钙吸收非维生素d3",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 25.9,
+          "tao_id": "",
+          "_id": "6ad07fe0eb0a8e2a0321131d",
+          "title": "星鲨维生素AD滴剂(胶囊型)36粒 ad滴剂1岁以上1-3岁维生素ad儿童3-12岁青少年11-17岁长高促钙吸收非维生素d3"
+        }
+      ],
+      "minPrice": 25.9,
+      "maxPrice": 25.9,
+      "diff": 0
+    },
+    {
+      "key": "修丽可age面霜护肤品玻色因抗糖抗皱抗老紧致生日礼物送女友",
+      "label": "修丽可AGE面霜48ml 护肤品玻色因抗糖抗皱抗老紧致生日礼物送女友",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 1720,
+          "tao_id": "",
+          "_id": "6ad080aaeb0a8e2a032113ba",
+          "title": "修丽可AGE面霜48ml 护肤品玻色因抗糖抗皱抗老紧致生日礼物送女友"
+        }
+      ],
+      "minPrice": 1720,
+      "maxPrice": 1720,
+      "diff": 0
+    },
+    {
+      "key": "学霸学渣果冻贴纸磁力安静书免裁剪手工diy女孩儿童玩具迷你",
+      "label": "新款学霸学渣果冻贴纸磁力安静书免裁剪手工diy女孩儿童玩具迷你",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 7.84,
+          "tao_id": "y3zxQreZhRt2K4q9j7OHr3qFvtA-88N7bv8F5dpyYbBOTd",
+          "_id": "6ae449e77fe483af400a5c6c",
+          "title": "新款学霸学渣果冻贴纸磁力安静书免裁剪手工diy女孩儿童玩具迷你"
+        }
+      ],
+      "minPrice": 7.84,
+      "maxPrice": 7.84,
+      "diff": 0
+    },
+    {
+      "key": "亚克力密封罐食品级透明空瓶子西洋参中药粉分装保健品包装塑料瓶",
+      "label": "亚克力密封罐食品级透明空瓶子西洋参中药粉分装保健品包装塑料瓶",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.5,
+          "tao_id": "RgYbMKqOfZtjJvgNgaRUknXSMt6-0vGpwkvhNANeZ8BAunz",
+          "_id": "6ae40d2740509ab49758cbf1",
+          "title": "亚克力密封罐食品级透明空瓶子西洋参中药粉分装保健品包装塑料瓶"
+        }
+      ],
+      "minPrice": 2.5,
+      "maxPrice": 2.5,
+      "diff": 0
+    },
+    {
+      "key": "婴儿玩具摇马摇摇马二合一溜溜车木马儿童安全飞行防摔宝宝摇摇车",
+      "label": "婴儿玩具摇马摇摇马二合一溜溜车木马儿童安全飞行防摔宝宝摇摇车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 102,
+          "tao_id": "NOeAvg09H5tG6V7X5K0UYP5HRtB-oKjmO7Kfe88BwP2GUJz",
+          "_id": "6ae449e77fe483af400a5c6b",
+          "title": "婴儿玩具摇马摇摇马二合一溜溜车木马儿童安全飞行防摔宝宝摇摇车"
+        }
+      ],
+      "minPrice": 102,
+      "maxPrice": 102,
+      "diff": 0
+    },
+    {
+      "key": "优时颜冰美式眼次抛确认收货享回购券",
+      "label": "【U先】优时颜冰美式眼次抛1支 确认收货享回购券",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8499,
+          "tao_id": "gDRqNmjU3t2OoGAGY0fY84Tatr-zDke3nDhB44ZvRrnhJp",
+          "_id": "6ad9981f82db4923f4c23c1e",
+          "title": "【U先】优时颜冰美式眼次抛1支 确认收货享回购券"
+        }
+      ],
+      "minPrice": 8499,
+      "maxPrice": 8499,
+      "diff": 0
+    },
+    {
+      "key": "优时颜微笑面霜",
+      "label": "【U先】优时颜微笑面霜(水霜版)2g",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8499,
+          "tao_id": "AjOD0OkFzt4XDY7Ybpf8n4Svtn-k3mDd03hRMZMMqwjtk",
+          "_id": "6ad9981f82db4923f4c23d4a",
+          "title": "【U先】优时颜微笑面霜(水霜版)2g"
+        }
+      ],
+      "minPrice": 8499,
+      "maxPrice": 8499,
+      "diff": 0
+    },
+    {
+      "key": "优时颜uniskin微笑眼霜4.0确认收货享回购券",
+      "label": "【U先】优时颜UNISKIN微笑眼霜4.0*1g 确认收货享回购券",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8499,
+          "tao_id": "k2on5Z5tYtaYk5AQdecB0NIPtJ-qkam4qkTXkjyZkwyf7",
+          "_id": "6ad9981782db4923f4c238da",
+          "title": "【U先】优时颜UNISKIN微笑眼霜4.0*1g 确认收货享回购券"
+        }
+      ],
+      "minPrice": 8499,
+      "maxPrice": 8499,
+      "diff": 0
+    },
+    {
+      "key": "游戏本电脑包适用联想拯救者y9000p双肩包背包女气囊防震书包",
+      "label": "游戏本电脑包16寸适用联想拯救者y9000p双肩包背包女气囊防震书包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 149.9,
+          "tao_id": "nJKRQooRHMt3jPzn070iAwYU0tP-9zAr5VzC5mONGKKmFrQ",
+          "_id": "6adc2dc2a6f20c2fbf5f47c7",
+          "title": "游戏本电脑包16寸适用联想拯救者y9000p双肩包背包女气囊防震书包"
+        }
+      ],
+      "minPrice": 149.9,
+      "maxPrice": 149.9,
+      "diff": 0
+    },
+    {
+      "key": "游戏大陆桂冠雕刻德州扑克陶瓷筹码专业有面值高端德扑筹码币",
+      "label": "游戏大陆桂冠雕刻德州扑克陶瓷筹码专业有面值高端43mm德扑筹码币",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 18.7,
+          "tao_id": "jGxV6geOF0tJ7JWj2XyfNo4uJte-pBam27BCRVyw53j6FB",
+          "_id": "6ae2c4921f06011a2e4d18c5",
+          "title": "游戏大陆桂冠雕刻德州扑克陶瓷筹码专业有面值高端43mm德扑筹码币"
+        }
+      ],
+      "minPrice": 18.7,
+      "maxPrice": 18.7,
+      "diff": 0
+    },
+    {
+      "key": "游戏套圈圈玩具摆摊儿童套圈专用圈全套亲子益智宝宝叠叠乐孩子",
+      "label": "游戏套圈圈玩具摆摊儿童套圈专用圈全套亲子益智宝宝叠叠乐孩子",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5.5,
+          "tao_id": "YJjKK4jKiptX4zA2mZ5tKeBU2t6-9zAr5VzC58ebDvj5he",
+          "_id": "6ae4039040509ab49758b193",
+          "title": "游戏套圈圈玩具摆摊儿童套圈专用圈全套亲子益智宝宝叠叠乐孩子"
+        }
+      ],
+      "minPrice": 5.5,
+      "maxPrice": 5.5,
+      "diff": 0
+    },
+    {
+      "key": "游戏指套电竞吃鸡手神之防滑手套手游防汗适用无畏和平精英王者荣耀神器超薄导电银冰丝主播吃鸡神器操作",
+      "label": "游戏指套电竞吃鸡手神之防滑手套手游防汗适用无畏和平精英王者荣耀神器超薄导电银冰丝主播同款吃鸡神器操作",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 1.93,
+          "tao_id": "K42oKr9I3toV6eo4WWIONXUJtW-zDke3nDhon2rbj3jUJ5",
+          "_id": "6adb1d63f38a4b84658a3d36",
+          "title": "游戏指套电竞吃鸡手神之防滑手套手游防汗适用无畏和平精英王者荣耀神器超薄导电银冰丝主播同款吃鸡神器操作"
+        }
+      ],
+      "minPrice": 1.93,
+      "maxPrice": 1.93,
+      "diff": 0
+    },
+    {
+      "key": "游戏指套电竞级装礼包手游神器适用和平精英王者荣耀三角洲无畏暗区cf防汗不断触触摸屏手套外设手汗超薄",
+      "label": "游戏指套电竞级20只装礼包手游神器适用和平精英王者荣耀三角洲无畏暗区cf防汗不断触触摸屏手套外设手汗超薄",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3,
+          "tao_id": "qkyVM2n8F2t4O7G4dWatDKJCWt0-Zr56pNrFRn3jGnBjHN",
+          "_id": "6adb1d6cf38a4b84658a43ca",
+          "title": "游戏指套电竞级20只装礼包手游神器适用和平精英王者荣耀三角洲无畏暗区cf防汗不断触触摸屏手套外设手汗超薄"
+        }
+      ],
+      "minPrice": 3,
+      "maxPrice": 3,
+      "diff": 0
+    },
+    {
+      "key": "游戏指套防汗神器手游吃鸡手指套和平精英拇指防滑王者荣耀拇指套",
+      "label": "游戏指套防汗神器手游吃鸡手指套和平精英拇指防滑王者荣耀拇指套",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 1.7,
+          "tao_id": "5nXqdmVmIxtyw0XGNp2tQAMSMtV-y3awR23h6YDwKJW7fyg",
+          "_id": "6add6c144470f41a875b46d4",
+          "title": "游戏指套防汗神器手游吃鸡手指套和平精英拇指防滑王者荣耀拇指套"
+        }
+      ],
+      "minPrice": 1.7,
+      "maxPrice": 1.7,
+      "diff": 0
+    },
+    {
+      "key": "原装本田喜悦100c小公主燃油车踏板摩托车二手代步男女装踏板整车",
+      "label": "原装本田喜悦100c小公主燃油车踏板摩托车二手代步男女装踏板整车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2699.52,
+          "tao_id": "Bo47q47S6t85p0oQjASd47Crte-YJb6epJHjMRoNxkvS3",
+          "_id": "6ae408ac40509ab49758bed2",
+          "title": "原装本田喜悦100c小公主燃油车踏板摩托车二手代步男女装踏板整车"
+        }
+      ],
+      "minPrice": 2699.52,
+      "maxPrice": 2699.52,
+      "diff": 0
+    },
+    {
+      "key": "原装本田喜悦100cc踏板摩托车整车二手男女装燃油代步机车踏板车",
+      "label": "原装本田喜悦100cc踏板摩托车整车二手男女装燃油代步机车踏板车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2699.4,
+          "tao_id": "nKrjaNVhMt3j5OPadBsAw3F0tP-5nw8Wqns6J4PQYM8CoD",
+          "_id": "6ae408aa40509ab49758bd54",
+          "title": "原装本田喜悦100cc踏板摩托车整车二手男女装燃油代步机车踏板车"
+        }
+      ],
+      "minPrice": 2699.4,
+      "maxPrice": 2699.4,
+      "diff": 0
+    },
+    {
+      "key": "原装本田喜悦100cc踏板摩托车整车二手踏板车男女装燃油代步",
+      "label": "原装本田新款喜悦100cc踏板摩托车整车二手踏板车男女装燃油代步",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2899.12,
+          "tao_id": "eVBb2o3cDtdJQaM6Kmi63mfzt0-aR065jRsjNwXZaYYHg4",
+          "_id": "6ae408ac40509ab49758be35",
+          "title": "原装本田新款喜悦100cc踏板摩托车整车二手踏板车男女装燃油代步"
+        }
+      ],
+      "minPrice": 2899.12,
+      "maxPrice": 2899.12,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈福喜100c摩托车代步燃油车二手摩托男女装机车踏板整车",
+      "label": "原装雅马哈福喜100c摩托车代步燃油车二手摩托男女装机车踏板整车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2399,
+          "tao_id": "dvNAZdDhZt3vdynoYzs2ApTet3-Q0w6kp0s9WO4DvDvsK",
+          "_id": "6ae408ac40509ab49758be76",
+          "title": "原装雅马哈福喜100c摩托车代步燃油车二手摩托男女装机车踏板整车"
+        }
+      ],
+      "minPrice": 2399,
+      "maxPrice": 2399,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈福喜100c燃油车踏板二手摩托车代步四冲程男女装踏板车",
+      "label": "原装雅马哈福喜100c燃油车踏板二手摩托车代步四冲程男女装踏板车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2399,
+          "tao_id": "zDXGmQrGcetaVOKq0QbUzDbFdt4-J5B6mP5hQXo0nRZriV2",
+          "_id": "6ae408ac40509ab49758bd8f",
+          "title": "原装雅马哈福喜100c燃油车踏板二手摩托车代步四冲程男女装踏板车"
+        }
+      ],
+      "minPrice": 2399,
+      "maxPrice": 2399,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈福喜as125c踏板车夜行者摩托车整车二手男女装燃油",
+      "label": "原装雅马哈新款福喜AS125c踏板车夜行者摩托车整车二手男女装燃油",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4499,
+          "tao_id": "5AvJwwGcxtyw4Y0W3NUQe6CMtV-9zAr5VzC5goMjmRxIr",
+          "_id": "6ae408aa40509ab49758bd73",
+          "title": "原装雅马哈新款福喜AS125c踏板车夜行者摩托车整车二手男女装燃油"
+        }
+      ],
+      "minPrice": 4499,
+      "maxPrice": 4499,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈酷奇100cc代步踏板摩托车整车男女装踏板车二手燃油车",
+      "label": "原装雅马哈酷奇100cc代步踏板摩托车整车男女装踏板车二手燃油车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2499.9,
+          "tao_id": "v6jG328qcZt67zoJP3AU9pjH0te-OqmzjwqU0NYJGdPqc8X",
+          "_id": "6ae408ac40509ab49758bd89",
+          "title": "原装雅马哈酷奇100cc代步踏板摩托车整车男女装踏板车二手燃油车"
+        }
+      ],
+      "minPrice": 2499.9,
+      "maxPrice": 2499.9,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈酷奇100cc踏板摩托车燃油车男女装代步二手摩托车整车",
+      "label": "原装雅马哈酷奇100cc踏板摩托车燃油车男女装代步二手摩托车整车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2499,
+          "tao_id": "v6jG32DaTZt67zoJP3AU9pgU0te-Zr56pNrFRyg84jpbC9",
+          "_id": "6ae408ac40509ab49758bdb3",
+          "title": "原装雅马哈酷奇100cc踏板摩托车燃油车男女装代步二手摩托车整车"
+        }
+      ],
+      "minPrice": 2499,
+      "maxPrice": 2499,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈巧格100c燃油车踏板二手摩托车代步四冲程男女装踏板车",
+      "label": "原装雅马哈巧格100c燃油车踏板二手摩托车代步四冲程男女装踏板车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2399,
+          "tao_id": "PbXdooPs3t6abYB0xGhxZeFPt6-ANPdJqNCDvBMrPwKfYz",
+          "_id": "6ae408aa40509ab49758bd7d",
+          "title": "原装雅马哈巧格100c燃油车踏板二手摩托车代步四冲程男女装踏板车"
+        }
+      ],
+      "minPrice": 2399,
+      "maxPrice": 2399,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈巧格100c踏板摩托车燃油二手摩托踏板车男女装代步整车",
+      "label": "原装雅马哈巧格100c踏板摩托车燃油二手摩托踏板车男女装代步整车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2399.52,
+          "tao_id": "KMX3VzWS3toVN5pxznHOwmFJtW-ANPdJqNCDvZ0pyK2tD",
+          "_id": "6ae408aa40509ab49758bd46",
+          "title": "原装雅马哈巧格100c踏板摩托车燃油二手摩托踏板车男女装代步整车"
+        }
+      ],
+      "minPrice": 2399.52,
+      "maxPrice": 2399.52,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈巧格100cc摩托车代步燃油车二手摩托男女装机车踏板车",
+      "label": "原装雅马哈巧格100cc摩托车代步燃油车二手摩托男女装机车踏板车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2399,
+          "tao_id": "Pvr2arnH3t6abYB0QzuxZ5uPt6-rXaYmPXUb0jab7W5hJ",
+          "_id": "6ae408ac40509ab49758bec9",
+          "title": "原装雅马哈巧格100cc摩托车代步燃油车二手摩托男女装机车踏板车"
+        }
+      ],
+      "minPrice": 2399,
+      "maxPrice": 2399,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈尚领125cc燃油车踏板摩托车二手代步车男女装机车整车",
+      "label": "原装雅马哈尚领125cc燃油车踏板摩托车二手代步车男女装机车整车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2899.52,
+          "tao_id": "qVyDax0U2t4OBwz2PosDKVtWt0-ANPdJqNCDvRmyxq0tYx",
+          "_id": "6ae408aa40509ab49758bd35",
+          "title": "原装雅马哈尚领125cc燃油车踏板摩托车二手代步车男女装机车整车"
+        }
+      ],
+      "minPrice": 2899.52,
+      "maxPrice": 2899.52,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈尚领125cc踏板车燃油摩托车四冲程男女装二手摩托机车",
+      "label": "原装雅马哈尚领125cc踏板车燃油摩托车四冲程男女装二手摩托机车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2899.52,
+          "tao_id": "MPwopYzVTKtXeWnBMR3cdRYFQtA-ANPdJqNCDqN0Z4XXTZ",
+          "_id": "6ae408ac40509ab49758bf47",
+          "title": "原装雅马哈尚领125cc踏板车燃油摩托车四冲程男女装二手摩托机车"
+        }
+      ],
+      "minPrice": 2899.52,
+      "maxPrice": 2899.52,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈尚领125cc踏板摩托车燃油二手车踏板车男女装代步整车",
+      "label": "原装雅马哈尚领125cc踏板摩托车燃油二手车踏板车男女装代步整车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2899.52,
+          "tao_id": "NMXn44dI5tG6Vw2DYphYjrtRtB-4VGxArVH96Dm6Po2tp",
+          "_id": "6ae408aa40509ab49758bd7c",
+          "title": "原装雅马哈尚领125cc踏板摩托车燃油二手车踏板车男女装代步整车"
+        }
+      ],
+      "minPrice": 2899.52,
+      "maxPrice": 2899.52,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈迅鹰125c摩托车二手车摩托代步男女整车踏板车汽油整车",
+      "label": "原装雅马哈迅鹰125c摩托车二手车摩托代步男女整车踏板车汽油整车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2899.77,
+          "tao_id": "o3PDjjeurtK9jRYv0Jt56yintN-7np58WnsOP66a6mdt0x",
+          "_id": "6ae408aa40509ab49758bd66",
+          "title": "原装雅马哈迅鹰125c摩托车二手车摩托代步男女整车踏板车汽油整车"
+        }
+      ],
+      "minPrice": 2899.77,
+      "maxPrice": 2899.77,
+      "diff": 0
+    },
+    {
+      "key": "原装雅马哈迅鹰125c踏板摩托车燃油二手摩托车踏板车男女代步整车",
+      "label": "原装雅马哈迅鹰125c踏板摩托车燃油二手摩托车踏板车男女代步整车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2899.7,
+          "tao_id": "a7yD00qiotMJ7qXnjgcxMpsjty-5nw8Wqns6JAjDonoTNZ",
+          "_id": "6ae408aa40509ab49758bd7b",
+          "title": "原装雅马哈迅鹰125c踏板摩托车燃油二手摩托车踏板车男女代步整车"
+        }
+      ],
+      "minPrice": 2899.7,
+      "maxPrice": 2899.7,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋板鞋后跟贴男女鞋大改小防掉跟防磨脚后跟神器调鞋码半码垫",
+      "label": "运动鞋板鞋后跟贴男女鞋大改小防掉跟防磨脚后跟神器调鞋码半码垫",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.8,
+          "tao_id": "8MPGRZgFnt9NO2kM3xFOyPTbt8-oKjmO7KfBVVAQP59fJd",
+          "_id": "6ae4294740509ab49759108a",
+          "title": "运动鞋板鞋后跟贴男女鞋大改小防掉跟防磨脚后跟神器调鞋码半码垫"
+        }
+      ],
+      "minPrice": 2.8,
+      "maxPrice": 2.8,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋垫加厚柔软舒适透气吸汗防臭男女运动篮球减震皮鞋鞋垫春夏",
+      "label": "运动鞋垫加厚柔软舒适透气吸汗防臭男女运动篮球减震皮鞋鞋垫春夏",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.32,
+          "tao_id": "3rOgKVgUAtYe70JAeyhXNwI9tJ-MP2RaWPh4qr6BBZ7hRV",
+          "_id": "6ae4294740509ab497590fc3",
+          "title": "运动鞋垫加厚柔软舒适透气吸汗防臭男女运动篮球减震皮鞋鞋垫春夏"
+        }
+      ],
+      "minPrice": 3.32,
+      "maxPrice": 3.32,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋垫加厚柔软舒适透气吸汗防臭男女运动篮球减震皮鞋鞋垫夏秋",
+      "label": "运动鞋垫加厚柔软舒适透气吸汗防臭男女运动篮球减震皮鞋鞋垫夏秋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.88,
+          "tao_id": "45zqZW8igtNRrzGyRMtn3DhNtg-OqmzjwqUZgNNmpjOu8Z",
+          "_id": "6ae4294740509ab497590ed6",
+          "title": "运动鞋垫加厚柔软舒适透气吸汗防臭男女运动篮球减震皮鞋鞋垫夏秋"
+        }
+      ],
+      "minPrice": 2.88,
+      "maxPrice": 2.88,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋垫男减震吸汗防臭透气poron加厚高弹篮球缓震aj1气垫超软女",
+      "label": "运动鞋垫男减震吸汗防臭透气poron加厚高弹篮球缓震aj1气垫超软女",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 32.3,
+          "tao_id": "gP2Mn7ebc3t2OnYzO0BHY88iatr-6RebxvRsvrZqjaYyhKm",
+          "_id": "6ae4293f40509ab497590c82",
+          "title": "运动鞋垫男减震吸汗防臭透气poron加厚高弹篮球缓震aj1气垫超软女"
+        }
+      ],
+      "minPrice": 32.3,
+      "maxPrice": 32.3,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋垫女男款吸汗防臭足弓支撑久站不累脚气垫减震乳胶软底舒适",
+      "label": "运动鞋垫女男款吸汗防臭足弓支撑久站不累脚气垫减震乳胶软底舒适",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.8,
+          "tao_id": "Raw3RnAfZtjJvXnJm9ikDptMt6-GKQ6O5KfqX2XmWR5unG",
+          "_id": "6ae4294140509ab497590d19",
+          "title": "运动鞋垫女男款吸汗防臭足弓支撑久站不累脚气垫减震乳胶软底舒适"
+        }
+      ],
+      "minPrice": 9.8,
+      "maxPrice": 9.8,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋垫吸汗防臭不累男款艾草除臭留香软底女士减震按摩防滑支撑",
+      "label": "运动鞋垫吸汗防臭不累男款艾草除臭留香软底女士减震按摩防滑支撑",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 6.1,
+          "tao_id": "62WnKJWI8tGR9WmRgzSVy3Fot3-eQ9mM0QIGg6rj0PvIzo",
+          "_id": "6ae4293f40509ab497590b52",
+          "title": "运动鞋垫吸汗防臭不累男款艾草除臭留香软底女士减震按摩防滑支撑"
+        }
+      ],
+      "minPrice": 6.1,
+      "maxPrice": 6.1,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋跟贴磨损修复贴修防磨贴鞋后跟内贴垫脚后跟贴鞋子鞋贴",
+      "label": "运动鞋跟贴磨损修复贴修补贴防磨贴鞋后跟内贴垫脚后跟贴鞋子鞋贴",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.01,
+          "tao_id": "poQgbmacxt6pA4YpqWc5Xbtptm-wo3mjnoHMe7bVgYBTx",
+          "_id": "6ae4293f40509ab497590bb3",
+          "title": "运动鞋跟贴磨损修复贴修补贴防磨贴鞋后跟内贴垫脚后跟贴鞋子鞋贴"
+        }
+      ],
+      "minPrice": 2.01,
+      "maxPrice": 2.01,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋后跟磨损修复破洞修补防磨贴脚后垫内自粘补丁布内衬补鞋贴",
+      "label": "运动鞋后跟磨损修复破洞修补防磨贴脚后垫内自粘补丁布内衬补鞋贴",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.8,
+          "tao_id": "KqYbwxzgt3toVNZmVW5HONRtJtW-ANPdJqNCK0dAR3BAiDz",
+          "_id": "6ae4294140509ab497590d62",
+          "title": "运动鞋后跟磨损修复破洞修补防磨贴脚后垫内自粘补丁布内衬补鞋贴"
+        }
+      ],
+      "minPrice": 9.8,
+      "maxPrice": 9.8,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋后跟磨损修破洞防磨内衬修补鞋贴脚子后垫网面自粘补丁",
+      "label": "运动鞋后跟磨损修补贴破洞防磨内衬修补鞋贴脚子后垫网面自粘补丁",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 6.63,
+          "tao_id": "06yxKpas7t8bwzabn0f6o5u2t6-9zAr5VzCORkb39rQtXk",
+          "_id": "6ae4293f40509ab497590ba8",
+          "title": "运动鞋后跟磨损修补贴破洞防磨内衬修补鞋贴脚子后垫网面自粘补丁"
+        }
+      ],
+      "minPrice": 6.63,
+      "maxPrice": 6.63,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋后跟贴男鞋脚后跟防磨贴鞋后跟内贴垫鞋后跟磨损修复鞋跟贴",
+      "label": "运动鞋后跟贴男鞋脚后跟防磨贴鞋后跟内贴垫鞋后跟磨损修复鞋跟贴",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.66,
+          "tao_id": "QNOQNZ8IQtB0knr0m0sWe6fatQ-YJb6epJHjjRBBbbGca",
+          "_id": "6ae4294140509ab497590db8",
+          "title": "运动鞋后跟贴男鞋脚后跟防磨贴鞋后跟内贴垫鞋后跟磨损修复鞋跟贴"
+        }
+      ],
+      "minPrice": 3.66,
+      "maxPrice": 3.66,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋后跟贴鞋大改小神器防掉跟磨脚磨损后脚跟自粘调鞋码半码垫",
+      "label": "运动鞋后跟贴鞋大改小神器防掉跟磨脚磨损后脚跟自粘调鞋码半码垫",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.9,
+          "tao_id": "9PpqPx0cBtODyQBDwDIZOnSQt6-J5B6mP5hadRpn6WRfVq",
+          "_id": "6ae4294140509ab497590dc5",
+          "title": "运动鞋后跟贴鞋大改小神器防掉跟磨脚磨损后脚跟自粘调鞋码半码垫"
+        }
+      ],
+      "minPrice": 2.9,
+      "maxPrice": 2.9,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋后跟网面修鞋内衬磨损修复防磨布面破洞补丁自粘补鞋贴",
+      "label": "运动鞋后跟网面修补贴鞋内衬磨损修复防磨布面破洞补丁自粘补鞋贴",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 6.72,
+          "tao_id": "M6ry6moSKtXeWwaezesdnDTQtA-bXJm73XUG806xrbruWy",
+          "_id": "6ae4294140509ab497590dcd",
+          "title": "运动鞋后跟网面修补贴鞋内衬磨损修复防磨布面破洞补丁自粘补鞋贴"
+        }
+      ],
+      "minPrice": 6.72,
+      "maxPrice": 6.72,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋头自粘补丁网面补鞋贴鞋面破损修补修鞋内衬鞋子破补洞修复",
+      "label": "运动鞋头自粘补丁网面补鞋贴鞋面破损修补修鞋内衬鞋子破补洞修复",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.58,
+          "tao_id": "X67DkaDSGtXa6pOM6bS0zJcBtg-ANPdJqNCDv27p5A5sY",
+          "_id": "6ae4294140509ab497590ea3",
+          "title": "运动鞋头自粘补丁网面补鞋贴鞋面破损修补修鞋内衬鞋子破补洞修复"
+        }
+      ],
+      "minPrice": 2.58,
+      "maxPrice": 2.58,
+      "diff": 0
+    },
+    {
+      "key": "运动鞋鞋带圆形男女户外登山鞋工装靴双色黑色卡其棕色鞋绳劳保鞋",
+      "label": "运动鞋鞋带圆形男女户外登山鞋工装靴双色黑色卡其棕色鞋绳劳保鞋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3.83,
+          "tao_id": "v6P2pXwTZt67zgnmxOS98eu0te-mPamBQPh77PO2AP6ub",
+          "_id": "6ae4294940509ab4975911d1",
+          "title": "运动鞋鞋带圆形男女户外登山鞋工装靴双色黑色卡其棕色鞋绳劳保鞋"
+        }
+      ],
+      "minPrice": 3.83,
+      "maxPrice": 3.83,
+      "diff": 0
+    },
+    {
+      "key": "长寿歌电动爬楼轮椅上下楼梯智能全自动平衡老人专用轻便折叠爬楼机hz017.自平衡电动爬楼平地电动全向轮20安锂电",
+      "label": "长寿歌电动爬楼轮椅上下楼梯智能全自动平衡老人专用轻便折叠爬楼机HZ01 7.自平衡电动爬楼-平地电动-全向轮-20安锂电",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 15268.63,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ee0",
+          "title": "长寿歌电动爬楼轮椅上下楼梯智能全自动平衡老人专用轻便折叠爬楼机HZ01 7.自平衡电动爬楼-平地电动-全向轮-20安锂电"
+        }
+      ],
+      "minPrice": 15268.63,
+      "maxPrice": 15268.63,
+      "diff": 0
+    },
+    {
+      "key": "真皮乐福鞋女2026春秋英伦风小皮鞋一脚蹬厚底女鞋平底黑单鞋",
+      "label": "真皮乐福鞋女2026春秋新款英伦风小皮鞋一脚蹬厚底女鞋平底黑单鞋",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 99,
+          "tao_id": "AVDkPNQszt4X4k0gvqc8jjhvtn-VrW6v9rFkzB38bQXhz2",
+          "_id": "6ae2fcc915f26d3db899b4e1",
+          "title": "真皮乐福鞋女2026春秋新款英伦风小皮鞋一脚蹬厚底女鞋平底黑单鞋"
+        }
+      ],
+      "minPrice": 99,
+      "maxPrice": 99,
+      "diff": 0
+    },
+    {
+      "key": "正版抗炎提高免疫力对抗老胖病累从抗炎提高免疫力开始抗炎生活炎症调理增强免疫力的书人体自愈疗法家庭保健抗炎饮食食物书籍",
+      "label": "正版 抗炎提高免疫力 对抗老胖病累从抗炎提高免疫力开始 抗炎生活炎症调理增强免疫力的书人体自愈疗法 家庭保健抗炎饮食食物书籍",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8.8,
+          "tao_id": "2daz6MbFotgVgBR45Bt6GMhDtD-J5B6mP5haeX0xPWAcVq",
+          "_id": "6ae1b965564b7c8b3812cf36",
+          "title": "正版 抗炎提高免疫力 对抗老胖病累从抗炎提高免疫力开始 抗炎生活炎症调理增强免疫力的书人体自愈疗法 家庭保健抗炎饮食食物书籍"
+        }
+      ],
+      "minPrice": 8.8,
+      "maxPrice": 8.8,
+      "diff": 0
+    },
+    {
+      "key": "正版零基础学电子元器件彩图版覆盖电子元器件入门到维修必备技能电工识图电路实物接线图大全基础原理电工自学家电维修书籍",
+      "label": "正版 零基础学电子元器件 彩图版覆盖电子元器件入门到维修必备技能 电工识图电路实物接线图大全基础原理 电工自学家电维修书籍",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 15.9,
+          "tao_id": "QgpxB6xHQtB0b5OXrrUWe6fatQ-Zr56pNrFRpjW9Z75TRy",
+          "_id": "6ad8803327d5c1a2f751edf1",
+          "title": "正版 零基础学电子元器件 彩图版覆盖电子元器件入门到维修必备技能 电工识图电路实物接线图大全基础原理 电工自学家电维修书籍"
+        }
+      ],
+      "minPrice": 15.9,
+      "maxPrice": 15.9,
+      "diff": 0
+    },
+    {
+      "key": "正版速效拉伸疼痛消除和损伤预防的法宝家庭健身保健运动适合全家人的图解书籍生活拉伸减少肌肉疼痛改善关节灵活性提高柔韧性",
+      "label": "正版 速效拉伸疼痛消除和损伤预防的法宝 家庭健身保健运动适合全家人的图解书籍 生活拉伸减少肌肉疼痛改善关节灵活性提高柔韧性",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 7.8,
+          "tao_id": "YDxaRk5CptX4zjQw5WuKVMu2t6-OqmzjwqUZ6eO5eZJH8d",
+          "_id": "6ae43bd50f8a974ef9b33eae",
+          "title": "正版 速效拉伸疼痛消除和损伤预防的法宝 家庭健身保健运动适合全家人的图解书籍 生活拉伸减少肌肉疼痛改善关节灵活性提高柔韧性"
+        }
+      ],
+      "minPrice": 7.8,
+      "maxPrice": 7.8,
+      "diff": 0
+    },
+    {
+      "key": "纸杯糯米纸打印y2k蛋糕超火照片合照情侣立牌生日蛋糕糯米纸定制",
+      "label": "纸杯糯米纸打印y2k蛋糕超火照片合照情侣立牌生日蛋糕糯米纸定制",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8.5,
+          "tao_id": "GKdaRzBOf8tYkPpaoapf6RgHQtJ-MP2RaWPhAGDZZxeQcRR",
+          "_id": "6ae40d2040509ab49758c6be",
+          "title": "纸杯糯米纸打印y2k蛋糕超火照片合照情侣立牌生日蛋糕糯米纸定制"
+        }
+      ],
+      "minPrice": 8.5,
+      "maxPrice": 8.5,
+      "diff": 0
+    },
+    {
+      "key": "致典黑胡桃木书柜家用去客厅化书柜一体整墙展示柜卡座多功能组合柜组合",
+      "label": "致典黑胡桃木书柜家用去客厅化书柜一体整墙展示柜卡座多功能组合柜 组合【星际书柜-款式3】",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 39370,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ea9",
+          "title": "致典黑胡桃木书柜家用去客厅化书柜一体整墙展示柜卡座多功能组合柜 组合【星际书柜-款式3】"
+        }
+      ],
+      "minPrice": 39370,
+      "maxPrice": 39370,
+      "diff": 0
+    },
+    {
+      "key": "中老年手部按摩球练手球保健球手握球健身球解压把玩手盘物件把件",
+      "label": "中老年手部按摩球练手球保健球手握球健身球解压把玩手盘物件把件",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5.78,
+          "tao_id": "Q0JPwk7BcQtB0BvDNn2sW3vCatQ-OqmzjwqUxyAnR3m2fZ",
+          "_id": "6ae30ada41cc7fcd479271d3",
+          "title": "中老年手部按摩球练手球保健球手握球健身球解压把玩手盘物件把件"
+        }
+      ],
+      "minPrice": 5.78,
+      "maxPrice": 5.78,
+      "diff": 0
+    },
+    {
+      "key": "周大福enzo18k金摩根石海蓝宝石钻石手链女ezv",
+      "label": "周大福ENZO18K金摩根石海蓝宝石钻石手链女EZV1856 15cm",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 22083,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ed7",
+          "title": "周大福ENZO18K金摩根石海蓝宝石钻石手链女EZV1856 15cm"
+        }
+      ],
+      "minPrice": 22083,
+      "maxPrice": 22083,
+      "diff": 0
+    },
+    {
+      "key": "adhd减压神器磁力球sensorytoys硅胶解压玩具考研背书集中注意力",
+      "label": "ADHD减压神器磁力球Sensory toys硅胶解压玩具考研背书集中注意力",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 9.9,
+          "tao_id": "VrePnjOOU6tw5nZbVJkSvKXfvtV-0vGpwkvhBjxvaMrrIx9",
+          "_id": "6ae449e77fe483af400a5c67",
+          "title": "ADHD减压神器磁力球Sensory toys硅胶解压玩具考研背书集中注意力"
+        }
+      ],
+      "minPrice": 9.9,
+      "maxPrice": 9.9,
+      "diff": 0
+    },
+    {
+      "key": "akoya澳白珍珠吊坠戴妃18k金钻石项链王妃款生日礼物女1388sp18k金白金色吉尔德13钻石",
+      "label": "AKOYA【现货】澳白珍珠吊坠戴妃18K金钻石项链王妃款生日礼物女1388SP 18K金 白金色 吉尔德【维纳斯Venus】13-14mm/钻石",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 16928,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ed1",
+          "title": "AKOYA【现货】澳白珍珠吊坠戴妃18K金钻石项链王妃款生日礼物女1388SP 18K金 白金色 吉尔德【维纳斯Venus】13-14mm/钻石"
+        }
+      ],
+      "minPrice": 16928,
+      "maxPrice": 16928,
+      "diff": 0
+    },
+    {
+      "key": "amorhome遛娃神器am遛娃车口袋轻便推车儿童溜娃小推车宝宝婴儿车",
+      "label": "AMORHOME遛娃神器am遛娃车口袋轻便推车儿童溜娃小推车宝宝婴儿车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 626,
+          "tao_id": "ej8vgnWiDtdJQa96O3F624Fzt0-7np58WnswwxPWrg3TV",
+          "_id": "6ae4080140509ab49758b95e",
+          "title": "AMORHOME遛娃神器am遛娃车口袋轻便推车儿童溜娃小推车宝宝婴儿车"
+        }
+      ],
+      "minPrice": 626,
+      "maxPrice": 626,
+      "diff": 0
+    },
+    {
+      "key": "amorhome遛娃神器am遛娃车口袋婴儿车溜娃轻便小儿童推车高景观手",
+      "label": "AMORHOME遛娃神器am遛娃车口袋婴儿车溜娃轻便小儿童推车高景观手",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 674,
+          "tao_id": "woBZwbGXsgtDXNedXNAC3wJHbtd-6RebxvRsyaR4rzRmFKd",
+          "_id": "6ae407f940509ab49758b5af",
+          "title": "AMORHOME遛娃神器am遛娃车口袋婴儿车溜娃轻便小儿童推车高景观手"
+        }
+      ],
+      "minPrice": 674,
+      "maxPrice": 674,
+      "diff": 0
+    },
+    {
+      "key": "bebebus蝴蝶遛娃神器pro折叠双向坐躺高景观婴儿推车",
+      "label": "【双11现货】BeBeBus蝴蝶遛娃神器pro折叠双向坐躺高景观婴儿推车",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 1610,
+          "tao_id": "YvRP7yDfptX4zZRKg4CKeZi2t6-OqmzjwqU039NjK8Js8d",
+          "_id": "6ae407f740509ab49758b4f7",
+          "title": "【双11现货】BeBeBus蝴蝶遛娃神器pro折叠双向坐躺高景观婴儿推车"
+        }
+      ],
+      "minPrice": 1610,
+      "maxPrice": 1610,
+      "diff": 0
+    },
+    {
+      "key": "britax宝得适成长骑士安全座椅",
+      "label": "【李佳琦双11超级母婴节付定金】Britax宝得适成长骑士安全座椅",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4080,
+          "tao_id": "3w8ya6OuAtYedvnMzRiXeNu9tJ-v6nmKo6IBKvYwv3bId6",
+          "_id": "6add83c24470f41a875b875b",
+          "title": "【李佳琦双11超级母婴节付定金】Britax宝得适成长骑士安全座椅"
+        }
+      ],
+      "minPrice": 4080,
+      "maxPrice": 4080,
+      "diff": 0
+    },
+    {
+      "key": "britax宝得适成长骑士air儿童安全座椅07岁车载宝宝isize通风",
+      "label": "britax宝得适成长骑士Air儿童安全座椅0-7岁车载宝宝isize通风",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3920,
+          "tao_id": "747MM8di4t53QeVRDqI68mfMtV-nJamVPJHxyMjg7rQSg",
+          "_id": "6ae407ff40509ab49758b8e9",
+          "title": "britax宝得适成长骑士Air儿童安全座椅0-7岁车载宝宝isize通风"
+        }
+      ],
+      "minPrice": 3920,
+      "maxPrice": 3920,
+      "diff": 0
+    },
+    {
+      "key": "britax宝得适自在骑士air宝宝儿童安全座椅07岁通风",
+      "label": "【新品上市】britax宝得适自在骑士Air宝宝儿童安全座椅0-7岁通风",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 5030,
+          "tao_id": "XzQ56q9FGtXamPWVjwU029sBtg-jG4oQqGidgnDePQycw6",
+          "_id": "6add83c24470f41a875b8759",
+          "title": "【新品上市】britax宝得适自在骑士Air宝宝儿童安全座椅0-7岁通风"
+        }
+      ],
+      "minPrice": 5030,
+      "maxPrice": 5030,
+      "diff": 0
+    },
+    {
+      "key": "c咖油皮酸酶滑滑水控油爽肤水闭口水精华水提亮",
+      "label": "【顺手买1件】C咖油皮酸酶滑滑水控油爽肤水闭口水精华水提亮15ml",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8499,
+          "tao_id": "v66aOqqrhZt67668o5Gi9pAH0te-OqmzjwqUZn8k62bau8e",
+          "_id": "6ae16503e944fc775085ecce",
+          "title": "【顺手买1件】C咖油皮酸酶滑滑水控油爽肤水闭口水精华水提亮15ml"
+        }
+      ],
+      "minPrice": 8499,
+      "maxPrice": 8499,
+      "diff": 0
+    },
+    {
+      "key": "coucoq科驭智能家用衣物护理机stylemew1熨烫除干洗皱塑型烘干消毒杀菌护理机",
+      "label": "COUCOQ 科驭【大容量】智能家用衣物护理机StyleMe W1（金缕墨）熨烫除干洗皱塑型烘干消毒杀菌护理机",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 15392.6,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eca",
+          "title": "COUCOQ 科驭【大容量】智能家用衣物护理机StyleMe W1（金缕墨）熨烫除干洗皱塑型烘干消毒杀菌护理机"
+        }
+      ],
+      "minPrice": 15392.6,
+      "maxPrice": 15392.6,
+      "diff": 0
+    },
+    {
+      "key": "cuisl崔氏26年秋季风生系列托特手提包鸵鸟皮精致女包",
+      "label": "CUISL崔氏/26年秋季新款风生系列托特手提包鸵鸟皮精致女包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3990,
+          "tao_id": "Xqqb8q74CGtXaWmNnO2F0zGfBtg-k3mDd03hRZ3JMyRGf53",
+          "_id": "6adec206afae30c58cd99d51",
+          "title": "CUISL崔氏/26年秋季新款风生系列托特手提包鸵鸟皮精致女包"
+        }
+      ],
+      "minPrice": 3990,
+      "maxPrice": 3990,
+      "diff": 0
+    },
+    {
+      "key": "diy手工制作马赛克花瓶材料包创意工艺品儿童亲子礼物团建沙龙",
+      "label": "diy手工制作马赛克花瓶材料包创意工艺品儿童亲子礼物团建沙龙",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 6.63,
+          "tao_id": "Q0A8vgOqCQtB0kea9GWUWBZHatQ-wo3mjnoHbnJv6dK8Iz",
+          "_id": "6ae449e77fe483af400a5c69",
+          "title": "diy手工制作马赛克花瓶材料包创意工艺品儿童亲子礼物团建沙龙"
+        }
+      ],
+      "minPrice": 6.63,
+      "maxPrice": 6.63,
+      "diff": 0
+    },
+    {
+      "key": "dummy13章鱼博士恶魔3d打印益智关节可动玩具男孩磁吸已拼装",
+      "label": "dummy13章鱼博士恶魔3D打印益智关节可动玩具男孩磁吸已拼装",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 16.9,
+          "tao_id": "jdJgBZMC0tJ7yXRdPkuNo5iJte-D3qV9R3hPJJ9mZ8ncM",
+          "_id": "6ae449e77fe483af400a5ba5",
+          "title": "dummy13章鱼博士恶魔3D打印益智关节可动玩具男孩磁吸已拼装"
+        }
+      ],
+      "minPrice": 16.9,
+      "maxPrice": 16.9,
+      "diff": 0
+    },
+    {
+      "key": "evidensdebeauté伊菲丹第二代面膜jour×3",
+      "label": "【顺买】EviDenS de Beauté伊菲丹第二代超级面膜JOUR*1.5mL×3",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 8931,
+          "tao_id": "DQzOzZVuDt5QqzQP8jTRXdtjtn-OqmzjwqUZB5wDYwGU8X",
+          "_id": "6ae42db740509ab4975915ec",
+          "title": "【顺买】EviDenS de Beauté伊菲丹第二代超级面膜JOUR*1.5mL×3"
+        }
+      ],
+      "minPrice": 8931,
+      "maxPrice": 8931,
+      "diff": 0
+    },
+    {
+      "key": "fogdunk双面穿夹克秋季美式两面穿运动外套男女百搭上衣",
+      "label": "FOG DUNK双面穿夹克秋季新款美式两面穿运动外套男女同款百搭上衣",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 139,
+          "tao_id": "6R38Raz7S8tGR9dDya3sV3ZHot3-Rge63NguXAoXWyjYfO",
+          "_id": "6ae41b4140509ab49758ef24",
+          "title": "FOG DUNK双面穿夹克秋季新款美式两面穿运动外套男女同款百搭上衣"
+        }
+      ],
+      "minPrice": 139,
+      "maxPrice": 139,
+      "diff": 0
+    },
+    {
+      "key": "kefls50wirelessii无线hifi音响家用桌面客厅电视音箱立体声书架高保真有源家用客厅高端ls50wirelessiis装",
+      "label": "KEF LS50 Wireless II 无线HiFi音响家用桌面客厅电视音箱立体声书架高保真有源家用客厅高端 LS50 Wireless II+S2套装",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 19000,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ec6",
+          "title": "KEF LS50 Wireless II 无线HiFi音响家用桌面客厅电视音箱立体声书架高保真有源家用客厅高端 LS50 Wireless II+S2套装"
+        }
+      ],
+      "minPrice": 19000,
+      "maxPrice": 19000,
+      "diff": 0
+    },
+    {
+      "key": "lgstyler奂然2.0蒸汽衣物护理机变频热泵烘干机干衣机双重蒸汽抚皱带手持蒸汽熨烫机scmr80h镜面黑",
+      "label": "LGStyler奂然2.0蒸汽衣物护理机 变频热泵烘干机干衣机 双重蒸汽抚皱 带手持蒸汽熨烫机 SC5GMR80H 镜面黑 【5衣+1裤】",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 18699.23,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ead",
+          "title": "LGStyler奂然2.0蒸汽衣物护理机 变频热泵烘干机干衣机 双重蒸汽抚皱 带手持蒸汽熨烫机 SC5GMR80H 镜面黑 【5衣+1裤】"
+        }
+      ],
+      "minPrice": 18699.23,
+      "maxPrice": 18699.23,
+      "diff": 0
+    },
+    {
+      "key": "lgstyler蒸汽衣物护理机双变频热泵烘干机双重蒸汽熨烫除味塑形sc5mbr80h智能衣柜干衣机象牙白",
+      "label": "LGStyler蒸汽衣物护理机  双变频热泵烘干机 双重蒸汽熨烫除味塑形 SC5MBR80H 智能衣柜干衣机 象牙白【5衣+1裤】",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 17623.64,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eb9",
+          "title": "LGStyler蒸汽衣物护理机  双变频热泵烘干机 双重蒸汽熨烫除味塑形 SC5MBR80H 智能衣柜干衣机 象牙白【5衣+1裤】"
+        }
+      ],
+      "minPrice": 17623.64,
+      "maxPrice": 17623.64,
+      "diff": 0
+    },
+    {
+      "key": "liebherr利勃海尔可壁挂式雪茄柜恒温恒湿雪茄保湿柜雪茄盒保湿盒烟柜家用小型雪松木内里醇养原装进口zkes453雪茄柜",
+      "label": "LIEBHERR利勃海尔39L可壁挂式雪茄柜恒温恒湿雪茄保湿柜雪茄盒保湿盒烟柜家用小型雪松木内里醇养原装进口 ZKes453雪茄柜39L",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 37319,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eaa",
+          "title": "LIEBHERR利勃海尔39L可壁挂式雪茄柜恒温恒湿雪茄保湿柜雪茄盒保湿盒烟柜家用小型雪松木内里醇养原装进口 ZKes453雪茄柜39L"
+        }
+      ],
+      "minPrice": 37319,
+      "maxPrice": 37319,
+      "diff": 0
+    },
+    {
+      "key": "maxmara2026秋冬女装羊绒系带大翻领长款大衣6016056206沙色36",
+      "label": "MAX MARA 2026秋冬新品女装羊绒系带大翻领长款大衣6016056206 沙色 36",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 25200,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eac",
+          "title": "MAX MARA 2026秋冬新品女装羊绒系带大翻领长款大衣6016056206 沙色 36"
+        }
+      ],
+      "minPrice": 25200,
+      "maxPrice": 25200,
+      "diff": 0
+    },
+    {
+      "key": "maxmara26秋冬女装骆驼绒经典manuela大衣1016066206烟草棕40",
+      "label": "MAX MARA 【秋冬新降】26秋冬女装骆驼绒经典Manuela大衣1016066206 烟草棕 40",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 21675,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ed4",
+          "title": "MAX MARA 【秋冬新降】26秋冬女装骆驼绒经典Manuela大衣1016066206 烟草棕 40"
+        }
+      ],
+      "minPrice": 21675,
+      "maxPrice": 21675,
+      "diff": 0
+    },
+    {
+      "key": "maxmara女装101801madame绵羊毛羊绒大衣1018012906驼色34尺码偏大建议拍小一码详询客服",
+      "label": "MAX MARA 【经典礼遇】女装101801Madame绵羊毛羊绒大衣1018012906 驼色 34 尺码偏大建议拍小一码详询客服",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 30900,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eb7",
+          "title": "MAX MARA 【经典礼遇】女装101801Madame绵羊毛羊绒大衣1018012906 驼色 34 尺码偏大建议拍小一码详询客服"
+        }
+      ],
+      "minPrice": 30900,
+      "maxPrice": 30900,
+      "diff": 0
+    },
+    {
+      "key": "maxmara女装泰迪熊大衣色s",
+      "label": "MAX MARA【经典礼遇】 女装泰迪熊大衣1016151306 米色 S",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 29900,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eb3",
+          "title": "MAX MARA【经典礼遇】 女装泰迪熊大衣1016151306 米色 S"
+        }
+      ],
+      "minPrice": 29900,
+      "maxPrice": 29900,
+      "diff": 0
+    },
+    {
+      "key": "maxmara女装manuela骆驼绒经典大衣1016065206红色38",
+      "label": "MAX MARA 女装Manuela骆驼绒经典大衣1016065206 红色 38",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 22950,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ec3",
+          "title": "MAX MARA 女装Manuela骆驼绒经典大衣1016065206 红色 38"
+        }
+      ],
+      "minPrice": 22950,
+      "maxPrice": 22950,
+      "diff": 0
+    },
+    {
+      "key": "maxmara女装manuela骆驼绒经典系带大衣1016141906黑色40尺码偏大建议拍小一码详询客服",
+      "label": "MAX MARA 【经典礼遇】女装Manuela骆驼绒经典系带大衣1016141906 黑色 40 尺码偏大建议拍小一码详询客服",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 25500,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ee3",
+          "title": "MAX MARA 【经典礼遇】女装Manuela骆驼绒经典系带大衣1016141906 黑色 40 尺码偏大建议拍小一码详询客服"
+        }
+      ],
+      "minPrice": 25500,
+      "maxPrice": 25500,
+      "diff": 0
+    },
+    {
+      "key": "maxmara女装tedgirl泰迪熊大衣1016013306黑色xs尺码偏大建议拍小一码详询客服",
+      "label": "MAX MARA【经典礼遇】 女装Tedgirl泰迪熊大衣1016013306 黑色 XS 尺码偏大建议拍小一码详询客服",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 29900,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eba",
+          "title": "MAX MARA【经典礼遇】 女装Tedgirl泰迪熊大衣1016013306 黑色 XS 尺码偏大建议拍小一码详询客服"
+        }
+      ],
+      "minPrice": 29900,
+      "maxPrice": 29900,
+      "diff": 0
+    },
+    {
+      "key": "mcmtoni迷你菜篮子购物袋托特通勤女",
+      "label": "【双11加购 20号20点开抢】MCM TONI 迷你菜篮子购物袋托特通勤女",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3300,
+          "tao_id": "gxGYNnVi3t2OGXpYQQSYqyIatr-Wqx6XwqUN4WBbwRbUm",
+          "_id": "6ad6feb2b52eea71220b0d9c",
+          "title": "【双11加购 20号20点开抢】MCM TONI 迷你菜篮子购物袋托特通勤女"
+        }
+      ],
+      "minPrice": 3300,
+      "maxPrice": 3300,
+      "diff": 0
+    },
+    {
+      "key": "mcmtoni迷你菜篮子购物袋托特通勤女包",
+      "label": "【6期免息】MCM TONI 迷你菜篮子购物袋托特通勤女包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 3300,
+          "tao_id": "9zXWj5d9TBtO8pMn9qbtZKQhQt6-Wqx6XwqUN4WBbwRbUm",
+          "_id": "6acdf2d62e31b23cec7bf1bd",
+          "title": "【6期免息】MCM TONI 迷你菜篮子购物袋托特通勤女包"
+        }
+      ],
+      "minPrice": 3300,
+      "maxPrice": 3300,
+      "diff": 0
+    },
+    {
+      "key": "mikihouse日本制学步鞋男童女宝宝稳步鞋刺绣爆炸头小黑鞋doubleb",
+      "label": "MIKIHOUSE日本制学步鞋男童女宝宝稳步鞋刺绣爆炸头小黑鞋DoubleB",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 1239.6,
+          "tao_id": "brzarjvSgtoRoJ8xpGtzrghQt6-KqV6okqUjZgq96DmH5",
+          "_id": "6ae304e141cc7fcd47926409",
+          "title": "MIKIHOUSE日本制学步鞋男童女宝宝稳步鞋刺绣爆炸头小黑鞋DoubleB"
+        }
+      ],
+      "minPrice": 1239.6,
+      "maxPrice": 1239.6,
+      "diff": 0
+    },
+    {
+      "key": "revopointmetroyultra工业级全能激光3d扫描仪高精度无线手持式三维扫描仪高速建模精密测量知象光电cmm版",
+      "label": "REVOPOINT MetroY Ultra 工业级全能激光3D扫描仪 高精度无线手持式三维扫描仪高速建模精密测量 知象光电 CMM版",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 16574,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937eaf",
+          "title": "REVOPOINT MetroY Ultra 工业级全能激光3D扫描仪 高精度无线手持式三维扫描仪高速建模精密测量 知象光电 CMM版"
+        }
+      ],
+      "minPrice": 16574,
+      "maxPrice": 16574,
+      "diff": 0
+    },
+    {
+      "key": "sesai智能旗舰高级按摩椅2026年家用按摩椅太空舱全身按摩全自动高端家庭中老年人礼物s20pro",
+      "label": "SES【德国】Ai智能旗舰高级按摩椅2026年新款家用按摩椅太空舱全身按摩全自动高端家庭中老年人礼物 S20Pro【尊耀黑】【5D机芯】【酸痛诊疗】",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "jd"
+      ],
+      "offers": [
+        {
+          "platform": "jd",
+          "price": 25800,
+          "tao_id": "",
+          "_id": "6ada094b84c31ded91937ece",
+          "title": "SES【德国】Ai智能旗舰高级按摩椅2026年新款家用按摩椅太空舱全身按摩全自动高端家庭中老年人礼物 S20Pro【尊耀黑】【5D机芯】【酸痛诊疗】"
+        }
+      ],
+      "minPrice": 25800,
+      "maxPrice": 25800,
+      "diff": 0
+    },
+    {
+      "key": "slime史莱姆原液大袋便宜透明玻璃泥基础泥水晶泥网红透泰起泡胶",
+      "label": "slime史莱姆原液大袋便宜透明玻璃泥基础泥水晶泥网红透泰起泡胶",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2.53,
+          "tao_id": "eQjovV2XHDtdJQOw7jxh63aczt0-5nw8Wqns66YKrNGZFZ",
+          "_id": "6ae449e77fe483af400a5c65",
+          "title": "slime史莱姆原液大袋便宜透明玻璃泥基础泥水晶泥网红透泰起泡胶"
+        }
+      ],
+      "minPrice": 2.53,
+      "maxPrice": 2.53,
+      "diff": 0
+    },
+    {
+      "key": "songmont山下有松循迹大号双肩包植鞣皮大容量通勤电脑包背包",
+      "label": "Songmont山下有松循迹大号双肩包植鞣皮大容量通勤16寸电脑包背包",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 4020,
+          "tao_id": "yyK03oKiRt2K4bGjV4tr3JSvtA-J5B6mP5havP5kB57CV0",
+          "_id": "6ae41fa840509ab49758f461",
+          "title": "Songmont山下有松循迹大号双肩包植鞣皮大容量通勤16寸电脑包背包"
+        }
+      ],
+      "minPrice": 4020,
+      "maxPrice": 4020,
+      "diff": 0
+    },
+    {
+      "key": "starverse电子除湿卡干燥剂变色循环电子干燥吸湿相机防潮箱盒3d打印柜充电除湿器吧唧单反吉他防霉镜头配件",
+      "label": "STARVERSE电子除湿卡干燥剂变色循环电子干燥吸湿相机防潮箱盒3D打印柜充电除湿器吧唧单反吉他防霉镜头配件",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 12.8,
+          "tao_id": "8weQqdKInt9NO2eNggIOQqtbt8-nJamVPJHj7D7ZGPrfBb",
+          "_id": "6ae432e70f8a974ef9b32b94",
+          "title": "STARVERSE电子除湿卡干燥剂变色循环电子干燥吸湿相机防潮箱盒3D打印柜充电除湿器吧唧单反吉他防霉镜头配件"
+        }
+      ],
+      "minPrice": 12.8,
+      "maxPrice": 12.8,
+      "diff": 0
+    },
+    {
+      "key": "stokketripptrapp儿童成长椅五件套宝宝餐椅学坐椅",
+      "label": "【双11大促】Stokke TrippTrapp儿童成长椅五件套宝宝餐椅学坐椅",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 2899,
+          "tao_id": "VrYPJJewC6tw5npg5n3uvenCvtV-VrW6v9rFpOQxqOYeTzp",
+          "_id": "6ae407f940509ab49758b61d",
+          "title": "【双11大促】Stokke TrippTrapp儿童成长椅五件套宝宝餐椅学坐椅"
+        }
+      ],
+      "minPrice": 2899,
+      "maxPrice": 2899,
+      "diff": 0
+    },
+    {
+      "key": "ugg冬季女士时尚舒适纯色平底保暖茸茸短靴懒人毛毛鞋1158224",
+      "label": "UGG冬季女士时尚舒适纯色平底保暖茸茸短靴懒人毛毛鞋 1158224",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 924,
+          "tao_id": "6o86NdKs8tGRGVrvqqFVB4Uot3-rXaYmPXUMnG80O6Wtk",
+          "_id": "6ae2fcc715f26d3db899b2e3",
+          "title": "UGG冬季女士时尚舒适纯色平底保暖茸茸短靴懒人毛毛鞋 1158224"
+        }
+      ],
+      "minPrice": 924,
+      "maxPrice": 924,
+      "diff": 0
+    },
+    {
+      "key": "ugg冬季女士休闲舒适纯色厚底圆头时尚切尔西短靴雪地靴1158051",
+      "label": "UGG冬季女士休闲舒适纯色厚底圆头时尚切尔西短靴雪地靴 1158051",
+      "platformCount": 1,
+      "comparable": false,
+      "platforms": [
+        "taobao"
+      ],
+      "offers": [
+        {
+          "platform": "taobao",
+          "price": 854,
+          "tao_id": "BAmVa45Af6t85pGB8yRTd3ATrte-BAM9QKAsZQ07XbNRfo",
+          "_id": "6ae4241740509ab49758fb9a",
+          "title": "UGG冬季女士休闲舒适纯色厚底圆头时尚切尔西短靴雪地靴 1158051"
+        }
+      ],
+      "minPrice": 854,
+      "maxPrice": 854,
+      "diff": 0
+    }
+  ]
+}

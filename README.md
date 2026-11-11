@@ -89,7 +89,9 @@ coupon/
 │   ├── build-topics.js 场景导购页生成器（WO-125：按 topics.json + 快照渲染 topic/<slug>.html 与索引页，TOPIC:* 标记整段替换、重复运行幂等）
 │   ├── topics.json     7 个场景配置（slug/kw/title/desc/intro/match/sort；新增场景需同步中台 config.couponFront.topicIntroSlugs）
 │   ├── fingerprint.js  内容哈希指纹（取代 cache-bust.js，部署前把资源引用改写为 <name>.<hash>.<ext>）
-│   ├── selfcheck.js    部署前质量门（chrome 标记 / 兜底快照 / 指纹生效 / W1–W5 资产存在 / drops、guides 含 JSON-LD / 详情页数量与 detailIds 对齐 / 抽样 JSON-LD 合法 / topic 场景页结构与导语门禁 + 索引页与首页入口校验，关键项失败阻断 sync）
+│   ├── product-ld.js   商家信息「宁缺毋错」单一口径：券 Product/Offer JSON-LD 生成助手（build.js 两处 + build-topics/buy 共用；无合法图片或真实到手价则整块不写）
+│   ├── check-jsonld.js 商家信息结构化数据门禁（产物侧：Product 必有 http(s) 绝对 image、offers 必带正数 price + priceCurrency、禁止空壳 offers 与非商品节点挂报价）
+│   ├── selfcheck.js    部署前质量门（chrome 标记 / 兜底快照 / 指纹生效 / W1–W5 资产存在 / drops、guides 含 JSON-LD / 详情页数量与 detailIds 对齐 / 抽样 JSON-LD 合法 / topic 场景页结构与导语门禁 + 索引页与首页入口校验 + 商家信息结构化数据门禁，关键项失败阻断 sync）
 │   └── archive/cache-bust.js  [已废弃] 手工 ?v= 刷新脚本历史归档，勿再用
 ├── data/
 │   ├── ad-slots.json   自营广告位兜底（远程 OSS 同步 JSON 优先）
@@ -250,6 +252,27 @@ python -m http.server 8080
 - **下发接口**：`GET /api/v1/front/coupon/content/commercialList`（sourceGuard 覆盖前缀、只回 published、字段白名单 7 项、异常降级 `[]`）。
 - **生产验证**（2026-10-25）：首轮 `{sampled:6000, seeds:8, produced:8, published:8, rejected:0}`；8 个新 buy 页外网 200、`/buy/` 入口收录、sitemap buy 共 21 条（12 seed + 8 AI + 1 索引）；8 页全文扫描 14 个绝对化用语 0 命中。
 - **日常运转**：任务已启用、每日滚动生成至上限；coupon 每次构建自动合并最新已发布条目，无需人工干预。
+
+## 商家信息结构化数据（Search Console「宁缺毋错」口径 · 2026-11-11）
+
+Google 对结构化数据的判定原则是：**字段存在但不完整 = 严重问题**（网页不展示商家信息），**字段整体缺失 = 非严重警告**。本站已踩过一次：`calculator.html` 给免费工具 `WebApplication` 挂 `offers.price:"0"`（已移除）；同族 store-web 同日被报「应指定 price/priceSpecification」与「未填写 image」两条严重问题。
+
+旧写法属**潜伏**隐患（当时快照每张券都有图有价，产物 0 违例，但上游少给一个字段就会整片触发）：
+
+| 旧写法 | 数据缺字段时变成的形态 | 判定 |
+| --- | --- | --- |
+| `image: safeUrl(c.pict_url) \|\| undefined` | 有 `Product` 无 `image` | 严重问题 |
+| `price: Number(c.price) \|\| 0` | `price:"0"` 非法报价 | 严重问题 |
+| `price: price \|\| undefined`（`/p/*` 详情页） | 有 `offers` 却无 `price` | 严重问题 |
+
+现行口径收口到 `scripts/product-ld.js`（三处生成点共用：`build.js` 的 `jsonLd`、`build.js` 的 `detailPageShell`（`/p/*.html`）、`build-topics.js` 的 `jsonLdBlock`（`topic/*.html` 与 `buy/*.html` 复用））：
+
+- `name` 为空或归一后没有 http(s) 绝对 `image` → **返回 null**，调用方整块不写 `Product`（`ItemList` 的 `ListItem` 降级为只带 `url` + `name`，`/p/*` 只留 `BreadcrumbList`）；
+- 到手价为可解析正数 → 写 `offers.price`（字符串）+ `priceCurrency` + `url`；否则**整块不写 offers**，绝不写 `0` / 空 `price` / 空壳 `offers`；
+- `availability:"InStock"` 仅在 `build.js` 已剔除过期券后才成立，保留；
+- `shippingDetails` / `hasMerchantReturnPolicy` **不代填**：缺省只丢一条非严重提示，代填则是替商家编造配送与退换货政策。
+
+回归防线：`scripts/check-jsonld.js` 扫全部产物（710 页 / 708 个 ld+json 块，当前合规），既可在本地 `npm run check:jsonld` 单跑，也由 `selfcheck.js` 第 10 项作**阻断项**接入 `deploy.yml`（`build.js` 本身 fail-soft，所以门禁必须住在 selfcheck 才能真的拦住部署）。反例验证：临时塞入四种旧写法形态 + `WebApplication` 挂报价，门禁逐条报 8 处并 exit 1。
 
 ## 合规
 

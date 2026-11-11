@@ -35,7 +35,7 @@ function absoluteImageUrl(value) {
   else raw = String(value == null ? '' : value).trim();
   if (!raw) return '';
   if (/^https?:\/\//i.test(raw)) return raw;
-  if (/^\/\//.test(raw)) return 'https:' + raw.slice(2); // 京东图常见协议相对 //img*.360buyimg.com
+  if (/^\/\//.test(raw)) return 'https:' + raw; // 京东图常见协议相对 //img*.360buyimg.com（保留双斜杠）
   return ''; // 站内相对路径 / data: / javascript: 等一律不写（Google 不认相对 image）
 }
 

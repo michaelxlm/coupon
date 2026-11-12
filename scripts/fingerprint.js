@@ -92,7 +92,9 @@ function runManifest() {
       // WO-210：资产版本化统一。manifest 模式此前只哈希 .min.* 资源，导致 mp-slot.js（及合并后的
       // slot-loader.js）等非 .min SDK 资源未带 ?v= 版本令牌（mp-slot.js 缺口即源于此）。这里把合并
       // 加载器 slot-loader.js 与小程序码位组件 mp-slot.js 显式纳入版本化，其余 .min.* 行为不变。
-      if (!/\.min\.(css|js)$/.test(f) && !/^(slot-loader|mp-slot)\.js$/.test(f)) return;
+      // 续（WO-210 收尾）：再把站点级无版本化 SDK 资源 tracker.js 与 xuyiheng combo-popularity.js 纳入指纹，
+      // 使全站资产（含 tracker 三套命名与 combo-popularity）一致带 ?v=，避免更新后被浏览器缓存钉死。
+      if (!/\.min\.(css|js)$/.test(f) && !/^(slot-loader|mp-slot|tracker|combo-popularity)\.js$/.test(f)) return;
       const abs = path.join(dir, f);
       const rel = '/' + path.relative(ROOT, abs).replace(/\\/g, '/');
       manifest[rel] = hashFile(abs);

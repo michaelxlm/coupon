@@ -440,7 +440,7 @@ function catPageShell(cat, list) {
   ].filter(Boolean));
 
   return `<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -463,13 +463,13 @@ function catPageShell(cat, list) {
   <meta name="twitter:title" content="${esc(title)}">
   <meta name="twitter:description" content="${esc(desc)}">
   <script type="application/ld+json">${ld}</script>
+  ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
   <link rel="stylesheet" href="/assets/css/coupon.css" />
 </head>
-<body data-page="category" data-mode="category" data-kw="${esc(cat.kw)}" data-theme-default="light">
+<body data-page="category" data-mode="category" data-kw="${esc(cat.kw)}">
   <a class="skip-link" href="#main">跳到主内容</a>
-  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, COUPON_PAGE, {}, { navAriaCurrent: true })}
@@ -661,7 +661,7 @@ function detailPageShell(c, related) {
   const relGrid = related.length ? related.map(buildCard).join('\n          ') : '';
 
   return `<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -681,17 +681,17 @@ function detailPageShell(c, related) {
   <meta property="og:image" content="${esc(img || SITE_URL + '/assets/img/og-cover.png')}">
   <meta name="twitter:card" content="summary_large_image">
   <script type="application/ld+json">${ld}</script>
+  ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
   <link rel="stylesheet" href="/assets/css/coupon.css" />
   <link rel="stylesheet" href="/assets/css/price-compare.css" id="cpCompareCss" />
 </head>
-<body data-page="detail" data-theme-default="light"
+<body data-page="detail"
       data-id="${esc(id)}" data-tao-id="${esc(taoId)}" data-title="${esc(c.title || '')}" data-img="${esc(img)}"
       data-price="${esc(price)}" data-quota="${esc(quota)}" data-off="${esc(off)}"
       data-url="${esc(link)}" data-platform="${esc(c.platform || 'jd')}" data-end="${esc(c.couponEndTime || '')}">
   <a class="skip-link" href="#main">跳到主内容</a>
-  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
@@ -790,7 +790,7 @@ function detailShellPage() {
   const title = '优惠券详情 | 小满券仓';
   const desc = '查看优惠券力度、到手价与历史价格走势，先领券再下单更省；最终优惠以商家活动页为准。';
   return `<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -808,16 +808,16 @@ function detailShellPage() {
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.png">
   <meta name="twitter:card" content="summary_large_image">
+  ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
   <link rel="stylesheet" href="/assets/css/coupon.css" />
 </head>
-<body data-page="detail" data-theme-default="light" data-shell="1"
+<body data-page="detail" data-shell="1"
       data-id="" data-tao-id="" data-title="" data-img=""
       data-price="0" data-quota="0" data-off="0"
       data-url="" data-platform="jd" data-end="">
   <a class="skip-link" href="#main">跳到主内容</a>
-  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
@@ -907,7 +907,7 @@ function dropsPageShell(list) {
   const grid = list.length ? list.map(buildCard).join('\n        ') : '';
 
   return `<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -926,13 +926,13 @@ function dropsPageShell(list) {
   <meta property="og:url" content="${esc(url)}">
   <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.png">
   <script type="application/ld+json">${ld}</script>
+  ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
   <link rel="stylesheet" href="/assets/css/coupon.css" />
 </head>
-<body data-page="drops" data-mode="drops" data-theme-default="light">
+<body data-page="drops" data-mode="drops">
   <a class="skip-link" href="#main">跳到主内容</a>
-  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/rank.html' }, {}, { navAriaCurrent: false })}
@@ -1121,7 +1121,7 @@ function guideIndexShell(articles) {
     isPartOf: { '@type': 'WebSite', name: '小满券仓', url: SITE_URL },
   });
   return `<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -1139,13 +1139,13 @@ function guideIndexShell(articles) {
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${esc(url)}">
   <script type="application/ld+json">${ld}</script>
+  ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
   <link rel="stylesheet" href="/assets/css/coupon.css" />
 </head>
-<body data-page="guides" data-theme-default="light">
+<body data-page="guides">
   <a class="skip-link" href="#main">跳到主内容</a>
-  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/guides.html' }, {}, { navAriaCurrent: true })}
@@ -1209,7 +1209,7 @@ function guidePageShell(a, others, detailIdMap) {
     },
   ]);
   return `<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -1228,13 +1228,13 @@ function guidePageShell(a, others, detailIdMap) {
   <meta property="og:url" content="${esc(url)}">
   ${a.cover ? '<meta property="og:image" content="' + esc(a.cover) + '">' : '<meta property="og:image" content="' + SITE_URL + '/assets/img/og-cover.png">'}
   <script type="application/ld+json">${ld}</script>
+  ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
   <link rel="stylesheet" href="/assets/css/coupon.css" />
 </head>
-<body data-page="guide-article" data-theme-default="light">
+<body data-page="guide-article">
   <a class="skip-link" href="#main">跳到主内容</a>
-  ${THEME_BOOT}
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
   ${P.renderHeader(COUPON_SITE, { nav: '/guides.html' }, {}, { navAriaCurrent: true })}

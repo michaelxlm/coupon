@@ -36,6 +36,50 @@ const HASH_LEN = 10;
 const DRY = process.argv.includes('--dry');
 const VERBOSE = process.argv.includes('--verbose');
 
+/* ------------------------------------------------------------------ *
+ * WO-246（B3 决策：加窄范围入口）——只刷新指定 stem，不产生无关 diff
+ *   用法：node scripts/fingerprint.js --only=mp-slot,slot-loader
+ *   背景：全站 rename 模式每次都会给**所有**被引用资源重算哈希并改写引用，
+ *     于是「只想修一个资源」也会连带把其余 N 个资源的哈希副本刷新一遍，
+ *     产生一堆与本次改动无关的 diff（review 时看不出哪些是真改动、哪些是连带噪声），
+ *     更糟的是连带刷新的副本会让长缓存立即失效，把本次改动的收益冲掉。
+ *   本入口的语义（刻意收窄，避免变成另一套指纹逻辑）：
+ *     · 只处理 stem 命中的资源（stem = 文件名去扩展名，如 mp-slot.js → mp-slot）；
+ *     · 只改写指向这些资源的引用；其余引用**一个字都不动**；
+ *     · 旧指纹变体照常 prune（否则旧副本永远躺在仓库里变成死文件）；
+ *     · 资源完整性门禁照跑（本次不涉及的资源若本来就有 404，仍会如实报出来，不被掩盖）。
+ *   ⚠ 本文件是**单源**（packages/static-build-kit/src/fingerprint.js），
+ *     各站 scripts/ 下的副本由分发脚本同步，不要在站点副本里手改。
+ * ------------------------------------------------------------------ */
+const ONLY_STEMS = (() => {
+  const hit = process.argv.find(a => a.startsWith('--only=') || a.startsWith('--stems='));
+  if (!hit) return null;
+  const raw = hit.split('=').slice(1).join('=');
+  const stems = raw.split(',').map(s => s.trim()).filter(Boolean);
+  return stems.length ? new Set(stems) : null;
+})();
+
+/**
+ * 取资源的 stem（文件名去扩展名）
+ * @param {String} absPath - 绝对路径
+ * @return {String}
+ */
+function stemOf(absPath) {
+  const b = path.basename(absPath);
+  const ext = path.extname(b);
+  return ext ? b.slice(0, -ext.length) : b;
+}
+
+/**
+ * 判断某资源是否在窄范围入口的命中集合内
+ * @param {String} absPath - 绝对路径
+ * @return {Boolean} 未指定 --only 时恒为 true（保持原行为）
+ */
+function inOnlyScope(absPath) {
+  if (!ONLY_STEMS) return true;
+  return ONLY_STEMS.has(stemOf(absPath));
+}
+
 // 参与指纹的资源扩展名
 const ASSET_EXT = new Set([
   '.css', '.js',
@@ -380,7 +424,25 @@ function verifyRefs(src) {
 
 function runRename() {
   const src = collectSourceFiles();
-  const targets = discoverTargets(src);
+  const allTargets = discoverTargets(src);
+  // WO-246 窄范围入口：只保留 stem 命中的目标。
+  //   注意 prune 仍按「本次处理过的资源」执行 ⇒ 只清理命中资源的旧变体，
+  //   不会顺手删掉别的 stem 的历史副本（那属于无关 diff）。
+  const targets = ONLY_STEMS
+    ? new Set([ ...allTargets ].filter(abs => inOnlyScope(abs)))
+    : allTargets;
+
+  if (ONLY_STEMS) {
+    const hit = [...targets].map(stemOf);
+    const missed = [...ONLY_STEMS].filter(s => !hit.includes(s));
+    console.log(`[fingerprint] 窄范围入口：--only=${[ ...ONLY_STEMS ].join(',')} 命中 ${targets.size} 个资源`
+      + (missed.length ? `；未命中（无引用或不存在）：${missed.join(', ')}` : ''));
+    if (!targets.size) {
+      console.error('[fingerprint] 窄范围内没有任何资源命中，终止（避免空跑后误判为「已完成」）');
+      process.exitCode = 1;
+      return;
+    }
+  }
 
   const hashCache = new Map();
   const manifest = new Map();

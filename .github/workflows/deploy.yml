@@ -92,3 +92,12 @@ jobs:
         shell: bash
         run: |
           tar cf - --exclude=.git --exclude=.github --exclude=.user.ini --exclude=.workbuddy --exclude=deploy --exclude=node_modules --exclude=package-lock.json . | ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=accept-new root@60.205.214.88 "mkdir -p /www/wwwroot/coupon.zangeng.com ; cd /www/wwwroot/coupon.zangeng.com ; tar xmf -"
+      - name: Prune stale /p/ shells on remote (sitemap diff)
+        shell: bash
+        # tar xmf - 只新增/覆盖、不删除远端多余文件，故 build.js 在 CI 工作区删掉的
+        # 旧 /p/*.html 会残留在 60.205 上继续对外返回 200（巡检口径 sitemapUnlisted，
+        # 2026-11-17 实测累计 553 条）。本步在 sync 之后按远端「已更新的 sitemap.xml」
+        # 作权威清单删除过期壳。脚本自带安全闸：仅当 nginx 的 /p/ 已确认回退到
+        # /p/_shell.html 时才删除，否则只输出诊断、不删（避免把旧链打成 404 坏链）。
+        run: |
+          ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=accept-new root@60.205.214.88 'bash -s' < scripts/remote-prune-p.sh || echo "[warn] remote-prune-p.sh 未完成（不阻断部署），详见上方输出"

@@ -248,7 +248,22 @@ function sourceOfHashedRef(refRaw, fromFile) {
 }
 
 /**
- * 指纹构建统一的引用解析（WO-140 · visitor mp-slot 404 自愈）：
+ * 引用 → 源文件（统一口径，WO-246 收口）
+ *   ① 引用直接指向源文件（未指纹化）→ 源文件本身；
+ *   ② 引用指向 name.<hash>.ext 副本（副本存在或已缺失）→ 还原成它的源文件。
+ * 为什么要统一到「源」：旧实现里 ② 在「副本存在」时被 isExcluded 整条跳过，于是
+ *   **源文件改了、副本没改（过期副本）时，整站跑是 0 改动、线上继续服务上一代产物** ——
+ *   这正是 WO-246「整站 fingerprint 越界面」与那几处漂移能长期挂着的同源机制。
+ *   统一到源之后，指纹变成内容驱动：哈希按源文件当前内容算，副本过期就会被刷新。
+ */
+function resolveSourceOf(refRaw, fromFile) {
+  const hit = resolveRef(refRaw, fromFile);
+  if (hit && !isExcluded(hit)) return hit;
+  return sourceOfHashedRef(refRaw, fromFile);
+}
+
+/**
+ * 引用 → 实际落盘路径（WO-140 · visitor mp-slot 404 自愈）：
  *   ① 引用指向的真实文件存在 → 原样返回；
  *   ② 引用已是 name.<hash>.ext 但副本缺失（例如上一轮构建的产物没进本次 checkout，
  *      而 HTML 仍带着旧指纹）→ 回落到源文件，让本轮重新算出哈希副本并改写引用；
@@ -285,23 +300,64 @@ function hashedName(absPath, hashCache) {
 
 const RE_HTML_REF = /(href|src)="([^"]+)"/gi;
 const RE_CSS_URL = /url\(\s*(['"]?)([^'")]+)\1\s*\)/gi;
+/**
+ * 内联懒加载片段（idle loader）：var s="assets/js/xxx.js" —— 不是 href/src 属性，
+ * 旧实现改不到它，于是「副本被 prune + 内联仍指向旧副本」= 静默 404
+ * （WO-246 的 en/ 6 页 site-enhance/docs/bookmark 即此类事故）。
+ * 用负向后顾排除属性式（src=" / href="），避免同一处字符串被改写两次。
+ */
+const RE_INLINE_REF = /(?<!\bsrc=)(?<!\bhref=)(["'])([^"'\n]*?\.(?:js|css))\1/g;
+
+/**
+ * 过期副本检测：引用指向的副本还在，但副本名里的哈希 ≠ 源文件当前内容哈希
+ * ⇒ 副本已过期（线上仍在服务上一代产物，而整站跑是 0 改动）。
+ */
+function staleCopyOf(refRaw, fromFile, srcPath) {
+  const hit = resolveRef(refRaw, fromFile);
+  if (!hit || !isExcluded(hit)) return null;
+  const m = baseOf(hit).match(HASHED_RE);
+  if (!m) return null;
+  let buf;
+  try { buf = fs.readFileSync(srcPath); } catch (e) { return null; }
+  if (m[1] === contentHash(buf)) return null;
+  return { copy: hit, want: contentHash(buf) };
+}
 
 function discoverTargets(src) {
   const targets = new Set();
   const queue = [...src.css];
   const seenCss = new Set(src.css);
+  const stale = [];
+
+  function noteRef(ref, file) {
+    if (!ref || !ASSET_EXT.has(extOf(ref))) return null;
+    const srcPath = resolveSourceOf(ref, file);
+    if (!srcPath) return null;
+    const st = staleCopyOf(ref, file, srcPath);
+    if (st) {
+      stale.push({
+        file: path.relative(ROOT, file),
+        ref,
+        copy: path.relative(ROOT, st.copy),
+        src: path.relative(ROOT, srcPath),
+        want: st.want,
+      });
+    }
+    return srcPath;
+  }
 
   function addFromHtml(file) {
     const txt = fs.readFileSync(file, 'utf8');
     let m;
     RE_HTML_REF.lastIndex = 0;
     while ((m = RE_HTML_REF.exec(txt))) {
-      const ref = m[2];
-      const abs = resolveTargetRef(ref, file);
-      if (!abs) continue;
-      if (!ASSET_EXT.has(extOf(ref))) continue;
-      if (isExcluded(abs)) continue;
-      targets.add(abs);
+      const srcPath = noteRef(m[2], file);
+      if (srcPath) targets.add(srcPath);
+    }
+    RE_INLINE_REF.lastIndex = 0;
+    while ((m = RE_INLINE_REF.exec(txt))) {
+      const srcPath = noteRef(m[2], file);
+      if (srcPath) targets.add(srcPath);
     }
   }
 
@@ -311,54 +367,66 @@ function discoverTargets(src) {
     RE_CSS_URL.lastIndex = 0;
     while ((m = RE_CSS_URL.exec(txt))) {
       const ref = m[2];
-      const abs = resolveTargetRef(ref, file);
-      if (!abs) continue;
-      if (!ASSET_EXT.has(extOf(ref))) continue;
-      if (isExcluded(abs)) continue;
-      targets.add(abs);
-      if (extOf(ref) === '.css' && !seenCss.has(abs)) { seenCss.add(abs); queue.push(abs); }
+      const srcPath = noteRef(ref, file);
+      if (!srcPath) continue;
+      targets.add(srcPath);
+      if (extOf(ref) === '.css' && !seenCss.has(srcPath)) { seenCss.add(srcPath); queue.push(srcPath); }
     }
   }
 
   src.html.forEach(addFromHtml);
   while (queue.length) addFromCss(queue.shift());
-  return targets;
+  return { targets, stale };
 }
 
 function rewriteFile(file, manifest, hashCache) {
   const isCss = file.endsWith('.css');
   const txt = fs.readFileSync(file, 'utf8');
   let count = 0;
-  const re = isCss ? RE_CSS_URL : RE_HTML_REF;
-  re.lastIndex = 0;
 
-  const out = txt.replace(re, (whole, ...args) => {
-    let prefix, ref, suffix;
-    if (isCss) {
-      const quote = args[0];
-      ref = args[1];
-      const h = resolveTargetRef(ref, file);
-      if (!h || !manifest.has(h)) return whole;
-      prefix = 'url(' + quote;
-      suffix = quote + ')';
-      const newName = manifest.get(h).name;
-      const base = baseOf(stripQueryHash(ref));
-      const rebuilt = ref.replace(base, newName).replace(/[?#].*$/, '');
+  // 统一按「源文件」查 manifest：引用指向源或指向副本都落到同一个源上，
+  // 于是过期副本也能被本轮重新算哈希并改写引用（内容驱动）。
+  const rebuild = (ref) => {
+    if (!ref || !ASSET_EXT.has(extOf(ref))) return null;
+    const srcPath = resolveSourceOf(ref, file);
+    if (!srcPath || !manifest.has(srcPath)) return null;
+    const newName = manifest.get(srcPath).name;
+    const base = baseOf(stripQueryHash(ref));
+    const out = ref.replace(base, newName).replace(/[?#].*$/, '');
+    if (out === ref) return null; // 已经是当前哈希 ⇒ 不动、不计数
+    return out;
+  };
+
+  if (isCss) {
+    RE_CSS_URL.lastIndex = 0;
+    const out = txt.replace(RE_CSS_URL, (whole, quote, ref) => {
+      const rebuilt = rebuild(ref);
+      if (!rebuilt) return whole;
       count++;
       if (VERBOSE) console.log(`  ${path.relative(ROOT, file)} :: ${ref} -> ${rebuilt}`);
-      return prefix + rebuilt + suffix;
-    } else {
-      const attr = args[0];
-      ref = args[1];
-      const h = resolveTargetRef(ref, file);
-      if (!h || !manifest.has(h)) return whole;
-      const newName = manifest.get(h).name;
-      const base = baseOf(stripQueryHash(ref));
-      const rebuilt = ref.replace(base, newName).replace(/[?#].*$/, '');
-      count++;
-      if (VERBOSE) console.log(`  ${path.relative(ROOT, file)} :: ${ref} -> ${rebuilt}`);
-      return `${attr}="${rebuilt}"`;
-    }
+      return 'url(' + quote + rebuilt + quote + ')';
+    });
+    return [out, count];
+  }
+
+  // HTML：先属性式（href/src），再内联式（var s="..."）——内联式靠负向后顾排除属性式，
+  // 同一处字符串不会被改写两次。
+  RE_HTML_REF.lastIndex = 0;
+  let out = txt.replace(RE_HTML_REF, (whole, attr, ref) => {
+    const rebuilt = rebuild(ref);
+    if (!rebuilt) return whole;
+    count++;
+    if (VERBOSE) console.log(`  ${path.relative(ROOT, file)} :: ${ref} -> ${rebuilt}`);
+    return `${attr}="${rebuilt}"`;
+  });
+
+  RE_INLINE_REF.lastIndex = 0;
+  out = out.replace(RE_INLINE_REF, (whole, quote, ref) => {
+    const rebuilt = rebuild(ref);
+    if (!rebuilt) return whole;
+    count++;
+    if (VERBOSE) console.log(`  ${path.relative(ROOT, file)} :: ${ref} -> ${rebuilt} (内联)`);
+    return quote + rebuilt + quote;
   });
 
   return [out, count];
@@ -419,6 +487,17 @@ function verifyRefs(src) {
       if (resolveRef(ref, file)) continue;
       missing.push({ file: path.relative(ROOT, file), ref });
     }
+    // 内联懒加载片段同样纳入完整性门禁：它不是 href/src 属性，
+    // 过去这一类 404 完全不进门禁（WO-246 的 en/ 6 页事故即此类）。
+    if (!isCss) {
+      RE_INLINE_REF.lastIndex = 0;
+      while ((m = RE_INLINE_REF.exec(txt))) {
+        const ref = m[2];
+        if (!ref || isExternal(ref) || !ASSET_EXT.has(extOf(ref))) continue;
+        if (resolveRef(ref, file)) continue;
+        missing.push({ file: path.relative(ROOT, file), ref, inline: true });
+      }
+    }
   };
   src.html.forEach(f => checkFile(f, false));
   src.css.forEach(f => checkFile(f, true));
@@ -427,7 +506,7 @@ function verifyRefs(src) {
 
 function runRename() {
   const src = collectSourceFiles();
-  const allTargets = discoverTargets(src);
+  const { targets: allTargets, stale } = discoverTargets(src);
   // WO-246 窄范围入口：只保留 stem 命中的目标。
   //   注意 prune 仍按「本次处理过的资源」执行 ⇒ 只清理命中资源的旧变体，
   //   不会顺手删掉别的 stem 的历史副本（那属于无关 diff）。
@@ -480,6 +559,16 @@ function runRename() {
 
   const label = DRY ? '[dry-run 未落盘] ' : '';
   console.log(`${label}指纹完成：资源 ${manifest.size} 个，改写引用 ${touchedRefs} 处，涉及 ${touchedFiles} 个文件`);
+
+  // 过期副本读数（WO-246 收口）：副本存在但内容已不是源文件当前内容 ⇒ 线上仍在服务上一代产物，
+  // 而旧实现下整站跑是 0 改动、看不出任何异常。本轮已按源文件当前内容重算并改写引用。
+  if (stale.length) {
+    console.log(`[fingerprint] 发现 ${stale.length} 处过期副本（源文件已改、副本未刷新）：`);
+    stale.slice(0, 20).forEach(x => console.log(`  - ${x.file} :: ${x.ref} → 旧副本 ${x.copy}，当前应为 ${x.want}`));
+    if (stale.length > 20) console.log(`  ... 另有 ${stale.length - 20} 条`);
+  } else {
+    console.log('[fingerprint] 过期副本：0 处 ✓');
+  }
 
   const localAssets = [...targets];
   // 「改写 0 处」不等于失败：HTML 可能已带指纹（自愈场景，本轮只补回缺失的哈希副本）。

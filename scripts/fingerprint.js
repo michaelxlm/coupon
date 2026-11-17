@@ -138,7 +138,10 @@ function runManifest() {
       // 加载器 slot-loader.js 与小程序码位组件 mp-slot.js 显式纳入版本化，其余 .min.* 行为不变。
       // 续（WO-210 收尾）：再把站点级无版本化 SDK 资源 tracker.js 与 xuyiheng combo-popularity.js 纳入指纹，
       // 使全站资产（含 tracker 三套命名与 combo-popularity）一致带 ?v=，避免更新后被浏览器缓存钉死。
-      if (!/\.min\.(css|js)$/.test(f) && !/^(slot-loader|mp-slot|tracker|combo-popularity)\.js$/.test(f)) return;
+      // WO-244：补入 img-slot.js —— 此前名单只收 slot-loader，而 img-slot 是四个 slot 模块之一，
+      // 若某页仍直接引用 img-slot.js（而非合并的 slot-loader.js），它就会是裸引用、被长缓存钉死。
+      // 四个 slot 模块（ad/coupon/img/mp）非 .min 形态统一纳入，名单与 site-sdk 的 SLOT_MODULES 对齐。
+      if (!/\.min\.(css|js)$/.test(f) && !/^(ad-slots|coupon-slot|img-slot|slot-loader|mp-slot|tracker|combo-popularity)\.js$/.test(f)) return;
       const abs = path.join(dir, f);
       const rel = '/' + path.relative(ROOT, abs).replace(/\\/g, '/');
       manifest[rel] = hashFile(abs);

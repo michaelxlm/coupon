@@ -1472,6 +1472,19 @@ async function run() {
         detailIds.push(id);
       }
       console.log('[build] /p/* 详情页：生成 ' + detailIds.length + ' 张（键=_id）');
+      // DETAIL_LIMIT 是「sitemap/文件数上限」，但旧实现只限制本轮新建、从不清理上一轮产物：
+      // 每轮换一批券就在磁盘上多留 120 张，累计出数百个「有文件却不在图里」的 /p/<id>.html
+      // （M2 技术巡检口径：sitemapUnlisted）。这里在写盘完成后清掉不在本轮进图清单里的旧壳，
+      // 让磁盘上的详情页与 sitemap 恒为同一批。删文件不会让旧链 404：nginx 的
+      // `location ^~ /p/ { try_files $uri /p/_shell.html; }` 会把任意 /p/<id> 兜到动态水合壳。
+      // 仅在本轮详情池非空（即有权威清单）时清理；池空分支保留上次产物，避免误删全站详情页。
+      const keepIds = new Set(detailIds);
+      let pruned = 0;
+      for (const f of fs.readdirSync(P_DIR)) {
+        if (!f.endsWith('.html') || f === '_shell.html' || keepIds.has(f.slice(0, -5))) continue;
+        try { fs.unlinkSync(path.join(P_DIR, f)); pruned++; } catch (e) { /* 单文件失败不阻断构建 */ }
+      }
+      if (pruned) console.log('[build] /p/* 清理上轮残留 ' + pruned + ' 张（仅留本轮进图的 ' + detailIds.length + ' 张；URL 由 _shell.html 兜底不 404）');
     } else {
       try { detailIds = fs.readdirSync(P_DIR).filter(f => f.endsWith('.html') && f !== '_shell.html').map(f => f.slice(0, -5)); } catch (e) { /* 无目录 */ }
       console.warn('[build] 详情池为空，保留上一次 /p/* 产物（' + detailIds.length + ' 张）进 sitemap');

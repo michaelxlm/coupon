@@ -99,5 +99,6 @@ jobs:
         # 2026-11-17 实测累计 553 条）。本步在 sync 之后按远端「已更新的 sitemap.xml」
         # 作权威清单删除过期壳。脚本自带安全闸：仅当 nginx 的 /p/ 已确认回退到
         # /p/_shell.html 时才删除，否则只输出诊断、不删（避免把旧链打成 404 坏链）。
+        # 诊断报告落站点根目录之外（.prune-diag/），成功即删、异常才保留。
         run: |
           ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=accept-new root@60.205.214.88 'bash -s' < scripts/remote-prune-p.sh || echo "[warn] remote-prune-p.sh 未完成（不阻断部署），详见上方输出"

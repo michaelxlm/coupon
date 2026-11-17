@@ -17,6 +17,11 @@
 #   C. 清理（仅当 /p/ 回退已被复验为可用时）：按 sitemap 差集删除过期壳。
 #      绝不删除 /p/_shell.html；清单缺失/为空 → 一律不删。
 #
+# 诊断报告处置（2026-11-17 定案 · 现行基线 · 不得回退）：
+#   报告落在**站点根目录之外**（默认 <站点根目录同级>/.prune-diag/<站点名>.txt），不随站点对外暴露；
+#   且**仅异常时保留、成功即删**——正常部署不留诊断残留，异常时保留供排障（经 SSH 取，不经 HTTP）。
+#   用 PRUNE_REPORT 可覆盖落点；PRUNE_OUTCOME=ok 时由 finalize_report 删除报告。
+#
 # 幂等：重复执行无副作用（清单与磁盘一致时 STALE_COUNT=0）。
 #
 # 用法（由 deploy.yml 在 sync 之后调用）：
@@ -30,7 +35,9 @@ VHOST="$VHOST_DIR/html_coupon.zangeng.com.conf"
 EXT="${PRUNE_EXT:-$VHOST_DIR/extension/coupon.zangeng.com}"
 PROBE="/p/__prune_probe_$$.html"
 HOSTNAME_SITE="coupon.zangeng.com"
-REPORT="$ROOT/prune-diag.txt"
+REPORT="${PRUNE_REPORT:-$(dirname "$ROOT")/.prune-diag/$(basename "$ROOT").txt}"
+# 本轮结果：anomaly=异常（保留报告）/ ok=正常（清理报告）
+PRUNE_OUTCOME="${PRUNE_OUTCOME:-anomaly}"
 # PRUNE_SKIP_NGINX=1 时跳过 A/B/B2 三段（仅本地对夹具做删除逻辑回归用）
 SKIP_NGINX="${PRUNE_SKIP_NGINX:-0}"
 
@@ -61,6 +68,16 @@ nginx_test() {
   local BIN
   BIN=$(find_nginx_bin) || return 1
   "$BIN" -t >/dev/null 2>&1
+}
+
+# 诊断报告收尾：成功即删、异常保留（报告不落站点根目录，不对外暴露）
+finalize_report() {
+  if [ "${PRUNE_OUTCOME:-anomaly}" = "ok" ]; then
+    rm -f "$REPORT"
+    echo "[prune] 本轮正常：诊断报告已清理（仅异常时保留）"
+  else
+    echo "[prune] 本轮异常未消：诊断报告保留在 $REPORT（站点根目录之外，需经 SSH 取）"
+  fi
 }
 
 # nginx 生效配置里 `location ^~ /p/` 块内是否有 try_files → /p/_shell.html
@@ -167,8 +184,9 @@ vhost_insert_tryfiles() {
 main() {
 cd "$ROOT" || { echo "[prune] 致命：远端站点根目录不存在：$ROOT"; return 1; }
 
-# 报告：本轮完整诊断落站点根目录 prune-diag.txt（无 SSH 时的远程查阅通道）
+# 报告：本轮完整诊断落站点根目录之外（<站点根同级>/.prune-diag/），成功即删、异常才保留
 if [ "$SKIP_NGINX" != "1" ]; then
+  mkdir -p "$(dirname "$REPORT")"
   rm -f "$REPORT"
   exec > >(tee "$REPORT") 2>&1
 fi
@@ -315,7 +333,7 @@ fi
 # ===================================================================== C 清理
 echo ""
 echo "=== [prune] C. 按 sitemap 差集清理过期详情页 ==="
-if [ ! -d p ]; then echo "NO_P_DIR（无需清理）"; return 0; fi
+if [ ! -d p ]; then echo "NO_P_DIR（无需清理）"; PRUNE_OUTCOME=ok; return 0; fi
 TOTAL=$(find p -maxdepth 1 -type f -name '*.html' ! -name '_shell.html' | wc -l | tr -d ' ')
 echo "P_HTML_BEFORE=$TOTAL"
 
@@ -376,9 +394,11 @@ if [ -n "$FIRST" ]; then
   rm -f "$BODY"
 fi
 echo "=== [prune] 完成：磁盘详情页与 sitemap 清单已对齐 ==="
+PRUNE_OUTCOME=ok
 }
 
 # 仅在直接执行时跑 main()；被 source 时只暴露函数供回归测试取用
 if [ "${PRUNE_LIB_ONLY:-0}" != "1" ]; then
   main "$@"
+  finalize_report
 fi

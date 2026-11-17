@@ -320,10 +320,11 @@ Google 对结构化数据的判定原则是：**字段存在但不完整 = 严�
 - **B 修复**：回退缺失时三条路线——① extension 目录被 nginx include 且无同名 location → 写 `extension/coupon.zangeng.com/p-fallback.conf`；② vhost 无 `^~ /p/` 块 → 往 vhost 末尾插入；③ vhost 有该块但缺 `try_files` → 就地插入。统一「备份 → `nginx -t` → reload → **curl 复验**（`--resolve` 打本机，要求 200 + `data-shell="1"`，且首页仍 200）」，任一环节失败即**回滚原文件**（新建的删掉、覆盖的还原）并**绝不删任何详情页**。
 - **B2 301 旧链表**：按 `data/p-redirect-map.json` 生成/合并 `p-redirects.conf`（旧 `safeId` → `_id` 精确匹配 301）；历史条目**整行保留**再合并，同 key 取最新目标（避免 duplicate location 让 `nginx -t` 失败）。
 - **C 清理**：**仅当回退已被复验可用**时，才以远端「刚被 sync 覆盖的 `sitemap.xml`」为权威清单删除 `p/` 下不在清单里的 `*.html`；`_shell.html` 永不删除；清单缺失/为空 → 一律不删；删后抽样复验旧链是否回退到壳而非 404。
+- **诊断报告**：本轮完整诊断落**站点根目录之外**（`.prune-diag/`），**成功即删、异常才保留**，不经 HTTP 暴露（口径见 §四）。
 
 ### 三、复验：已清零，且无一条 404 坏链
 
-部署实测（远端报告见站点根目录 `prune-diag.txt`）：`P_HTML_BEFORE=3099` → `P_HTML_AFTER=120`、`DELETED=2979`、`SHELL_KEPT=yes`，`POSTCHECK` 旧链 → **HTTP 200 + 壳**（不回退到 404）。全量复验那 553 条：
+部署实测（远端诊断报告按现行口径落**站点根目录之外**，仅异常时保留）：`P_HTML_BEFORE=3099` → `P_HTML_AFTER=120`、`DELETED=2979`、`SHELL_KEPT=yes`，`POSTCHECK` 旧链 → **HTTP 200 + 壳**（不回退到 404）。全量复验那 553 条：
 
 | 形态 | 条数 | 判定 |
 | --- | --- | --- |
@@ -335,6 +336,6 @@ Google 对结构化数据的判定原则是：**字段存在但不完整 = 严�
 
 ### 四、回归测试与运维约束
 
-- **回归测试**：`scripts/test-remote-prune-p.sh`（本地零依赖可跑，`bash scripts/test-remote-prune-p.sh`）锁 4 组底线——① 只删「磁盘有、sitemap 无」的过期壳，在图页面与回退壳必须保留、重复执行幂等；② **无法确认 nginx 回退时一个文件都不删**（避免把旧链打成 404 坏链）；③ vhost 补丁：块插入位置正确、原指令不丢、闭合括号唯一、`try_files` 落在块内；④ 301 表合并：历史条目保留、同 key 取新、无重复 location、每行均为合法 nginx 指令。
+- **回归测试**：`scripts/test-remote-prune-p.sh`（本地零依赖可跑，`bash scripts/test-remote-prune-p.sh`）锁 5 组底线——① 只删「磁盘有、sitemap 无」的过期壳，在图页面与回退壳必须保留、重复执行幂等；② **无法确认 nginx 回退时一个文件都不删**（避免把旧链打成 404 坏链）；③ vhost 补丁：块插入位置正确、原指令不丢、闭合括号唯一、`try_files` 落在块内；④ 301 表合并：历史条目保留、同 key 取新、无重复 location、每行均为合法 nginx 指令；⑤ **诊断报告处置口径**：报告落站点根目录之外、异常时保留、成功即删。
 - **踩过的坑（勿重犯）**：nginx reload 是**异步**的，新 worker 加载新配置需要时间——reload 后立刻 curl 会命中仍在服务的旧 worker，误判「修复失败」并回滚掉本已生效的配置，故复验必须**重试等待**（现为最多 10 次 × 3s）。
-- **运维约束**：本机无 60.205 的 SSH 私钥（该密钥在 39.107 runner 的 `/root/.ssh/id_rsa`），故线上改动**只能经部署链路的 SSH** 执行；脚本对 vhost 本身保持只读，优先写 extension 目录。因无法 SSH 登录，脚本每轮把诊断写到站点根目录 `prune-diag.txt` 作为远程查阅通道（`robots.txt` 已 `Disallow`，不入 sitemap）。
+- **运维约束**：本机无 60.205 的 SSH 私钥（该密钥在 39.107 runner 的 `/root/.ssh/id_rsa`），故线上改动**只能经部署链路的 SSH** 执行；脚本对 vhost 本身保持只读，优先写 extension 目录。**诊断报告处置口径（现行基线 · 不得回退）**：报告落**站点根目录之外**（默认 `<站点根同级>/.prune-diag/<站点名>.txt`，可用 `PRUNE_REPORT` 覆盖），**成功即删、异常才保留**——正常部署不留诊断残留，异常时经 SSH 取（不经 HTTP 暴露）；`robots.txt` 仍 `Disallow /prune-diag.txt` 作兜底。

@@ -73,7 +73,8 @@ grep -E 'NGINX_T_FAILED|终止|STALE_COUNT|DELETED=' "$FIX/log.txt" | sed 's/^/ 
 [ -f "$FIX/p/stale333333333333333.html" ] && ok "安全闸生效：过期壳未被删" || bad "安全闸失效：过期壳被误删"
 [ -f "$FIX/p/keep111111111111111.html" ] && ok "在图页面未被删" || bad "在图页面被误删"
 [ -f "$FIX/p/_shell.html" ] && ok "回退壳未被删" || bad "回退壳被误删"
-rm -rf "$FIX"
+[ ! -f "$FIX/prune-diag.txt" ] && ok "诊断报告未落在站点根目录" || bad "诊断报告落在站点根目录"
+rm -rf "$FIX" "$(dirname "$FIX")/.prune-diag"
 
 # ------------------------------------------- 用例 3：vhost 补丁（改生产 nginx，必须有覆盖）
 echo ""
@@ -170,6 +171,29 @@ grep -q 'location = /p/oldsafe11111111111111111111.html { return 301 /p/6afbe8d7
 grep -qE 'location = /p/[^ ]+ \{ return 301 [^ ]+; \}$' "$OUT" \
   && ok "用例4：每行均为完整合法的 nginx 指令" || bad "用例4：存在被截断的非法行"
 rm -rf "$SRC2"
+
+# ------------------- 用例 5：诊断报告处置口径（不落站点根目录 / 成功即删 / 异常保留）
+echo ""
+echo "=== 用例 5：诊断报告处置口径 ==="
+FIX5=$(mktemp -d); mkdir -p "$FIX5/site/p"; echo '<urlset></urlset>' > "$FIX5/site/sitemap.xml"
+
+DEFAULT_RPT=$( PRUNE_LIB_ONLY=1 PRUNE_ROOT="$FIX5/site" bash -c "source '$SCRIPT'; printf '%s' \"\$REPORT\"" 2>/dev/null )
+echo "  默认报告落点：$DEFAULT_RPT"
+case "$DEFAULT_RPT" in
+  "$FIX5/site/prune-diag.txt") bad "用例5：报告落点仍在站点根目录" ;;
+  "$FIX5/.prune-diag/site.txt") ok "用例5：报告落点在站点根目录之外" ;;
+  *) bad "用例5：报告落点不符合预期：$DEFAULT_RPT" ;;
+esac
+
+RPT5="$FIX5/.prune-diag/site.txt"; mkdir -p "$(dirname "$RPT5")"; : > "$RPT5"
+( PRUNE_LIB_ONLY=1 PRUNE_REPORT="$RPT5" bash -c "source '$SCRIPT'; PRUNE_OUTCOME=anomaly; finalize_report" >/dev/null 2>&1 )
+[ -f "$RPT5" ] && ok "用例5：异常时报告保留" || bad "用例5：异常时报告被误删"
+( PRUNE_LIB_ONLY=1 PRUNE_REPORT="$RPT5" bash -c "source '$SCRIPT'; PRUNE_OUTCOME=ok; finalize_report" >/dev/null 2>&1 )
+[ ! -f "$RPT5" ] && ok "用例5：成功时报告清理" || bad "用例5：成功时报告残留"
+
+PRUNE_ROOT="$FIX5/site" bash "$SCRIPT" > "$FIX5/log.txt" 2>&1
+[ ! -f "$FIX5/site/prune-diag.txt" ] && ok "用例5：真跑一轮后站点根目录无报告" || bad "用例5：真跑一轮后站点根目录出现报告"
+rm -rf "$FIX5" "$(dirname "$FIX5")/.prune-diag"
 
 echo ""
 [ "$FAIL" = "0" ] && echo "ALL_PASS" || echo "ALL_FAIL"

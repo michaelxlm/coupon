@@ -84,7 +84,9 @@ coupon/
 │   └── js/challenge.js  今日省钱挑战（纯 localStorage 连续回访 streak + 累计省钱，里程碑一键晒战报，仅首页，fail-soft）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
-│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 存量 p/guides chrome 对齐 + 清理本轮未进 sitemap 的旧 /p/* 详情页 + 重写 sitemap.xml（CI 执行，fail-soft；旧壳清理仅删 CI 工作区副本，线上需靠 sync 侧删除，见「过期详情页壳清零验证」）
+│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 存量 p/guides chrome 对齐 + 清理本轮未进 sitemap 的旧 /p/* 详情页 + 重写 sitemap.xml（CI 执行，fail-soft）
+│   ├── remote-prune-p.sh  远端收尾：诊断/修复 nginx 的 /p/ 回退壳（nginx -t + reload + curl 复验，失败即回滚）+ 按远端 sitemap 差集删除过期 /p/*.html（仅在回退已复验可用时执行，永不删 _shell.html）；由 deploy.yml 在 sync 之后经 SSH 调用
+│   ├── test-remote-prune-p.sh  remote-prune-p.sh 的回归测试（本地零依赖可跑，锁「只删不在图里的壳」「回退未确认则一个都不删」「vhost 补丁正确」「301 表合并合法」四条底线）
 │   ├── site-config.js  站点导航/页脚单一源（7 项主导航 + 12 项页脚），build.js / build-topics.js / topic 模板共用，改菜单只改这一处
 │   ├── build-topics.js 场景导购页生成器（WO-125：按 topics.json + 快照渲染 topic/<slug>.html 与索引页，TOPIC:* 标记整段替换、重复运行幂等）
 │   ├── topics.json     7 个场景配置（slug/kw/title/desc/intro/match/sort；新增场景需同步中台 config.couponFront.topicIntroSlugs）
@@ -98,7 +100,7 @@ coupon/
 │   ├── categories.json 21 品类元数据（slug/name/kw/icon/desc，品类页与 build.js 共用）
 │   └── coupon-snapshot.json 构建期兜底快照（首页精选/日周月榜/全部好物/品类按 kw/drops 力度榜/detailIds 详情白名单），运行时后端不可达时回退渲染，nginx 放行 `/data/coupon-snapshot.json`
 ├── deploy/nginx.conf   部署配置（server_name 与证书路径按域名填）
-├── robots.txt / sitemap.xml  （sitemap 由 build.js 重写：固定页 + cat/* + /p/* 详情页 + /drops + /guides* + /topic/* + /buy/* + guide/calculator/holidays/about，线上现 226 条：/p/ 112 + /buy/ 73 + /cat/ 21 + /topic/ 8 + /guides 1 + 其余固定页；favorites/my-alerts 为 noindex 不入）
+├── robots.txt / sitemap.xml  （sitemap 由 build.js 重写：固定页 + cat/* + /p/* 详情页 + /drops + /guides* + /topic/* + /buy/* + guide/calculator/holidays/about，线上现 234 条：/p/ 120 + /buy/ 73 + /cat/ 21 + /topic/ 8 + /guides 1 + 其余固定页；favorites/my-alerts 为 noindex 不入）
 └── .github/workflows/deploy.yml  push-to-deploy（39.107 上的 self-hosted runner 执行）
 ```
 
@@ -135,7 +137,7 @@ python -m http.server 8080
 2. **内容哈希指纹（取代 cache-bust.js）**：部署前 `node scripts/fingerprint.js` 把本地 `css/js/图片/字体` 复制为 `<name>.<hash>.<ext>` 并改写 HTML/CSS 引用，配 Nginx 对指纹名资源的 `max-age=315360000` 长缓存（`expires max` 不自动带 `immutable`，见统一规范 §7.5）实现「内容变 URL 变、无手工版本号」的最优缓存。`cache-bust.js` 已归档至 `scripts/archive/`，不再使用。
 3. **兜底快照（运行时韧性）**：`build.js` 随每次构建写出 `data/coupon-snapshot.json`（首页精选 / 日周月榜 / 全部好物 / 品类按 `data-kw`），`nginx.conf` 已放行该路径（`no-cache`）。当 `api.xuyiheng.com` 抖动 / 被墙导致前端 fetch 失败时，`coupon-page.js` / `list-page.js` 自动回退渲染该快照，整页不再空白。
 4. **定时重建**：`deploy.yml` 除 `push` 外增加 `schedule`（UTC `20 */4 * * *` ≈ 北京每 4 小时一次）重跑门禁 + build + 指纹 + 自检 + sync，使优惠券（时效短）在搜索引擎侧保持新鲜，无需手动 push。CI 的 Node 口径与其余七站一致：优先用服务器已装 Node（`/www/server/nodejs/v20.18.3`，取不到回退 PATH），不再用 `setup-node` 重复下载。
-5. **旧详情页清理（2026-11-17 起，线上未生效）**：`build.js` 3.5 节在写盘后删除本轮未进 sitemap 的旧 `/p/*.html`（保留 `_shell.html`，仅详情池非空时执行），意图消除巡检口径 `sitemapUnlisted`。**该清理只作用于 CI 工作区**：`deploy.yml` 的 sync 用 `tar xmf -` 增量覆盖、不删远端多余文件，故线上旧壳不会被删除（2026-11-17 实测 553 条差集里 471 条仍返回独立静态页）。修复方向与验收口径见下方「过期详情页壳清零验证」。
+5. **旧详情页清理（2026-11-17 起，已复验通过）**：`build.js` 3.5 节在写盘后删除本轮未进 sitemap 的旧 `/p/*.html`（保留 `_shell.html`，仅详情池非空时执行），意图消除巡检口径 `sitemapUnlisted`。**该清理只作用于 CI 工作区**，`deploy.yml` 的 sync 用 `tar xmf -` 增量覆盖、不删远端多余文件，故另由 `scripts/remote-prune-p.sh` 在 sync 之后按远端 sitemap 差集补上删除（并在缺 `/p/` 回退时先修 nginx，`nginx -t` + reload + curl 复验后才动手）。实测远端 3099 → 120 张、删除 2979 张，旧链全部 200 回退、无 404 坏链，详见下方「过期详情页壳清零」。
 
 ## 上线 checklist（缺一不可）
 
@@ -291,33 +293,48 @@ Google 对结构化数据的判定原则是：**字段存在但不完整 = 严�
 - **P2 多平台采集暂缓（owner 决定）**：本次**不接入拼多多 / 抖音采集写路径、不改中台、不新增任何采集代码**；上述改动全部是读路径 / 离线产物，仅落在 `coupon/` 仓内。
 - **启用采集前需要具备**：① 各平台联盟 / 开放平台的官方 `appKey` / `appSecret` / `pid`（推广位）资质；② `getProductData`（或等价商品详情接口，能取得真实售价与券后到手价）；③ `couponProvider` 分发层（按 `platform` 路由到对应 provider，统一归一 `title` / `price` / `platform` / `tao_id` / 券力度 / 跳转链字段）；④ 入库集合（中台侧券集合写入 `platform` 字段及同款归一键，并放行字段白名单）；⑤ 构建链在写完快照后追加 `node scripts/build-cross-platform.js` 与 `node scripts/train-cooccurrence.js`，以及 `sourceGuard` / `mainUrl` 来源登记。上述任一缺失都不应伪造报价或点击数据。
 
-## 过期详情页壳清零（2026-11-17 · 先验证后修复）
+## 过期详情页壳清零（2026-11-17 · 已修复并复验通过）
 
 `build.js` 在提交 `18c6e74`（2026-11-17）3.5 节新增「清理本轮未进 sitemap 的旧详情页」逻辑（`scripts/build.js` 第 1475–1487 行）：写盘后遍历 `p/`，删除不在本轮 `detailIds` 里的 `*.html`（保留 `_shell.html`），只在详情池非空时执行；设计意图是让磁盘详情页与 sitemap 恒为同一批，消除巡检口径 `sitemapUnlisted`（轮次间累计的「有文件却不在图里」的壳）。同提交还给 `site-shell.css` 的动态插槽补了 `min-height` 减少 CLS。
 
-**验证（2026-11-17 实跑，以线上 sitemap 为权威清单）**：
+### 一、先验证：清零确实没生效
 
-- 本地磁盘 `p/` 共 588 页（含 `_id` 24hex 252 张 + 旧 `safeId` 长名 336 张）；线上 sitemap `/p/` 112 条（`lastmod=2026-11-17`）。
-- 差集 **553 条**（磁盘有、线上 sitemap 无）与用户报数一致；命名 `_id` 217 / 旧 `safeId` 336。
-- 对这 553 条逐条发 HTTP 请求按线上形态分类：
-  | 形态 | 条数 | 判定 |
-  | --- | --- | --- |
-  | `FULL`（仍返回独立静态详情页） | **471** | 壳仍在、未被清零 |
-  | `SHELL`（回退到 `_shell.html`） | 0 | — |
-  | `404` | 82 | 线上无此文件 |
-- **结论：清零未生效。** 部署后线上 sitemap 已刷新为 112 条（新 build 产物确实在图里），但旧壳仍以独立静态页对外服务（471 条），未收敛到 sitemap 同批次。
+以线上 sitemap 为权威清单（`/p/` 112 条，`lastmod=2026-11-17`）对比磁盘，差集 **553 条**（磁盘有、线上图无；`_id` 24hex 217 + 旧 `safeId` 长名 336），与报数一致。逐条发 HTTP 分类：
+
+| 形态 | 条数 | 判定 |
+| --- | --- | --- |
+| `FULL`（仍返回独立静态详情页） | **471** | 壳仍在、未清零 |
+| `SHELL`（回退到 `_shell.html`） | 0 | — |
+| `404` | 82 | 线上无此文件 |
 
 **根因（部署链路层面，非 `build.js` 逻辑）**：
 
-1. **sync 不删远端多余文件**：`.github/workflows/deploy.yml` 第 94 行用 `tar cf - … | ssh … tar xmf -` 增量覆盖，只新增/覆盖、不删除目标端多余文件；CI 上 `build.js` 删掉的旧壳只在该次 runner 工作区生效，同步到 `60.205:/www/wwwroot/coupon.zangeng.com` 时旧文件全部保留。故本地/CI 清零 ≠ 线上清零。
-2. **回退壳在部分 URL 未生效**：抽样中 82 条返回 404 而非 `_shell.html`（`/p/000000000000000000000000.html` 等任意不存在键也返回 404），说明线上 nginx `p-fallback.conf` 的 `^~ /p/ try_files $uri /p/_shell.html` 未全覆盖；同时 `301 p-redirects.conf`（旧 `safeId` → `_id`）也未命中这批旧链。因此即便文件被删，旧链也可能 404 而非回退/跳转。
+1. **sync 不删远端多余文件**：`deploy.yml` 用 `tar cf - … | ssh … tar xmf -` 增量覆盖，只新增/覆盖、不删除目标端多余文件；CI 上 `build.js` 删掉的旧壳只在该次 runner 工作区生效，同步到 `60.205:/www/wwwroot/coupon.zangeng.com` 时旧文件全部保留。**本地/CI 清零 ≠ 线上清零。**
+2. **线上 nginx 缺 `/p/` 回退**：任意不存在的 `/p/<键>` 返回 404 而非 `_shell.html`（`location ^~ /p/` 缺失，文件一删即变 404 坏链）——所以不能先删文件。
 
-**修复（本次落地）**：新增 `scripts/remote-prune-p.sh`，由 `deploy.yml` 在 sync 之后调用（`ssh … 'bash -s' < scripts/remote-prune-p.sh`），三段式且每段带安全闸：
+### 二、修复：新增 `scripts/remote-prune-p.sh`
+
+由 `deploy.yml` 在 sync 之后调用（`ssh … 'bash -s' < scripts/remote-prune-p.sh`），四段式、每段带安全闸：
 
 - **A 诊断**：读 `nginx -T` 判定 `/p/` 是否已有「缺失文件回退 `/p/_shell.html`」（只认 `location ^~ /p/`，普通前缀会被 `location ~* \.html$` 正则抢匹配而 404）。
-- **B 修复**：回退缺失时，若 extension 目录被 nginx include 且无同名 location，则写 `extension/coupon.zangeng.com/p-fallback.conf`（`location = /p/_shell.html` + `location ^~ /p/ { try_files $uri /p/_shell.html; }`）→ `nginx -t` 校验 → reload → **本地 curl 复验**（`--resolve` 打本机、要求 200 + `data-shell="1"`）；任一环节失败即**回滚 conf、不删任何文件**。同时按 `data/p-redirect-map.json` 生成/合并 `p-redirects.conf`（旧 `safeId` → `_id` 精确匹配 301）。
-- **C 清理**：**仅当 B 已复验回退可用**时，才以远端「刚被 sync 覆盖的 `sitemap.xml`」为权威清单删除 `p/` 下不在清单里的 `*.html`；`/p/_shell.html` 永不删除；清单缺失或为空 → 一律不删。删后抽样复验旧链是否回退到壳而非 404。
+- **B 修复**：回退缺失时三条路线——① extension 目录被 nginx include 且无同名 location → 写 `extension/coupon.zangeng.com/p-fallback.conf`；② vhost 无 `^~ /p/` 块 → 往 vhost 末尾插入；③ vhost 有该块但缺 `try_files` → 就地插入。统一「备份 → `nginx -t` → reload → **curl 复验**（`--resolve` 打本机，要求 200 + `data-shell="1"`，且首页仍 200）」，任一环节失败即**回滚原文件**（新建的删掉、覆盖的还原）并**绝不删任何详情页**。
+- **B2 301 旧链表**：按 `data/p-redirect-map.json` 生成/合并 `p-redirects.conf`（旧 `safeId` → `_id` 精确匹配 301）；历史条目**整行保留**再合并，同 key 取最新目标（避免 duplicate location 让 `nginx -t` 失败）。
+- **C 清理**：**仅当回退已被复验可用**时，才以远端「刚被 sync 覆盖的 `sitemap.xml`」为权威清单删除 `p/` 下不在清单里的 `*.html`；`_shell.html` 永不删除；清单缺失/为空 → 一律不删；删后抽样复验旧链是否回退到壳而非 404。
 
-**回归测试**：`scripts/test-remote-prune-p.sh`（本地零依赖可跑）锁两条底线——① 只删「磁盘有、sitemap 无」的过期壳，在图页面与回退壳必须保留、重复执行幂等；② **无法确认 nginx 回退时一个文件都不删**（避免把 471 条旧链打成 404 坏链）。
+### 三、复验：已清零，且无一条 404 坏链
 
-**运维注意**：本机无 60.205 的 SSH 私钥（该密钥在 39.107 runner 的 `/root/.ssh/id_rsa`），故线上改动**只能经部署链路的 SSH** 执行，不便手工登录改 nginx；脚本对 vhost 本身保持只读，只写 extension 目录。
+部署实测（远端报告见站点根目录 `prune-diag.txt`）：`P_HTML_BEFORE=3099` → `P_HTML_AFTER=120`、`DELETED=2979`、`SHELL_KEPT=yes`，`POSTCHECK` 旧链 → **HTTP 200 + 壳**（不回退到 404）。全量复验那 553 条：
+
+| 形态 | 条数 | 判定 |
+| --- | --- | --- |
+| `SHELL`（走动态回退壳） | **553** | 全部已清零 |
+| `FULL`（仍有独立静态页） | 0 | — |
+| `404`（坏链） | 0 | 无死链 |
+
+旁证：线上 sitemap 内 120 张详情页仍返回完整内容（`isShell=false`）；旧链 301 表抽查 3/3 正常跳转；首页 / browse / rank / category / drops / guides / cat/* / topic / about / sites / robots / sitemap / 兜底快照 / `_shell.html` 全部 200。
+
+### 四、回归测试与运维约束
+
+- **回归测试**：`scripts/test-remote-prune-p.sh`（本地零依赖可跑，`bash scripts/test-remote-prune-p.sh`）锁 4 组底线——① 只删「磁盘有、sitemap 无」的过期壳，在图页面与回退壳必须保留、重复执行幂等；② **无法确认 nginx 回退时一个文件都不删**（避免把旧链打成 404 坏链）；③ vhost 补丁：块插入位置正确、原指令不丢、闭合括号唯一、`try_files` 落在块内；④ 301 表合并：历史条目保留、同 key 取新、无重复 location、每行均为合法 nginx 指令。
+- **踩过的坑（勿重犯）**：nginx reload 是**异步**的，新 worker 加载新配置需要时间——reload 后立刻 curl 会命中仍在服务的旧 worker，误判「修复失败」并回滚掉本已生效的配置，故复验必须**重试等待**（现为最多 10 次 × 3s）。
+- **运维约束**：本机无 60.205 的 SSH 私钥（该密钥在 39.107 runner 的 `/root/.ssh/id_rsa`），故线上改动**只能经部署链路的 SSH** 执行；脚本对 vhost 本身保持只读，优先写 extension 目录。因无法 SSH 登录，脚本每轮把诊断写到站点根目录 `prune-diag.txt` 作为远程查阅通道（`robots.txt` 已 `Disallow`，不入 sitemap）。

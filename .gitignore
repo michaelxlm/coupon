@@ -16,3 +16,7 @@
 
 # 依赖（WO-164 ④ 私有包化：CI 每次 clone 后 npm ci 重建软链，无需入库）
 node_modules/
+
+# 本地临时运维探针（勿入库）
+/_verify2.js
+/_wait_deploy.js

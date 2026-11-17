@@ -75,6 +75,63 @@ grep -E 'NGINX_T_FAILED|终止|STALE_COUNT|DELETED=' "$FIX/log.txt" | sed 's/^/ 
 [ -f "$FIX/p/_shell.html" ] && ok "回退壳未被删" || bad "回退壳被误删"
 rm -rf "$FIX"
 
+# ------------------------------------------- 用例 3：vhost 补丁（改生产 nginx，必须有覆盖）
+echo ""
+echo "=== 用例 3：vhost 补丁（插入 location 块 / 就地插 try_files）==="
+SRC=$(mktemp -d); mkdir -p "$SRC/p"
+echo '<urlset></urlset>' > "$SRC/sitemap.xml"
+# source 被测脚本（PRUNE_LIB_ONLY=1 只暴露函数、不执行 main）
+if PRUNE_LIB_ONLY=1 bash -c "source '$SCRIPT'; declare -F vhost_insert_block >/dev/null" 2>/dev/null; then
+  ok "成功 source 补丁函数"
+else
+  bad "无法 source 被测脚本以取用补丁函数"
+fi
+
+VH="$SRC/vhost.conf"
+cat > "$VH" <<'VCONF'
+server
+{
+    listen 443 ssl;
+    server_name coupon.zangeng.com;
+    root /www/wwwroot/coupon.zangeng.com;
+    location ~* \.html$ {
+        add_header Cache-Control "no-cache, must-revalidate" always;
+    }
+    location / {
+        try_files $uri $uri/index.html =404;
+    }
+    access_log /www/wwwlogs/coupon.zangeng.com.log;
+    error_log /www/wwwlogs/coupon.zangeng.com.error.log;
+}
+VCONF
+BLK="$SRC/block.conf"
+( PRUNE_LIB_ONLY=1 bash -c "source '$SCRIPT'; write_block '$BLK' 0" >/dev/null 2>&1 )
+( PRUNE_LIB_ONLY=1 bash -c "source '$SCRIPT'; vhost_insert_block '$VH' '$BLK'" >/dev/null 2>&1 )
+grep -q 'location \^~ /p/' "$VH" && ok "路线2：块已插入 vhost" || bad "路线2：块未插入 vhost"
+grep -q 'access_log /www/wwwlogs/coupon.zangeng.com.log;' "$VH" && ok "路线2：原有指令未被破坏" || bad "路线2：原有指令丢失"
+[ "$(grep -c '^}' "$VH")" = "1" ] && ok "路线2：server 块闭合括号唯一（插入块已缩进）" || bad "路线2：闭合括号数量异常"
+awk '/location \^~ \/p\//{f=1} f&&/^    \}/{exit} f{print}' "$VH" | grep -q 'try_files \$uri /p/_shell.html;' \
+  && ok "路线2：try_files 位于 location 块内" || bad "路线2：try_files 未落在块内"
+
+VH2="$SRC/vhost2.conf"
+cat > "$VH2" <<'VCONF2'
+server
+{
+    listen 443 ssl;
+    location ^~ /p/ {
+        add_header Cache-Control "no-cache, must-revalidate" always;
+    }
+    location / {
+        try_files $uri $uri/index.html =404;
+    }
+}
+VCONF2
+( PRUNE_LIB_ONLY=1 bash -c "source '$SCRIPT'; vhost_insert_tryfiles '$VH2'" >/dev/null 2>&1 )
+grep -q 'try_files \$uri /p/_shell.html;' "$VH2" && ok "路线3：已就地插入 try_files" || bad "路线3：未插入 try_files"
+awk '/location \^~ \/p\//{f=1;next} f&&/^}/{exit} f{print}' "$VH2" | grep -q 'try_files' \
+  && ok "路线3：try_files 在块内" || bad "路线3：try_files 不在块内"
+rm -rf "$SRC"
+
 echo ""
 [ "$FAIL" = "0" ] && echo "ALL_PASS" || echo "ALL_FAIL"
 exit $FAIL

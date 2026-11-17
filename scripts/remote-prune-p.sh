@@ -30,6 +30,7 @@ VHOST="$VHOST_DIR/html_coupon.zangeng.com.conf"
 EXT="${PRUNE_EXT:-$VHOST_DIR/extension/coupon.zangeng.com}"
 PROBE="/p/__prune_probe_$$.html"
 HOSTNAME_SITE="coupon.zangeng.com"
+REPORT="$ROOT/prune-diag.txt"
 # PRUNE_SKIP_NGINX=1 时跳过 A/B/B2 三段（仅本地对夹具做删除逻辑回归用）
 SKIP_NGINX="${PRUNE_SKIP_NGINX:-0}"
 
@@ -37,8 +38,6 @@ KEEP_LIST=$(mktemp)
 STALE_LIST=$(mktemp)
 CONF_BAK=$(mktemp)
 trap 'rm -f "$KEEP_LIST" "$STALE_LIST" "$CONF_BAK"' EXIT
-
-cd "$ROOT" || { echo "[prune] 致命：远端站点根目录不存在：$ROOT"; exit 1; }
 
 # ------------------------------------------------------------------ 工具函数
 find_nginx_bin() {
@@ -88,7 +87,68 @@ verify_fallback_http() {
   rm -f "$body"; return 1
 }
 
+# 生成待写入的 location 块
+write_block() {
+  local out="$1" with_shell_exact="$2"
+  {
+    echo "    # coupon.zangeng.com · /p/ 券详情页：静态优先 + 动态回退壳（同 URL 恒不 404）"
+    echo "    # 由 scripts/remote-prune-p.sh 生成（2026-11-17）。缺失的 /p/<id> 回退到"
+    echo "    # /p/_shell.html，由 detail-shell.js 水合最新券数据。"
+    echo "    # ^~ 前缀必需：否则被上方 location ~* .html\$ 正则抢匹配，缺失文件直接 404。"
+    if [ "$with_shell_exact" = "0" ]; then
+      echo "    location = /p/_shell.html {"
+      echo "        add_header Cache-Control \"no-cache\" always;"
+      echo "    }"
+    fi
+    echo "    location ^~ /p/ {"
+    echo "        try_files \$uri /p/_shell.html;"
+    echo "        add_header Cache-Control \"no-cache, must-revalidate\" always;"
+    echo "    }"
+  } > "$out"
+}
+
+# 路线 2：把块插到 vhost 最后一个独立右花括号之前（即 server 块内、末尾）
+vhost_insert_block() {
+  local vh="$1" blk="$2"
+  awk -v blockfile="$blk" '
+    { lines[NR] = $0 }
+    END {
+      last = 0
+      for (i = NR; i >= 1; i--) {
+        if (lines[i] ~ /^[ \t]*\}[ \t]*$/) { last = i; break }
+      }
+      if (last == 0) exit 3
+      for (i = 1; i < last; i++) print lines[i]
+      while ((getline l < blockfile) > 0) print l
+      print ""
+      for (i = last; i <= NR; i++) print lines[i]
+    }
+  ' "$vh" > "$vh.new" && mv "$vh.new" "$vh"
+}
+
+# 路线 3：就地往已有 `location ^~ /p/ {` 块内插 try_files（仅匹配「行尾是 {」的写法）
+vhost_insert_tryfiles() {
+  local vh="$1"
+  awk '
+    !/^[ \t]*#/ && /location[[:space:]]+\^~[[:space:]]+\/p\/[[:space:]]*\{[[:space:]]*$/ {
+      print
+      print "    try_files $uri /p/_shell.html;"
+      next
+    }
+    { print }
+  ' "$vh" > "$vh.new" && mv "$vh.new" "$vh"
+}
+
 # ===================================================================== A 诊断
+main() {
+cd "$ROOT" || { echo "[prune] 致命：远端站点根目录不存在：$ROOT"; return 1; }
+
+# 报告：本轮完整诊断落站点根目录 prune-diag.txt（无 SSH 时的远程查阅通道）
+if [ "$SKIP_NGINX" != "1" ]; then
+  rm -f "$REPORT"
+  exec > >(tee "$REPORT") 2>&1
+fi
+
 echo "=== [prune] A. 诊断 nginx /p/ 路由 ==="
 if [ "$SKIP_NGINX" = "1" ]; then
   echo "PRUNE_SKIP_NGINX=1：跳过 nginx 诊断/修复段"
@@ -100,7 +160,7 @@ NGINX_T=$(nginx -T 2>/dev/null)
 if [ -z "$NGINX_T" ]; then
   echo "NGINX_T_FAILED：读不到 nginx 生效配置"
   echo "=== [prune] 终止：诊断不清楚就不动线上 ==="
-  exit 0
+  return 0
 fi
 
 HAS_FALLBACK=$(detect_fallback "$NGINX_T")
@@ -117,50 +177,74 @@ echo "--- extension include 行 ---"
 printf '%s\n' "$NGINX_T" | grep -nE 'include[^;]*extension/coupon\.zangeng\.com' | head -5
 echo "--- extension 目录 ---"
 if [ -d "$EXT" ]; then ls -1 "$EXT" | head -20; else echo "EXT_DIR_MISSING: $EXT"; fi
+echo "--- vhost 是否存在 ---"
+if [ -f "$VHOST" ]; then
+  echo "VHOST_FOUND: $VHOST"
+  echo "--- vhost 里的 /p/ 与 extension 相关行 ---"
+  grep -nE 'location[[:space:]]+[^;{]*/p/|extension/coupon|try_files' "$VHOST" | head -20
+  echo "--- vhost 末尾 14 行 ---"
+  tail -14 "$VHOST"
+else
+  echo "VHOST_NOT_FOUND: $VHOST"
+fi
+echo "--- nginx 二进制与版本 ---"
+find_nginx_bin || echo "NGINX_BIN_NOT_FOUND"
+find_nginx_bin >/dev/null 2>&1 && find_nginx_bin -v 2>&1 | head -2
 fi # end SKIP_NGINX
 
 # ===================================================================== B 修复
 if [ "$HAS_FALLBACK" != "1" ] && [ "$SKIP_NGINX" != "1" ]; then
   echo ""
-  echo "=== [prune] B. 尝试修复 /p/ 回退（缺回退壳则旧链会 404，清理前必须先修）==="
-  if [ "$HAS_P_BLOCK" != "0" ]; then
-    echo "SKIP：已存在 location ^~ /p/ 块但缺 try_files —— 需人工改 vhost，不自动覆盖"
-    echo "      （重复 location 会让 nginx -t 失败，故此处不写 extension）"
-  elif [ "$EXT_INCLUDED" = "0" ] || [ ! -d "$EXT" ]; then
-    echo "SKIP：extension 目录未被 nginx include 或目录不存在 —— 需人工改 vhost"
-    echo "      期望 vhost 内含：include $EXT/*.conf;"
-  else
+  echo "=== [prune] B. 修复 /p/ 回退（缺回退壳则旧链会 404，清理前必须先修）==="
+  REPAIRED=0
+  if [ "$HAS_P_BLOCK" = "0" ] && [ "$EXT_INCLUDED" != "0" ] && [ -d "$EXT" ]; then
+    echo "路线 1：写 extension $EXT/p-fallback.conf"
     CONF="$EXT/p-fallback.conf"
     [ -f "$CONF" ] && cp -p "$CONF" "$CONF_BAK"
-    {
-      echo "# coupon.zangeng.com · /p/ 券详情页：静态优先 + 动态回退壳（同 URL 恒不 404）"
-      echo "# 由 scripts/remote-prune-p.sh 生成（2026-11-17）。缺失的 /p/<id> 回退到"
-      echo "# /p/_shell.html，由 detail-shell.js 水合最新券数据。"
-      echo "# ^~ 前缀必需：否则被上方 location ~* .html\$ 正则抢匹配，缺失文件直接 404。"
-      if [ "$HAS_SHELL_LOC" = "0" ]; then
-        echo "location = /p/_shell.html {"
-        echo "    add_header Cache-Control \"no-cache\" always;"
-        echo "}"
-      fi
-      echo "location ^~ /p/ {"
-      echo "    try_files \$uri /p/_shell.html;"
-      echo "    add_header Cache-Control \"no-cache, must-revalidate\" always;"
-      echo "}"
-    } > "$CONF"
-    echo "已写入 $CONF"
+    write_block "$CONF" "$HAS_SHELL_LOC"
+    REPAIRED=1
+  elif [ "$HAS_P_BLOCK" = "0" ] && [ -f "$VHOST" ]; then
+    echo "路线 2：往 vhost 末尾插入 location ^~ /p/ 块"
+    cp -p "$VHOST" "$CONF_BAK"
+    write_block "$BLOCK_TMP" "$HAS_SHELL_LOC"
+    if ! vhost_insert_block "$VHOST" "$BLOCK_TMP"; then
+      echo "  插入失败（找不到 server 块闭合括号）—— 放弃修复"
+      cp -p "$CONF_BAK" "$VHOST"
+    else
+      REPAIRED=1
+    fi
+  elif [ -f "$VHOST" ]; then
+    echo "路线 3：往 vhost 已有 ^~ /p/ 块内插入 try_files"
+    cp -p "$VHOST" "$CONF_BAK"
+    if ! vhost_insert_tryfiles "$VHOST"; then
+      echo "  插入失败 —— 放弃修复"
+      cp -p "$CONF_BAK" "$VHOST"
+    elif ! grep -qE 'try_files[^;]*/p/_shell\.html' "$VHOST"; then
+      echo "  块写法非「行尾为 {」，无法安全插入 —— 回滚 vhost"
+      cp -p "$CONF_BAK" "$VHOST"
+    else
+      REPAIRED=1
+    fi
+  else
+    echo "SKIP：无可用落地位置（extension 未被 include 且 vhost 不存在）"
+  fi
 
+  if [ "$REPAIRED" = "1" ]; then
     if ! nginx_test; then
-      echo "nginx -t 失败 —— 回滚 conf，不 reload，不删任何文件"
-      if [ -s "$CONF_BAK" ]; then cp -p "$CONF_BAK" "$CONF"; else rm -f "$CONF"; fi
+      echo "nginx -t 失败 —— 回滚，不 reload，不删任何文件"
+      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$VHOST" 2>/dev/null
+      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$EXT/p-fallback.conf" 2>/dev/null
     elif ! nginx_reload; then
-      echo "reload 失败 —— 回滚 conf，不删任何文件"
-      if [ -s "$CONF_BAK" ]; then cp -p "$CONF_BAK" "$CONF"; else rm -f "$CONF"; fi
+      echo "reload 失败 —— 回滚，不删任何文件"
+      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$VHOST" 2>/dev/null
+      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$EXT/p-fallback.conf" 2>/dev/null
     elif ! verify_fallback_http; then
-      echo "reload 后复验未通过（缺失 /p/ 未回退到壳）—— 回滚 conf，不删任何文件"
-      if [ -s "$CONF_BAK" ]; then cp -p "$CONF_BAK" "$CONF"; else rm -f "$CONF"; fi
+      echo "reload 后复验未通过 —— 回滚，不删任何文件"
+      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$VHOST" 2>/dev/null
+      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$EXT/p-fallback.conf" 2>/dev/null
       nginx_reload || true
     else
-      echo "修复成功：/p/ 缺失文件已回退到 /p/_shell.html（curl 复验 200 + data-shell=\"1\"）"
+      echo "修复成功：/p/ 缺失文件已回退到 /p/_shell.html（curl 复验 200 + data-shell=\"1\"，首页 200）"
       HAS_FALLBACK=1
     fi
   fi
@@ -203,13 +287,13 @@ fi
 # ===================================================================== C 清理
 echo ""
 echo "=== [prune] C. 按 sitemap 差集清理过期详情页 ==="
-if [ ! -d p ]; then echo "NO_P_DIR（无需清理）"; exit 0; fi
+if [ ! -d p ]; then echo "NO_P_DIR（无需清理）"; return 0; fi
 TOTAL=$(find p -maxdepth 1 -type f -name '*.html' ! -name '_shell.html' | wc -l | tr -d ' ')
 echo "P_HTML_BEFORE=$TOTAL"
 
 if [ ! -f sitemap.xml ]; then
   echo "NO_SITEMAP：远端无 sitemap.xml，无法确定权威清单 —— 不做任何删除"
-  exit 0
+  return 0
 fi
 grep -oE '<loc>[^<]*/p/[^<]*\.html</loc>' sitemap.xml \
   | sed -e 's|<loc>||' -e 's|</loc>||' -e 's|.*/||' \
@@ -218,7 +302,7 @@ KEEP_N=$(wc -l < "$KEEP_LIST" | tr -d ' ')
 echo "SITEMAP_KEEP=$KEEP_N"
 if [ "$KEEP_N" -eq 0 ]; then
   echo "SITEMAP_EMPTY：sitemap.xml 里没有任何 /p/ 条目 —— 视为清单异常，不做任何删除"
-  exit 0
+  return 0
 fi
 
 find p -maxdepth 1 -type f -name '*.html' ! -name '_shell.html' | while read -r f; do
@@ -264,3 +348,9 @@ if [ -n "$FIRST" ]; then
   rm -f "$BODY"
 fi
 echo "=== [prune] 完成：磁盘详情页与 sitemap 清单已对齐 ==="
+}
+
+# 仅在直接执行时跑 main()；被 source 时只暴露函数供回归测试取用
+if [ "${PRUNE_LIB_ONLY:-0}" != "1" ]; then
+  main "$@"
+fi

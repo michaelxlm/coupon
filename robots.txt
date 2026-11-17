@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+# 远端收尾脚本的临时诊断报告（scripts/remote-prune-p.sh 生成，仅运维排查用）
+Disallow: /prune-diag.txt
 
 # AI 搜索爬虫（GEO / LLM-SEO · WO-96 全网放行）：允许读取公共内容页。
 User-agent: GPTBot

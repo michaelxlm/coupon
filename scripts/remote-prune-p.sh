@@ -77,14 +77,38 @@ detect_fallback() {
 }
 
 # 本地 curl 复验：缺失的 /p/<id> 应回退到壳（200 + data-shell="1"）
+# 注意：nginx reload 是异步的（新 worker 需时间加载新配置），reload 后必须重试等待，
+# 否则会在旧 worker 仍在服务时误判为「修复失败」并把本已生效的配置回滚掉。
 verify_fallback_http() {
-  local body code
-  body=$(mktemp)
-  code=$(curl -sk --resolve "$HOSTNAME_SITE:443:127.0.0.1" \
-        -o "$body" -w '%{http_code}' "https://$HOSTNAME_SITE$PROBE" 2>/dev/null || echo 000)
-  if [ "$code" = "200" ] && grep -q 'data-shell="1"' "$body"; then rm -f "$body"; return 0; fi
-  echo "    复验未过：HTTP $code"
-  rm -f "$body"; return 1
+  local body code home i
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    body=$(mktemp)
+    code=$(curl -sk --resolve "$HOSTNAME_SITE:443:127.0.0.1" \
+          -o "$body" -w '%{http_code}' "https://$HOSTNAME_SITE$PROBE" 2>/dev/null || echo 000)
+    if [ "$code" = "200" ] && grep -q 'data-shell="1"' "$body"; then
+      rm -f "$body"
+      home=$(curl -sk --resolve "$HOSTNAME_SITE:443:127.0.0.1" \
+             -o /dev/null -w '%{http_code}' "https://$HOSTNAME_SITE/" 2>/dev/null || echo 000)
+      [ "$home" = "200" ] && return 0
+      echo "    首页异常：HTTP $home"
+      return 1
+    fi
+    echo "    回退未生效（重试 $i/10）：HTTP $code"
+    rm -f "$body"
+    sleep 3
+  done
+  return 1
+}
+
+# 回滚：新建的文件要「删掉」，覆盖的文件要「还原」。
+# 早前版本只在备份非空时 cp 回去，导致新建的 conf 回滚不掉（会留下半成品配置）。
+rollback_target() {
+  local target="$1" is_new="$2"
+  if [ "$is_new" = "1" ]; then
+    rm -f "$target" && echo "    已删除新建文件：$target"
+  elif [ -s "$CONF_BAK" ]; then
+    cp -p "$CONF_BAK" "$target" && echo "    已还原原文件：$target"
+  fi
 }
 
 # 生成待写入的 location 块
@@ -197,15 +221,18 @@ if [ "$HAS_FALLBACK" != "1" ] && [ "$SKIP_NGINX" != "1" ]; then
   echo ""
   echo "=== [prune] B. 修复 /p/ 回退（缺回退壳则旧链会 404，清理前必须先修）==="
   REPAIRED=0
+  EDIT_TARGET=""; EDIT_IS_NEW=0
   if [ "$HAS_P_BLOCK" = "0" ] && [ "$EXT_INCLUDED" != "0" ] && [ -d "$EXT" ]; then
     echo "路线 1：写 extension $EXT/p-fallback.conf"
     CONF="$EXT/p-fallback.conf"
-    [ -f "$CONF" ] && cp -p "$CONF" "$CONF_BAK"
+    EDIT_TARGET="$CONF"
+    if [ -f "$CONF" ]; then cp -p "$CONF" "$CONF_BAK"; EDIT_IS_NEW=0; else EDIT_IS_NEW=1; fi
     write_block "$CONF" "$HAS_SHELL_LOC"
     REPAIRED=1
   elif [ "$HAS_P_BLOCK" = "0" ] && [ -f "$VHOST" ]; then
     echo "路线 2：往 vhost 末尾插入 location ^~ /p/ 块"
     cp -p "$VHOST" "$CONF_BAK"
+    EDIT_TARGET="$VHOST"; EDIT_IS_NEW=0
     write_block "$BLOCK_TMP" "$HAS_SHELL_LOC"
     if ! vhost_insert_block "$VHOST" "$BLOCK_TMP"; then
       echo "  插入失败（找不到 server 块闭合括号）—— 放弃修复"
@@ -216,6 +243,7 @@ if [ "$HAS_FALLBACK" != "1" ] && [ "$SKIP_NGINX" != "1" ]; then
   elif [ -f "$VHOST" ]; then
     echo "路线 3：往 vhost 已有 ^~ /p/ 块内插入 try_files"
     cp -p "$VHOST" "$CONF_BAK"
+    EDIT_TARGET="$VHOST"; EDIT_IS_NEW=0
     if ! vhost_insert_tryfiles "$VHOST"; then
       echo "  插入失败 —— 放弃修复"
       cp -p "$CONF_BAK" "$VHOST"
@@ -232,16 +260,13 @@ if [ "$HAS_FALLBACK" != "1" ] && [ "$SKIP_NGINX" != "1" ]; then
   if [ "$REPAIRED" = "1" ]; then
     if ! nginx_test; then
       echo "nginx -t 失败 —— 回滚，不 reload，不删任何文件"
-      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$VHOST" 2>/dev/null
-      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$EXT/p-fallback.conf" 2>/dev/null
+      rollback_target "$EDIT_TARGET" "$EDIT_IS_NEW"
     elif ! nginx_reload; then
       echo "reload 失败 —— 回滚，不删任何文件"
-      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$VHOST" 2>/dev/null
-      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$EXT/p-fallback.conf" 2>/dev/null
+      rollback_target "$EDIT_TARGET" "$EDIT_IS_NEW"
     elif ! verify_fallback_http; then
       echo "reload 后复验未通过 —— 回滚，不删任何文件"
-      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$VHOST" 2>/dev/null
-      [ -s "$CONF_BAK" ] && cp -p "$CONF_BAK" "$EXT/p-fallback.conf" 2>/dev/null
+      rollback_target "$EDIT_TARGET" "$EDIT_IS_NEW"
       nginx_reload || true
     else
       echo "修复成功：/p/ 缺失文件已回退到 /p/_shell.html（curl 复验 200 + data-shell=\"1\"，首页 200）"
@@ -259,13 +284,16 @@ if [ -f data/p-redirect-map.json ] && [ "$EXT_INCLUDED" != "0" ] && [ -d "$EXT" 
   {
     echo "# coupon.zangeng.com · /p/ 旧链 301（safeId(tao_id) → _id）"
     echo "# 由 scripts/remote-prune-p.sh 依据 data/p-redirect-map.json 生成（2026-11-17）。"
-    # 保留历史条目，只追加新条目（sort -u 去重）
-    if [ -s "$CONF_BAK" ]; then grep -oE 'location = /p/[^ ]+\.html \{ return 301 [^;]+;' "$CONF_BAK"; fi
-    tr ',' '\n' < data/p-redirect-map.json \
-      | sed -nE 's/^[[:space:]]*"([^"]+)"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1 \2/p' \
-      | awk '$1 != $2 && $1 ~ /^[A-Za-z0-9_-]{1,120}$/ && $2 ~ /^[A-Za-z0-9_-]{1,120}$/ \
-             { print "location = /p/" $1 ".html { return 301 /p/" $2 ".html; }" }' \
-      | sort -u
+    # 历史条目整行保留（不再用正则二次抽取，避免截断出非法 nginx 语法），
+    # 与本轮新条目合并后按整行 sort -u 去重，避免 duplicate location 导致 nginx -t 失败。
+    {
+      if [ -s "$CONF_BAK" ]; then grep -vE '^[[:space:]]*#' "$CONF_BAK"; fi
+      tr ',' '\n' < data/p-redirect-map.json \
+        | sed -nE 's/^[[:space:]]*\{?[[:space:]]*"([^"]+)"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1 \2/p' \
+        | awk '$1 != $2 && $1 ~ /^[A-Za-z0-9_-]{1,120}$/ && $2 ~ /^[A-Za-z0-9_-]{1,120}$/ \
+               { print "location = /p/" $1 ".html { return 301 /p/" $2 ".html; }" }'
+    } | grep -E '^[[:space:]]*location = /p/' | sed 's/^[[:space:]]*//' \
+      | awk '{ line[$3] = $0 } END { for (k in line) print line[k] }' | sort
   } > "$CONF2"
   CNT=$(grep -cE '^location = /p/' "$CONF2" 2>/dev/null || echo 0)
   echo "p-redirects.conf 条目数：$CNT"

@@ -132,6 +132,45 @@ awk '/location \^~ \/p\//{f=1;next} f&&/^}/{exit} f{print}' "$VH2" | grep -q 'tr
   && ok "路线3：try_files 在块内" || bad "路线3：try_files 不在块内"
 rm -rf "$SRC"
 
+# ------------------------------- 用例 4：301 表合并（曾因正则截断出非法 nginx 语法）
+echo ""
+echo "=== 用例 4：p-redirects.conf 合并 ==="
+SRC2=$(mktemp -d); mkdir -p "$SRC2/data"
+cat > "$SRC2/data/p-redirect-map.json" <<'JMAP'
+{"oldsafe11111111111111111111":"6afbe8d7fe4afa6abd8031de","oldsafe22222222222222222222":"6afbe8d7fe4afa6abd8031e4"}
+JMAP
+# 模拟线上已有的 p-redirects.conf（含一条同 key 但旧目标的条目）
+mkdir -p "$SRC2/ext"
+cat > "$SRC2/ext/p-redirects.conf" <<'RCONF'
+# coupon.zangeng.com · /p/ 旧链 301（safeId(tao_id) → _id）
+# 由 scripts/remote-prune-p.sh 依据 data/p-redirect-map.json 生成（2026-11-17）。
+location = /p/oldsafe11111111111111111111.html { return 301 /p/6afbe8d7fe4afa6abd8031aa.html; }
+location = /p/keepold33333333333333333333.html { return 301 /p/6afbe8d7fe4afa6abd8031bb.html; }
+RCONF
+BAK="$SRC2/bak.conf"; cp -p "$SRC2/ext/p-redirects.conf" "$BAK"
+OUT="$SRC2/merged.conf"
+{
+  echo "# header"
+  {
+    if [ -s "$BAK" ]; then grep -vE '^[[:space:]]*#' "$BAK"; fi
+    tr ',' '\n' < "$SRC2/data/p-redirect-map.json" \
+      | sed -nE 's/^[[:space:]]*\{?[[:space:]]*"([^"]+)"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1 \2/p' \
+      | awk '$1 != $2 && $1 ~ /^[A-Za-z0-9_-]{1,120}$/ && $2 ~ /^[A-Za-z0-9_-]{1,120}$/ \
+             { print "location = /p/" $1 ".html { return 301 /p/" $2 ".html; }" }'
+  } | grep -E '^[[:space:]]*location = /p/' | sed 's/^[[:space:]]*//' \
+    | awk '{ line[$3] = $0 } END { for (k in line) print line[k] }' | sort
+} > "$OUT"
+
+grep -q 'location = /p/keepold33333333333333333333.html { return 301 /p/6afbe8d7fe4afa6abd8031bb.html; }' "$OUT" \
+  && ok "用例4：历史条目保留" || bad "用例4：历史条目丢失"
+grep -q 'location = /p/oldsafe11111111111111111111.html { return 301 /p/6afbe8d7fe4afa6abd8031de.html; }' "$OUT" \
+  && ok "用例4：同 key 取最新目标" || bad "用例4：同 key 未取最新目标"
+[ "$(grep -c 'location = /p/oldsafe11111111111111111111.html' "$OUT")" = "1" ] \
+  && ok "用例4：无重复 location" || bad "用例4：出现重复 location"
+grep -qE 'location = /p/[^ ]+ \{ return 301 [^ ]+; \}$' "$OUT" \
+  && ok "用例4：每行均为完整合法的 nginx 指令" || bad "用例4：存在被截断的非法行"
+rm -rf "$SRC2"
+
 echo ""
 [ "$FAIL" = "0" ] && echo "ALL_PASS" || echo "ALL_FAIL"
 exit $FAIL

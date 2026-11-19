@@ -319,9 +319,24 @@ function renderAdSlotSection(position, opts) {
   return `<section class="section-sm"><div class="container">${slot}</div></section>`;
 }
 
+/**
+ * JSON-LD 结构化数据 script（M4 方案A · WO-229）
+ * @description 把已采纳的 schema.org ld（对象或数组）渲染成 <script type="application/ld+json">。
+ *   对内容做 </script> 转义，避免 LD 文本意外闭合 script 标签（XSS 防护）。
+ *   入参为空/非对象时返回空串（fail-soft，构建期无建议则不注入）。
+ * @param {Object|Array<Object>} ld
+ * @return {String}
+ */
+function renderJsonLd(ld) {
+  if (!ld || (typeof ld !== 'object')) return '';
+  const json = JSON.stringify(ld).replace(/</g, '\\u003c');
+  return `<script type="application/ld+json">${json}</script>`;
+}
+
 module.exports = {
   escapeHtml,
   escapeAttr,
+  renderJsonLd,
   THEME_KEY,
   THEME_MODES,
   THEME_ICON,

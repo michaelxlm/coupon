@@ -45,6 +45,24 @@ const ROOT = path.resolve(__dirname, '..');
 const CAT_DIR = path.join(ROOT, 'cat');
 const GUIDES_DIR = path.join(ROOT, 'guides');
 
+// M4 方案A（WO-227~230）：构建期读取中台下发的已采纳 SEO 增强建议（sites.coupon）。
+// fail-soft：文件缺失/坏 JSON 返回空数组，不阻断构建（与本站整体 fail-soft 口径一致）。
+function readSeoEnhanceLd() {
+  try {
+    const full = path.join(ROOT, 'data', 'seo-enhance.json');
+    if (!fs.existsSync(full)) return [];
+    const json = JSON.parse(fs.readFileSync(full, 'utf8'));
+    const site = json && json.sites && json.sites.coupon;
+    return (site && Array.isArray(site.ld)) ? site.ld : [];
+  } catch (e) {
+    return [];
+  }
+}
+const SEO_ENHANCE_LD = readSeoEnhanceLd();
+function seoEnhanceLdExtra() {
+  return SEO_ENHANCE_LD.map((ld) => P.renderJsonLd(ld)).filter(Boolean).join('\n');
+}
+
 // W3 长文导购页：单次构建最多预渲染篇数（控制文件数与抓取配额，分批扩展）
 const GUIDE_LIMIT = 60;
 
@@ -285,7 +303,10 @@ function jsonLd(list, name, url) {
 }
 
 function jsonLdBlock(list, name, url) {
-  return '<script type="application/ld+json">\n' + JSON.stringify(jsonLd(list, name, url), null, 0) + '\n</script>';
+  const base = '<script type="application/ld+json">\n' + JSON.stringify(jsonLd(list, name, url), null, 0) + '\n</script>';
+  // M4 方案A：手写页经 replaceBlock 注入本块，追加中台已采纳 LD（无建议时为空串）
+  const extra = seoEnhanceLdExtra();
+  return extra ? base + '\n' + extra : base;
 }
 
 // 用标记整段替换：标记间内容每次覆盖，标记外原文不动（幂等、可反复重跑）
@@ -463,7 +484,7 @@ function catPageShell(cat, list) {
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${esc(title)}">
   <meta name="twitter:description" content="${esc(desc)}">
-  <script type="application/ld+json">${ld}</script>
+  <script type="application/ld+json">${ld}</script>${seoEnhanceLdExtra() ? '\n  ' + seoEnhanceLdExtra() : ''}
   ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
@@ -681,7 +702,7 @@ function detailPageShell(c, related) {
   <meta property="og:url" content="${esc(url)}">
   <meta property="og:image" content="${esc(img || SITE_URL + '/assets/img/og-cover.png')}">
   <meta name="twitter:card" content="summary_large_image">
-  <script type="application/ld+json">${ld}</script>
+  <script type="application/ld+json">${ld}</script>${seoEnhanceLdExtra() ? '\n  ' + seoEnhanceLdExtra() : ''}
   ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
@@ -926,7 +947,7 @@ function dropsPageShell(list) {
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${esc(url)}">
   <meta property="og:image" content="${SITE_URL}/assets/img/og-cover.png">
-  <script type="application/ld+json">${ld}</script>
+  <script type="application/ld+json">${ld}</script>${seoEnhanceLdExtra() ? '\n  ' + seoEnhanceLdExtra() : ''}
   ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
@@ -1139,7 +1160,7 @@ function guideIndexShell(articles) {
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${esc(url)}">
-  <script type="application/ld+json">${ld}</script>
+  <script type="application/ld+json">${ld}</script>${seoEnhanceLdExtra() ? '\n  ' + seoEnhanceLdExtra() : ''}
   ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />
@@ -1228,7 +1249,7 @@ function guidePageShell(a, others, detailIdMap) {
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${esc(url)}">
   ${a.cover ? '<meta property="og:image" content="' + esc(a.cover) + '">' : '<meta property="og:image" content="' + SITE_URL + '/assets/img/og-cover.png">'}
-  <script type="application/ld+json">${ld}</script>
+  <script type="application/ld+json">${ld}</script>${seoEnhanceLdExtra() ? '\n  ' + seoEnhanceLdExtra() : ''}
   ${THEME_BOOT}
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/main.css" />

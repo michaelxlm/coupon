@@ -28,6 +28,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process'); // WO-189：构建链接通跨平台比价离线产物（失败不阻断）
 const P = require('@xuyiheng/static-build-kit/shared-partials'); // WO-85 阶段二：header/footer/ad-slot 委托跨站单一源（WO-164 ④ 私有包化）
 const { COUPON_SITE } = require('./site-config'); // 站点导航单一源（build-topics 场景页共用，防止菜单漂移）
 const NAV = require('@xuyiheng/static-build-kit/shared-navigation'); // WO-93：原生导航无缝化（Speculation Rules 预取 + View Transitions）单一源（WO-164 ④ 私有包化）
@@ -1425,6 +1426,21 @@ async function run() {
       detailIds: snapshotDetailIds,
     };
     writeSnapshot(snapObj);
+    // 2.6b) WO-189 跨平台比价产物：紧随快照用同一次数据刷新离线比价表，
+    //       前端 price-compare.js 读取，避免产物停留在上一次构建（本次实测 10-30 陈旧）。
+    //       生成器零依赖、缺输入不伪造、恒 exit 0；这里再包一层 try 保证绝不阻断构建。
+    try {
+      const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'build-cross-platform.js')], {
+        cwd: ROOT, encoding: 'utf8', timeout: 30000,
+      });
+      if (r.status === 0) {
+        const line = String(r.stdout || '').split('\n').find((l) => l.indexOf('同款组') !== -1);
+        if (line) console.log('[build] ' + line.trim());
+      } else {
+        console.warn('[build] 跨平台比价产物生成跳过（不影响构建）：' +
+          String(r.stderr || r.error || ('exit=' + r.status)).trim().split('\n').slice(-1)[0]);
+      }
+    } catch (e) { console.warn('[build] 跨平台比价产物生成异常（忽略）：', e.message); }
   } catch (e) { console.warn('[build] 写快照失败（忽略）：', e.message); }
 
   // 2.7) WO-125：AI 场景导购 + 实时比价落地页 topic/<slug>.html

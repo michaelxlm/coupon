@@ -1,7 +1,7 @@
 ---
 title: 小满券仓（coupon.zangeng.com）
 owner: Michaelxlm
-updated: 2026-11-17
+updated: 2026-11-19
 scope: coupon（coupon.zangeng.com · 京东/淘宝优惠券聚合静态站）
 status: 有效
 tags: [coupon, 小满券仓, 优惠券, 纯静态, sourceGuard, 统一埋点, 品类落地页, 收藏, 凑单计算器, 大促日历, 券详情页, 扫码海报, 降价热榜, 长文导购, 降价提醒, 小程序码引导, 省钱挑战, 导航单一源, 视觉审计]
@@ -84,7 +84,8 @@ coupon/
 │   └── js/challenge.js  今日省钱挑战（纯 localStorage 连续回访 streak + 累计省钱，里程碑一键晒战报，仅首页，fail-soft）
 │   └── img/            favicon.svg + og-cover.svg
 ├── scripts/
-│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 存量 p/guides chrome 对齐 + 清理本轮未进 sitemap 的旧 /p/* 详情页 + 重写 sitemap.xml（CI 执行，fail-soft）
+│   ├── build.js        构建期委托全站 chrome + 预渲染 index/browse/rank + 生成 cat/*.html + 写 data/coupon-snapshot.json + 调 build-cross-platform.js 刷新跨平台比价产物 + 存量 p/guides chrome 对齐 + 清理本轮未进 sitemap 的旧 /p/* 详情页 + 重写 sitemap.xml（CI 执行，fail-soft）
+│   ├── build-cross-platform.js 跨平台比价离线产物生成器（WO-189：读券快照真实 platform/到手价，按标题归一化归同款组，产出 data/cross-platform-offers.json 供 price-compare.js 读取；单平台组标 comparable=false，不伪造缺失平台；零依赖、缺输入 exit 0。由 build.js 在快照写入后调用）
 │   ├── remote-prune-p.sh  远端收尾：诊断/修复 nginx 的 /p/ 回退壳（nginx -t + reload + curl 复验，失败即回滚）+ 按远端 sitemap 差集删除过期 /p/*.html（仅在回退已复验可用时执行，永不删 _shell.html）；由 deploy.yml 在 sync 之后经 SSH 调用
 │   ├── test-remote-prune-p.sh  remote-prune-p.sh 的回归测试（本地零依赖可跑，锁「只删不在图里的壳」「回退未确认则一个都不删」「vhost 补丁正确」「301 表合并合法」四条底线）
 │   ├── site-config.js  站点导航/页脚单一源（7 项主导航 + 12 项页脚），build.js / build-topics.js / topic 模板共用，改菜单只改这一处

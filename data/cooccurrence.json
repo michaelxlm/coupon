@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "updatedAt": "1970-01-01T00:00:00.000Z",
+  "source": "data/device-events.jsonl",
+  "eventCount": 0,
+  "deviceCount": 0,
+  "pairCount": 0,
+  "sampleCount": 0,
+  "minSamples": 50,
+  "enabled": false,
+  "topK": 20,
+  "note": "无真实 device-events 埋点输入：协同过滤未启用。本文件仅为显式停用标记，cooccurrence 为空，不含任何伪造样本；待有真实日志后运行 node scripts/train-cooccurrence.js 覆盖。",
+  "cooccurrence": {}
+}

@@ -1312,6 +1312,58 @@ function writeSnapshot(obj) {
   } catch (e) { console.warn('[build] 写 coupon-snapshot.json 失败（忽略）：', e.message); }
 }
 
+/* ---- 同源广告数据：绕过线上被封禁的 /data/ ----
+   nginx ^~ /data/ 返回 404，而 ad-slots.js 默认先请求 fallbackSrc（data/ad-slots.json）。
+   从 data/ad-slots.json 生成站点根 ad-slots.data.js（window.__AdSlotsData），再统一给
+   所有含 AdSlotsConfig 的 HTML 注入 <script src="/ad-slots.data.js" defer>，
+   且必须早于 slot-loader.js / ad-slots.js 执行，否则 loader 先启动仍会请求 /data/。 */
+const AD_DATA_TAG = '<script src="/ad-slots.data.js" defer></script>';
+
+function syncAdSlotsData() {
+  try {
+    const ad = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'ad-slots.json'), 'utf8'));
+    const header = `/* ad-slots.data.js · 由 build.js 从 data/ad-slots.json (version:${ad.version || ''}, updated:${ad.updated || ''}) 生成，勿手改 */\n`;
+    fs.writeFileSync(path.join(ROOT, 'ad-slots.data.js'), header + 'window.__AdSlotsData=' + JSON.stringify(ad) + ';\n', 'utf8');
+  } catch (e) { console.warn('[build] ad-slots.data.js 生成失败（忽略）：', e.message); }
+
+  const SKIP_DIRS = new Set(['node_modules', 'assets', 'data', 'scripts', 'reports', 'img', 'css', 'js']);
+  const files = [];
+  (function walk(dir) {
+    let names = [];
+    try { names = fs.readdirSync(dir); } catch (e) { return; }
+    for (const name of names) {
+      const full = path.join(dir, name);
+      let st;
+      try { st = fs.statSync(full); } catch (e) { continue; }
+      if (st.isDirectory()) {
+        if (!SKIP_DIRS.has(name)) walk(full);
+      } else if (name.endsWith('.html')) {
+        files.push(full);
+      }
+    }
+  })(ROOT);
+
+  let n = 0;
+  for (const file of files) {
+    let html;
+    try { html = fs.readFileSync(file, 'utf8'); } catch (e) { continue; }
+    if (!html.includes('AdSlotsConfig')) continue;
+    const cleaned = html.replace(/[ \t]*<script src="(?:\/|\.\/)?ad-slots\.data\.js" defer><\/script>\n?/g, '');
+    const loader = cleaned.match(/[ \t]*<script src="[^"]*slot-loader\.js[^"]*" defer><\/script>/);
+    const adslot = cleaned.match(/[ \t]*<script src="[^"]*\/ad-slots\.js(?:\?[^"]*)?" defer><\/script>/);
+    let next = cleaned;
+    const anchor = loader || adslot;
+    if (anchor) {
+      const indent = (anchor[0].match(/^[ \t]*/) || [''])[0];
+      next = cleaned.replace(anchor[0], `${indent}${AD_DATA_TAG}\n${anchor[0]}`);
+    }
+    if (next !== html) {
+      try { fs.writeFileSync(file, next, 'utf8'); n++; } catch (e) { /* 忽略单文件失败 */ }
+    }
+  }
+  console.log(`[build] ad-slots.data.js 已同步到 ${n} 个 HTML（绕过 /data/ 404）`);
+}
+
 async function run() {
   // 0) chrome：全部手写页 header/footer 委托 shared（本地步骤，不依赖网络，始终先执行）
   for (const [name, nav] of Object.entries(STATIC_PAGES)) {
@@ -1582,6 +1634,9 @@ async function run() {
     syncChromeOnDisk(GUIDES_DIR, '/guides.html', null, false);
     syncChromeOnDisk(null, '/guides.html', path.join(ROOT, 'guides.html'), true);
   } catch (e) { console.warn('[build] 存量页 chrome 对齐异常（忽略）：', e.message); }
+
+  // 3.9) 同源广告数据：绕过 nginx 对 /data/ 的 404（数据脚本早于 slot-loader.js 执行）
+  syncAdSlotsData();
 
   // 4) sitemap
   writeSitemap(categories.map(c => c.slug), detailIds, guideSlugs, topicSlugs, buySlugs);

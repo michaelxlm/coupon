@@ -267,5 +267,28 @@ function firstJsonLdValid(file) {
   else ok('商家信息结构化数据合规（Product 均有绝对 image，offers 均为正数 price + priceCurrency）');
 }
 
+// 11) WO-261 首页脚本合并/次屏懒加载：bundle 必须存在、首页必须只引用 bundle（防散装脚本回潮）
+{
+  const core = path.join(ROOT, 'assets', 'js', 'home-core.js');
+  const lazy = path.join(ROOT, 'assets', 'js', 'home-lazy.js');
+  if (!fs.existsSync(core)) err('缺失 assets/js/home-core.js（build.js 未调用 build-home-bundles）');
+  else ok('首页首屏 bundle home-core.js 存在');
+  if (!fs.existsSync(lazy)) err('缺失 assets/js/home-lazy.js（次屏懒加载源未生成）');
+  else ok('首页次屏 bundle home-lazy.js 存在');
+
+  const homeFile = path.join(ROOT, 'index.html');
+  const html = fs.existsSync(homeFile) ? fs.readFileSync(homeFile, 'utf8') : '';
+  // 兼容 fingerprint 哈希名：home-core.<hash>.js 同样含 'home-core'
+  if (!html.includes('home-core')) err('首页未引用 home-core bundle（首屏脚本合并失效）');
+  else ok('首页已引用 home-core bundle');
+  if (!html.includes('home-lazy')) err('首页未登记 home-lazy 次屏 bundle（懒加载失效）');
+  else ok('首页已登记 home-lazy 次屏 bundle（空闲注入）');
+
+  const scattered = ['tracker', 'conversion', 'app', 'share', 'store', 'coupon-page', 'challenge', 'activities']
+    .filter(n => new RegExp('<script[^>]+/assets/js/' + n + '(?:\\.[A-Za-z0-9_-]{8,12})?\\.js').test(html));
+  if (scattered.length) err('首页仍有散装脚本引用（应与 bundle 二选一）：' + scattered.join(', '));
+  else ok('首页无散装脚本回潮（8 个模块均由 bundle 承载）');
+}
+
 console.log('[selfcheck] 完成：' + errors + ' 错误 / ' + warnings + ' 警告');
 process.exit(errors > 0 ? 1 : 0);

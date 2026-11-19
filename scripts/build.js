@@ -1386,6 +1386,11 @@ function syncAdSlotsData() {
 }
 
 async function run() {
+  // -1) WO-261：首页首屏/次屏脚本 bundle（由 assets/js 源码拼接，单一事实源；纯本地步骤，始终先执行）
+  //     必须早于 fingerprint（CI 中在 build 之后跑），否则 HTML 引用的是不存在的 bundle。
+  try { require('./build-home-bundles').build(); }
+  catch (e) { console.warn('[build] 首页脚本 bundle 生成异常（忽略，但 fingerprint 完整性门禁会兜底）：', e.message); }
+
   // 0) chrome：全部手写页 header/footer 委托 shared（本地步骤，不依赖网络，始终先执行）
   for (const [name, nav] of Object.entries(STATIC_PAGES)) {
     try { injectChrome(path.join(ROOT, name), nav); } catch (e) { console.warn('[build] chrome ' + name + ' 异常（忽略）：', e.message); }

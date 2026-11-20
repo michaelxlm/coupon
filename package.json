@@ -8,7 +8,8 @@
     "build:topics": "node scripts/build-topics.js",
     "fingerprint": "node scripts/fingerprint.js",
     "selfcheck": "node scripts/selfcheck.js",
-    "check:jsonld": "node scripts/check-jsonld.js"
+    "check:jsonld": "node scripts/check-jsonld.js",
+    "test": "node scripts/selfcheck.js && node scripts/check-jsonld.js"
   },
   "engines": {
     "node": ">=18"

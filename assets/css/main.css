@@ -131,9 +131,11 @@ h3 { font-size: 1.1875rem; }
 p { margin: 0 0 12px; }
 p:last-child { margin-bottom: 0; }
 
+/* W0: 全站统一容器宽度，与 site-shell 的 .ss-wrap(max-width:1140px) 对齐，
+   tokens.css 里已定义 --maxw:1140px，之前 1920px 导致宽屏上内容无限拉伸 */
 .container {
   width: 100%;
-  max-width: 1920px;
+  max-width: var(--maxw, 1140px);
   margin: 0 auto;
   padding: 0 24px;
 }

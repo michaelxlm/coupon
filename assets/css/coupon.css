@@ -196,6 +196,7 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 .cp-card {
   display: flex;
   flex-direction: column;
+  gap: 0;
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -205,7 +206,12 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
   text-decoration: none;
   color: var(--text);
   transition: transform var(--dur-base) ease, box-shadow var(--dur-base) ease, border-color var(--dur-base) ease;
+  /* C3: 让价格区自动撑满剩余空间，保证同行卡片高度一致 */
+  height: 100%;
 }
+/* C3: 图片固定高度块，价格区 flex:1 自动填充 */
+.cp-card > img { flex-shrink: 0; }
+.cp-price { flex: 1; align-self: stretch; }
 .cp-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* 平台色描边（京东红 / 淘宝橙） */
 .cp-card[data-plat="jd"] { border-color: rgba(228, 57, 60, .45); }
@@ -239,8 +245,10 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  padding: 8px 10px 0;
+  padding: 10px 10px 0;
   margin: 0;
+  /* C3: 固定标题高度，不被 flex 压缩 */
+  flex-shrink: 0;
   /* 固定两行高度，避免长短标题让价格行参差不齐 */
   min-height: 2.8em;
   font-size: 0.875rem;
@@ -250,9 +258,11 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 .cp-price {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  /* C2: 用 center 代替 baseline，避免不同字号元素基线错位 */
+  align-items: center;
   gap: 6px;
-  padding: 6px 10px 10px;
+  /* C4: 标题与价格区间距加大 */
+  padding: 10px 10px 10px;
 }
 /* 券力度做浅色小标，到手价做主视觉（对标导购站：先看价格，再看力度） */
 .cp-off {
@@ -266,6 +276,8 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
   line-height: 1.7;
   letter-spacing: 0;
   white-space: nowrap;
+  /* C1: 删除线，表示原始价格已被优惠 */
+  text-decoration: line-through;
 }
 .cp-final {
   color: var(--text-muted);

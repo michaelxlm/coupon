@@ -287,7 +287,7 @@ section[id] { scroll-margin-top: calc(var(--header-h) + 20px); }
     radial-gradient(700px 380px at 88% 4%, var(--glow-1), transparent 60%);
   border-bottom: 1px solid var(--border);
 }
-.hero-inner { max-width: 100%; }
+.hero-inner { max-width: var(--maxw, 1140px); }
 .hero h1 { margin-bottom: 8px; }
 .hero-sub { font-size: 0.975rem; color: var(--text-muted); max-width: 760px; }
 .hero .btn-row { margin-top: 20px; }

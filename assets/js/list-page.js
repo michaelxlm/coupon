@@ -20,18 +20,24 @@
   var RANK_LIMIT = 100;
   var TIMEOUT_MS = 12000;
   var CACHE_TTL = 30000;
+  var Q = window.CouponQuality || {};
+  function cleanResult(arr, opts) { return (Q.cleanList || function (a) { return a || []; })(arr, opts); }
+  function dedupeResult(arr) { return (Q.dedupe || function (a) { return a || []; })(arr); }
 
   var doc = global.document;
   var body = doc.body;
   var mode = body.getAttribute('data-mode') || 'browse';
   var kw = body.getAttribute('data-kw') || '';
+  var searchTerm = '';
+  try { searchTerm = (new URLSearchParams(global.location.search).get('s') || '').trim(); } catch (e) { /* 忽略 */ }
+  if (searchTerm && mode !== 'category') mode = 'browse'; // 榜单接口不支持搜索，自动切到分页浏览
   // 专题落地页（M10）：模板注入 window.__TOPIC__ 时补齐标题
   if (global.__TOPIC__) {
     if (global.__TOPIC__.title) doc.title = global.__TOPIC__.title + ' · 小满券仓';
     var tt = $('topicTitle'); if (tt) tt.textContent = global.__TOPIC__.title || '';
   }
 
-  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', disc: '', cats: [], list: [], rankAll: [], rankShown: 0 };
+  var state = { period: 'week', page: 1, hasMore: false, loading: false, sort: '', price: '', platform: '', disc: '', cats: [], search: searchTerm, list: [], rankAll: [], rankShown: 0 };
 
   var grid, statusEl, moreBtn, tabs, sortSelect, priceSelect, discSelect, catBar, countEl;
   var loadActions = {};
@@ -518,6 +524,7 @@
   }
   // 榜单接口会返回同一商品的多个不同券（同 pict_url/title、不同 tao_id），按商品身份去重，避免前排全是同一件
   function dedupeCoupons(arr) {
+    if (Q.dedupe) return Q.dedupe(arr);
     var seen = Object.create(null);
     return (arr || []).filter(function (c) {
       var key = String(c.pict_url || c.title || c.item_url || c.couponUrl || '').trim();
@@ -527,7 +534,7 @@
     });
   }
   function setRankData(list) {
-    state.rankAll = dedupeCoupons(list);
+    state.rankAll = dedupeCoupons(cleanResult(list, { keepOrder: true }));
     state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
     state.list = state.rankAll;
     render(rankView(), false);
@@ -575,7 +582,8 @@
     var params = [ [ 'page', state.page ], [ 'pageSize', PAGE_SIZE ] ];
     // 非「默认(createTime 倒序)」排序时向后端透传真实排序值（discount=券值优先 / expire=即将失效），由后端保证分页语义
     if (state.sort) params.push([ 'sort', state.sort ]);
-    if (mode === 'category' && kw) params.unshift([ 'search', kw ]);
+    if (state.search) params.unshift([ 'search', state.search ]);
+    else if (mode === 'category' && kw) params.unshift([ 'search', kw ]);
     var url = buildUrl('/paging', params);
     markStale(false);
     request(url, function (err, d) {
@@ -588,7 +596,7 @@
           else arr = (snap && snap.browse) || [];
           if (arr.length) {
             state.page = 1;
-            state.list = arr;
+            state.list = dedupeResult(cleanResult(arr));
             var appendMode = false;
             render(currentView(), false);
             markStale(true);
@@ -601,11 +609,11 @@
         });
         return;
       }
-      var list = pickList(d);
+      var list = dedupeResult(cleanResult(pickList(d)));
       state.list = state.list.concat(list);
       // 排序生效时追加也全量重排保序；无排序时维持新一页追加
       var appendMode = !reset && !state.sort;
-      render(sortList(filterPlat(appendMode ? list : state.list).filter(matchPrice)), appendMode);
+      render(sortList(filterPlat(appendMode ? list : state.list).filter(matchPrice).filter(matchDiscount).filter(matchCategory)), appendMode);
       var count = Number(d && d.count) || 0;
       state.hasMore = state.page * PAGE_SIZE < count;
       if (moreBtn) moreBtn.hidden = !(state.hasMore && list.length);
@@ -660,6 +668,24 @@
       countEl.hidden = true;
       grid.parentNode.insertBefore(countEl, grid);
     }
+    if (searchTerm && grid && grid.parentNode) {
+      var chipBox = doc.createElement('div');
+      chipBox.className = 'cp-search-chip';
+      chipBox.style.cssText = 'margin:10px 2px;font-size:13px;';
+      chipBox.appendChild(doc.createTextNode('搜索：' + searchTerm + ' '));
+      var clear = doc.createElement('a');
+      clear.href = global.location.pathname;
+      clear.textContent = '清除';
+      chipBox.appendChild(clear);
+      grid.parentNode.insertBefore(chipBox, grid);
+    }
+    var gsf = $('cpGlobalSearch');
+    if (gsf) gsf.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var input = gsf.querySelector('input');
+      var v = input ? String(input.value || '').trim() : '';
+      global.location.href = '/index.html?s=' + encodeURIComponent(v);
+    });
     tabs = $('rankTabs'); sortSelect = $('listSort'); priceSelect = $('listPrice'); discSelect = $('listDiscount');
     if (!grid || !statusEl) return;
     ensurePlatBar();

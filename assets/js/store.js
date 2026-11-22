@@ -120,6 +120,85 @@
     return { ok: true, added: added, total: Math.min(cur.length, FAV_MAX) };
   }
 
+  /* ------------------------------ 收藏同步码（无账号、无网络请求） ------------------------------ */
+  var B64URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  function utf8Encode(str) {
+    var out = '', i, c;
+    for (i = 0; i < str.length; i++) {
+      c = str.charCodeAt(i);
+      if (c < 0x80) out += String.fromCharCode(c);
+      else if (c < 0x800) out += String.fromCharCode(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
+      else if (c >= 0xd800 && c <= 0xdbff && i + 1 < str.length) {
+        var c2 = str.charCodeAt(++i);
+        var cp = 0x10000 + ((c - 0xd800) << 10) + (c2 - 0xdc00);
+        out += String.fromCharCode(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3f), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
+      } else out += String.fromCharCode(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    }
+    return out;
+  }
+  function utf8Decode(bytes) {
+    var out = '', i = 0, c, c2, c3, c4, cp;
+    while (i < bytes.length) {
+      c = bytes.charCodeAt(i++);
+      if (c < 0x80) { out += String.fromCharCode(c); continue; }
+      if (c < 0xe0) { c2 = bytes.charCodeAt(i++); out += String.fromCharCode(((c & 0x1f) << 6) | (c2 & 0x3f)); continue; }
+      if (c < 0xf0) { c2 = bytes.charCodeAt(i++); c3 = bytes.charCodeAt(i++); out += String.fromCharCode(((c & 0x0f) << 12) | ((c2 & 0x3f) << 6) | (c3 & 0x3f)); continue; }
+      c2 = bytes.charCodeAt(i++); c3 = bytes.charCodeAt(i++); c4 = bytes.charCodeAt(i++);
+      cp = ((c & 0x07) << 18) | ((c2 & 0x3f) << 12) | ((c3 & 0x3f) << 6) | (c4 & 0x3f);
+      out += String.fromCharCode(0xd800 + ((cp - 0x10000) >> 10), 0xdc00 + ((cp - 0x10000) & 0x3ff));
+    }
+    return out;
+  }
+  function b64urlEncode(str) {
+    var bytes = utf8Encode(str), out = '', i, a, b, c;
+    for (i = 0; i < bytes.length; i += 3) {
+      a = bytes.charCodeAt(i); b = i + 1 < bytes.length ? bytes.charCodeAt(i + 1) : -1; c = i + 2 < bytes.length ? bytes.charCodeAt(i + 2) : -1;
+      out += B64URL.charAt(a >> 2) + B64URL.charAt(((a & 3) << 4) | (b < 0 ? 0 : b >> 4));
+      if (b < 0) break;
+      out += B64URL.charAt(((b & 15) << 2) | (c < 0 ? 0 : c >> 6));
+      if (c < 0) break;
+      out += B64URL.charAt(c & 63);
+    }
+    return out;
+  }
+  function b64urlDecode(s) {
+    var bytes = '', i, n, a, b, c;
+    s = String(s || '').replace(/[^A-Za-z0-9_-]/g, '');
+    for (i = 0; i < s.length; i += 4) {
+      a = B64URL.indexOf(s.charAt(i)); b = B64URL.indexOf(s.charAt(i + 1));
+      c = i + 2 < s.length ? B64URL.indexOf(s.charAt(i + 2)) : -1;
+      n = i + 3 < s.length ? B64URL.indexOf(s.charAt(i + 3)) : -1;
+      if (a < 0 || b < 0) break;
+      bytes += String.fromCharCode((a << 2) | (b >> 4));
+      if (c >= 0) bytes += String.fromCharCode(((b & 15) << 4) | (c >> 2));
+      if (n >= 0) bytes += String.fromCharCode(((c & 3) << 6) | n);
+    }
+    return utf8Decode(bytes);
+  }
+  // 同步码只含必要字段，最多 30 条；不包含账号或任何 PII，链接本身即凭证
+  function exportSyncCode() {
+    var list = favs().slice(0, 30).map(function (f) {
+      return { id: String(f.id || ''), t: f.t || '', u: f.url || '', p: Number(f.price) || 0, o: Number(f.off) || 0, q: Number(f.quota) || 0, i: f.img || '' };
+    });
+    return 'C1.' + b64urlEncode(JSON.stringify({ v: 1, f: list }));
+  }
+  function importSyncCode(code) {
+    if (typeof code !== 'string' || code.indexOf('C1.') !== 0) return { ok: false, msg: '同步码格式不正确' };
+    var obj;
+    try { obj = JSON.parse(b64urlDecode(code.slice(3))); } catch (e) { return { ok: false, msg: '同步码已损坏，请重新生成' }; }
+    if (!obj || !Array.isArray(obj.f)) return { ok: false, msg: '同步码中没有收藏数据' };
+    var cur = favs(), seen = {}, added = 0;
+    cur.forEach(function (f) { if (f && f.id != null) seen[String(f.id)] = 1; });
+    obj.f.forEach(function (f) {
+      if (!f || !f.id || seen[String(f.id)]) return;
+      cur.push({ id: String(f.id), t: f.t || '', img: f.i || '', url: f.u || '', price: Number(f.p) || 0, quota: Number(f.q) || 0, off: Number(f.o) || 0, at: Date.now() });
+      seen[String(f.id)] = 1;
+      added++;
+    });
+    lsSet(K_FAV, cur.slice(0, FAV_MAX));
+    return { ok: true, added: added, total: Math.min(cur.length, FAV_MAX) };
+  }
+
   /* ------------------------------ 最近看过 ------------------------------ */
   function recent() { return lsGet(K_RECENT); }
 
@@ -427,6 +506,7 @@
   global.CouponStore = {
     favs: favs, isFav: isFav, toggleFav: toggleFav, removeFav: removeFav, clearFavs: clearFavs,
     exportFavs: exportFavs, importFavs: importFavs,
+    exportSyncCode: exportSyncCode, importSyncCode: importSyncCode,
     recent: recent, pushRecent: pushRecent, removeRecent: removeRecent, clearRecent: clearRecent,
     searches: searches, pushSearch: pushSearch, clearSearches: clearSearches,
     recommendTerms: recommendTerms, seenIds: seenIds,

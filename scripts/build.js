@@ -35,6 +35,7 @@ const NAV = require('@xuyiheng/static-build-kit/shared-navigation'); // WO-93：
 const { buildTopics } = require('./build-topics'); // WO-125：AI 场景导购 + 实时比价落地页（复用本次快照对象预渲染）
 const { buildCommercial } = require('./build-commercial'); // WO-121：高商业意图省钱攻略长尾页（复用 build-topics 同口径助手）
 const LD = require('./product-ld'); // 商家信息「宁缺毋错」：券 Product/Offer 节点的单一口径（Search Console 严重问题源头防护）
+const Q = require('../assets/js/coupon-quality.js'); // 券质量单一事实源：无券过滤 / 去重 / 过期 / 标题归一
 // WO-197：首屏主题 boot 改由 shared-partials 单源生成 —— 必须先把 auto 解析成 light/dark 再落 data-theme
 const THEME_BOOT = P.renderThemeBoot({ legacy: ['__theme'] });
 
@@ -79,6 +80,11 @@ const CHROME_HDR_START = '<!-- CHROME:HEADER:START -->';
 const CHROME_HDR_END = '<!-- CHROME:HEADER:END -->';
 const CHROME_FTR_START = '<!-- CHROME:FOOTER:START -->';
 const CHROME_FTR_END = '<!-- CHROME:FOOTER:END -->';
+// 双11专题时效性区块：非 10/11 月自动 noindex + 归档提示条（标记不存在时 replaceBlock 原样返回）
+const ARCHIVE_META_START = '<!-- ARCHIVE:META:START -->';
+const ARCHIVE_META_END = '<!-- ARCHIVE:META:END -->';
+const ARCHIVE_BANNER_START = '<!-- ARCHIVE:BANNER:START -->';
+const ARCHIVE_BANNER_END = '<!-- ARCHIVE:BANNER:END -->';
 
 // 站点静态 chrome（header/footer 数据源）：已抽到 scripts/site-config.js，与 build-topics 共用
 const COUPON_PAGE = { nav: '/category.html' }; // 品类落地页恒高亮「品类」
@@ -129,7 +135,9 @@ async function fetchList(p) {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     const d = (json && json.data) || {};
-    return Array.isArray(d.data) ? d.data : (Array.isArray(d.list) ? d.list : []);
+    const arr = Array.isArray(d.data) ? d.data : (Array.isArray(d.list) ? d.list : []);
+    // 榜单保留后端顺序；其余按省钱力度。统一剔除无券/过期/跨页重复，绝不把脏数据交给下游。
+    return Q.cleanList(arr, { keepOrder: p.indexOf('/rank?') !== -1 });
   } finally {
     clearTimeout(timer);
   }
@@ -243,9 +251,10 @@ function isLinkable(c) {
   return Boolean(safeUrl(c.clickURL) || safeUrl(c.couponUrl) || safeUrl(c.item_url) || (c.item_url && String(c.item_url).trim()));
 }
 
-// 过滤死链 + 按省钱力度排序（预渲染与快照统一口径）；同时剔除已过期券
+// 过滤死链 + 无券 + 过期 + 去重 + 排序（预渲染与快照统一口径）
+// 数据质量口径收敛到 assets/js/coupon-quality.js，本函数保留签名兼容既有调用点。
 function usable(list) {
-  return sortByValue((list || []).filter(c => isLinkable(c) && !isExpired(c)));
+  return Q.cleanList(list);
 }
 
 // 券到期时间解析：兼容时间戳（秒/毫秒）与日期字符串；解析不出返回 0
@@ -317,6 +326,24 @@ function replaceBlock(html, start, end, inner) {
     return html.slice(0, s + start.length) + '\n' + inner + '\n' + html.slice(e);
   }
   return html;
+}
+
+// 双11时效性：北京时间 10/11 月正常收录；其余月份 noindex,follow + 醒目归档提示
+function applyD11Archive(file) {
+  let html;
+  try { html = fs.readFileSync(file, 'utf8'); }
+  catch (e) { console.warn('[build] 双11归档读失败（忽略）：', e.message); return; }
+  const month = new Date(Date.now() + 8 * 3600 * 1000).getUTCMonth() + 1;
+  const inSeason = month === 10 || month === 11;
+  const meta = inSeason ? '<meta name="robots" content="index,follow">'
+                        : '<meta name="robots" content="noindex,follow">';
+  const banner = inSeason ? '' :
+    '<aside class="d11-archive-banner" role="note"><strong>往期双11专题已归档</strong>：当前非双 11 档期，券信息可能已失效；可查看 <a href="/holidays.html">大促日历</a> 关注下一档，或看 <a href="/rank.html">全网优惠券榜单</a>。</aside>';
+  html = replaceBlock(html, ARCHIVE_META_START, ARCHIVE_META_END, meta);
+  html = replaceBlock(html, ARCHIVE_BANNER_START, ARCHIVE_BANNER_END, banner);
+  try { fs.writeFileSync(file, NAV.injectIntoHtml(html, { site: 'coupon' })); }
+  catch (e) { console.warn('[build] 双11归档写失败（忽略）：', e.message); return; }
+  console.log('[build] 双11归档状态：' + (inSeason ? '当季 index,follow' : '归档 noindex,follow + 提示条'));
 }
 
 // 对已存在的 HTML 文件按标记注入券网格 + JSON-LD（文件/标记不存在则跳过）
@@ -432,11 +459,16 @@ function catSeoFaq(cat) {
     ['为什么到手价会变化或券显示已失效？', '优惠券有面额、库存和有效期，商家会不定期调整活动；页面标注的到手价与失效时间为抓取时的快照，下单前请以商家活动页的实时信息为准。'],
   ];
 }
-function catPageShell(cat, list) {
+function catPageShell(cat, list, isFallback) {
   const url = SITE_URL + '/cat/' + cat.slug + '.html';
   const title = `${cat.name}优惠券 · 全网${cat.name}领券 | 小满券仓`;
   const desc = cat.desc + ' 券数据由各平台联盟实时聚合，领券后跳转商家活动页下单，最终优惠以商家活动页为准。';
   const grid = list.length ? renderGridHtml(list) : '';
+  const fallbackAttr = isFallback ? ' data-fallback="1"' : '';
+  const fallbackNote = isFallback
+    ? '<p class="cp-fallback-note" role="note">该品类暂无专属券，先看看全网高力度好券（以下为全网精选，非该品类专属券）。</p>'
+    : '';
+  const listName = isFallback ? '全网高力度好券精选（非' + cat.name + '专属）' : `${cat.name}优惠券`;
   const faqPairs = catSeoFaq(cat);
   const ld = JSON.stringify([
     {
@@ -452,7 +484,7 @@ function catPageShell(cat, list) {
         { '@type': 'ListItem', position: 3, name: cat.name, item: url },
       ],
     },
-    list.length ? jsonLd(list, `${cat.name}优惠券`, url) : null,
+    list.length ? jsonLd(list, listName, url) : null,
     {
       '@context': 'https://schema.org', '@type': 'FAQPage', inLanguage: 'zh-CN',
       mainEntity: faqPairs.map(function (qa) {
@@ -490,7 +522,7 @@ function catPageShell(cat, list) {
   <link rel="stylesheet" href="/assets/css/main.css" />
   <link rel="stylesheet" href="/assets/css/coupon.css" />
 </head>
-<body data-page="category" data-mode="category" data-kw="${esc(cat.kw)}">
+<body data-page="category" data-mode="category" data-kw="${esc(cat.kw)}"${fallbackAttr}>
   <a class="skip-link" href="#main">跳到主内容</a>
   <script>window.TrackerConfig={"endpoint":"https://api.xuyiheng.com/api/v1/public/track","project":"coupon-zangeng","terminal":"web"};</script>
 
@@ -517,6 +549,7 @@ function catPageShell(cat, list) {
         <div class="section-head left">
           <h2>${esc(cat.name)}券列表</h2>
           <p class="section-desc">实时${esc(cat.name)}相关全网优惠券，先领券再下单更省。</p>
+          ${fallbackNote}
         </div>
 
         <div class="cp-toolbar">
@@ -572,6 +605,7 @@ ${faqPairs.map(function (qa) { return '      <details>\n        <summary>' + esc
   <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/conversion.js"></script>
   <script src="/assets/js/app.js"></script>
+  <script src="/assets/js/coupon-quality.js"></script>
   <script src="/assets/js/store.js"></script>
   <script src="/assets/js/list-page.js"></script>
   <script>window.AdSlotsConfig={site:"coupon-zangeng",fallbackSrc:'/data/ad-slots.json'};</script>
@@ -791,6 +825,7 @@ function detailPageShell(c, related) {
   <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/conversion.js"></script>
   <script src="/assets/js/app.js"></script>
+  <script src="/assets/js/coupon-quality.js"></script>
   <script src="/assets/js/store.js"></script>
   <script src="/assets/js/qrcode.js"></script>
   <script src="/assets/js/share.js"></script>
@@ -902,6 +937,7 @@ function detailShellPage() {
   <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/conversion.js"></script>
   <script src="/assets/js/app.js"></script>
+  <script src="/assets/js/coupon-quality.js"></script>
   <script src="/assets/js/store.js"></script>
   <script src="/assets/js/qrcode.js"></script>
   <script src="/assets/js/share.js"></script>
@@ -991,6 +1027,7 @@ ${grid}
   <script src="/assets/js/tracker.js?v=2026.10.30"></script>
   <script src="/assets/js/conversion.js"></script>
   <script src="/assets/js/app.js"></script>
+  <script src="/assets/js/coupon-quality.js"></script>
   <script src="/assets/js/store.js"></script>
   <script src="/assets/js/qrcode.js"></script>
   <script src="/assets/js/share.js"></script>
@@ -1428,21 +1465,20 @@ async function run() {
     safeList('/rank?period=month&limit=100'),
     safeList('/random?limit=40'),
   ]);
+  // 全局快照池（已统一清洗按力度排序）：品类券不足时从这里补足，仅作全网好券推荐，不伪造品类归属
+  const globalPool = Q.cleanList(featured.concat(week, rankList, dayRank, browseList, d11Rank, d11Feat));
   const d11Seen = new Set();
-  const d11List = sortByValue(d11Rank.concat(d11Feat).filter(c => {
-    const key = c.tao_id || c._id || c.item_url || c.title;
+  const d11List = Q.dedupe(Q.cleanList(d11Rank.concat(d11Feat))).filter(c => {
+    const key = Q.dedupeKey(c);
     if (!key || d11Seen.has(key)) return false;
-    if (!isLinkable(c)) return false;
-    if (isExpired(c)) return false;
-    if ((Number(c.couponDiscount) || 0) <= 0 && (Number(c.price) || 0) <= 0) return false;
     d11Seen.add(key); return true;
-  })).slice(0, D11_LIMIT);
+  }).slice(0, D11_LIMIT);
 
   // W1 详情池：本次构建已拉取的 featured + rank(day/week/month) + browse + d11 合集去重，
   // 仅留带 _id 且可用的券，按省钱力度取前 DETAIL_LIMIT 张逐券生成 /p/<_id>.html（_id 无损、可被 jd/detail 直接命中）。
-  const poolSeen = new Set();
+  const poolSeen = new Set(); // 详情页 URL 键(_id)唯一；券级去重由 Q.dedupe 完成
   const detailPool = [];
-  for (const c of usable(featured.concat(week, rankList, dayRank, browseList, d11Rank, d11Feat))) {
+  for (const c of globalPool) {
     const did = detailIdOf(c);
     if (!did || poolSeen.has(did)) continue;
     poolSeen.add(did);
@@ -1459,12 +1495,11 @@ async function run() {
   let idxList = [];
   try {
     const seen = new Set();
-    idxList = sortByValue(featured.concat(week).filter(c => {
-      const key = c.tao_id || c._id || c.item_url || c.title;
+    idxList = Q.cleanList(featured.concat(week)).filter(c => {
+      const key = Q.dedupeKey(c);
       if (!key || seen.has(key)) return false;
-      if (!isLinkable(c)) return false;
       seen.add(key); return true;
-    }));
+    });
     if (idxList.length) prerenderFile(path.join(ROOT, 'index.html'), idxList, '全网优惠券 · 限时领券中心', SITE_URL + '/');
     else console.warn('[build] index 未取到券数据，保持原 HTML 不变。');
   } catch (e) { console.warn('[build] index 预渲染异常（忽略）：', e.message); }
@@ -1545,9 +1580,18 @@ async function run() {
     try {
       fs.mkdirSync(CAT_DIR, { recursive: true });
       for (const c of categories) {
-        const html = catPageShell(c, catLists[c.slug] || []);
+        const own = catLists[c.slug] || [];
+        let list = own.slice();
+        let usedFallback = false;
+        if (own.length < 3) {
+          const ownKeys = new Set(own.map(x => Q.dedupeKey(x)));
+          const fillers = globalPool.filter(x => !ownKeys.has(Q.dedupeKey(x))).slice(0, 6 - own.length);
+          list = Q.dedupe(own.concat(fillers));
+          usedFallback = true;
+        }
+        const html = catPageShell(c, list, usedFallback);
         fs.writeFileSync(path.join(CAT_DIR, c.slug + '.html'), NAV.injectIntoHtml(html, { site: 'coupon' }));
-        console.log(`[build] cat/${c.slug}.html：生成，含 ${(catLists[c.slug] || []).length} 张券卡`);
+        console.log(`[build] cat/${c.slug}.html：生成，含 ${list.length} 张券卡` + (usedFallback ? '（全网兜底 data-fallback=1）' : ''));
       }
     } catch (e) { console.warn('[build] 生成品类页异常（忽略）：', e.message); }
   }
@@ -1663,6 +1707,10 @@ async function run() {
 
   // 3.9) 同源广告数据：绕过 nginx 对 /data/ 的 404（数据脚本早于 slot-loader.js 执行）
   syncAdSlotsData();
+
+  // 3.9) 双11专题时效性归档（fingerprint 之前）：非 10/11 月 noindex + 归档提示条
+  try { applyD11Archive(path.join(ROOT, 'double11.html')); }
+  catch (e) { console.warn('[build] 双11归档异常（忽略）：', e.message); }
 
   // 4) sitemap
   writeSitemap(categories.map(c => c.slug), detailIds, guideSlugs, topicSlugs, buySlugs);

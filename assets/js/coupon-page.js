@@ -21,8 +21,16 @@
   var RANK_LIMIT = 100;
   var TIMEOUT_MS = 12000;   // 单请求超时，超时中断并给出可重试错误态
   var CACHE_TTL = 30000;    // 同参结果短时内存缓存（切 tab 回来不重复打后端）
+  var SEARCH_PAGE_SIZE = 100; // 搜索一次取满（后端上限 100），本地按相关性重排后分页
+  var Q = window.CouponQuality || {};
+  function cleanResult(arr, opts) { return (Q.cleanList || function (a) { return a || []; })(arr, opts); }
+  function dedupeResult(arr) { return (Q.dedupe || function (a) { return a || []; })(arr); }
 
-  var state = { mode: 'rank', period: 'week', search: '', page: 1, hasMore: false, loading: false, sort: '', platform: '', list: [], rankAll: [], rankShown: 0 };
+  var state = {
+    mode: 'rank', period: 'week', search: '', page: 1, hasMore: false, loading: false,
+    sort: '', platform: '', price: '', disc: '', category: '',
+    list: [], rankAll: [], rankShown: 0, searchAll: [], searchShown: 0
+  };
 
   var grid, statusEl, moreBtn, tabs, searchForm, searchInput, sortSelect;
   var recGrid, recSection;
@@ -178,7 +186,48 @@
     if (!state.platform) return list;
     return list.filter(function (c) { return (c.platform || 'jd') === state.platform; });
   }
-  function currentView() { return sortList(filterPlat(state.list)); }
+  function matchPrice(c) {
+    if (!state.price) return true;
+    var p = Number(c.price) || 0;
+    if (state.price === 'lt50') return p < 50;
+    if (state.price === 'p50_100') return p >= 50 && p < 100;
+    if (state.price === 'p100_300') return p >= 100 && p < 300;
+    if (state.price === 'gt300') return p >= 300;
+    return true;
+  }
+  function matchDiscount(c) {
+    if (!state.disc) return true;
+    var off = Number(c.couponDiscount) || 0;
+    var quota = Number(c.couponQuota) || 0;
+    var rate = quota > 0 ? (off / quota) * 100 : 0;
+    if (state.disc === 'ge50') return rate >= 50;
+    if (state.disc === 'd20_50') return rate >= 20 && rate < 50;
+    if (state.disc === 'lt20') return rate < 20 || quota <= 0;
+    return true;
+  }
+  var CAT_KW = {
+    digital: '手机', appliance: '家电', home: '收纳', beauty: '面霜', baby: '儿童', food: '零食',
+    apparel: '女装', pet: '猫粮', pc: '笔记本', audio: '耳机', kitchen: '电饭煲', furniture: '书桌',
+    outdoor: '跑步', shoes: '运动鞋', bags: '双肩包', auto: '车载', stationery: '打印',
+    medicine: '保健', game: '游戏', laundry: '洗衣液', 'gaming-chair': '电脑椅'
+  };
+  function matchCategory(c) {
+    if (!state.category) return true;
+    var kw = CAT_KW[state.category] || state.category;
+    var text = String(c.title || '') + ' ' + String(c.category || '') + ' ' + String(c.keywords || '');
+    return text.indexOf(kw) >= 0;
+  }
+  function applyFilters(list) {
+    return list.filter(matchPrice).filter(matchDiscount).filter(matchCategory);
+  }
+  function currentView() { return sortList(applyFilters(filterPlat(state.list))); }
+  function searchView() { return applyFilters(filterPlat(state.searchAll)).slice(0, state.searchShown); }
+  function updateSearchMore() {
+    if (!moreBtn || state.mode !== 'search') return;
+    var left = applyFilters(filterPlat(state.searchAll)).length - state.searchShown;
+    moreBtn.hidden = left <= 0;
+    moreBtn.textContent = '加载更多';
+  }
 
   // 猜你喜欢（M1）：基于本地 recent + searches 信号，对 /random 池做子串匹配重排
   function tokenizeTerm(term) {
@@ -836,7 +885,7 @@
       if (err) {
         loadSnapshot(function (snap) {
           if (snap && snap.featured && snap.featured.length) {
-            state.list = snap.featured;
+            state.list = cleanResult(snap.featured);
             render(currentView(), false);
             markStale(true);
             showStatus('⚠ 实时数据暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '），券可能已失效，下单前请核对。');
@@ -846,13 +895,13 @@
         });
         return;
       }
-      state.list = pickList(d);
+      state.list = dedupeResult(cleanResult(pickList(d)));
       render(currentView(), false);
     }, { cache: true });
   }
 
   // 榜单本地分页：一次取满 RANK_LIMIT 条存 rankAll，rankShown 控制已展示条数（筛选/排序作用于全量后截断）
-  function rankFiltered() { return sortList(filterPlat(state.rankAll)); }
+  function rankFiltered() { return sortList(applyFilters(filterPlat(state.rankAll))); }
   function rankView() { return rankFiltered().slice(0, state.rankShown); }
   function updateRankMore() {
     if (!moreBtn || state.mode !== 'rank') return;
@@ -867,6 +916,7 @@
   }
   // 榜单接口会返回同一商品的多个不同券（同 pict_url/title、不同 tao_id），按商品身份去重，避免首页前排全是同一件
   function dedupeCoupons(arr) {
+    if (Q.dedupe) return Q.dedupe(arr);
     var seen = Object.create(null);
     return (arr || []).filter(function (c) {
       var key = String((c.tao_id != null && c.tao_id !== '') ? c.tao_id : (c.pict_url || c.title || c.item_url || c.couponUrl || '')).trim();
@@ -876,7 +926,7 @@
     });
   }
   function setRankData(list) {
-    state.rankAll = dedupeCoupons(list);
+    state.rankAll = dedupeCoupons(cleanResult(list, { keepOrder: true }));
     state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
     state.list = state.rankAll;
     render(rankView(), false);
@@ -917,27 +967,46 @@
     }, { cache: true });
   }
 
-  // 搜索 / 分页
+  // 搜索：一次取满 100 条 → 本地相关性重排 → 20 条/页本地分页（避免弱相关商品占据首屏）
+  function applySearchResults(list, reset) {
+    state.searchAll = Q.rankByRelevance
+      ? Q.rankByRelevance(dedupeResult(cleanResult(list)), state.search)
+      : dedupeResult(cleanResult(list));
+    state.searchShown = Math.min(PAGE_SIZE, state.searchAll.length);
+    state.list = state.searchAll;
+    render(searchView(), false);
+    updateSearchMore();
+  }
   function loadSearch(reset) {
     var token = reset ? ++viewToken : viewToken;
     state.mode = 'search';
-    if (reset) { state.page = 1; state.list = []; showSkeleton(8); setLoading(true, true); }
-    else setLoading(true);
-    var action = loadActions.search = function () { loadSearch(reset); };
-    var url = buildUrl('/paging', [ [ 'search', state.search ], [ 'page', state.page ], [ 'pageSize', PAGE_SIZE ] ]);
+    if (!reset && state.searchAll.length) {
+      var all = applyFilters(filterPlat(state.searchAll));
+      var prev = state.searchShown;
+      state.searchShown = Math.min(prev + PAGE_SIZE, all.length);
+      render(all.slice(prev, state.searchShown), true);
+      updateSearchMore();
+      return;
+    }
+    state.page = 1;
+    state.searchAll = [];
+    state.searchShown = 0;
+    state.list = [];
+    showSkeleton(8);
+    setLoading(true, true);
+    var action = loadActions.search = function () { loadSearch(true); };
+    var url = buildUrl('/paging', [ [ 'search', state.search ], [ 'page', 1 ], [ 'pageSize', SEARCH_PAGE_SIZE ] ]);
     markStale(false);
     request(url, function (err, d) {
-      if (reset && token !== viewToken) return;
+      if (token !== viewToken) return;
       setLoading(false);
       if (err) {
         var kw = state.search;
         loadSnapshot(function (snap) {
           var arr = (snap && snap.browse) || [];
-          if (kw) arr = arr.filter(function (c) { return (c.title || '').indexOf(kw) >= 0; });
+          if (kw) arr = arr.filter(function (c) { return String(c.title || '').indexOf(kw) >= 0; });
           if (arr.length) {
-            state.page = 1;
-            state.list = arr;
-            render(sortList(arr), false);
+            applySearchResults(arr, true);
             markStale(true);
             showStatus(kw ? ('⚠ 实时搜索暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '）展示匹配「' + kw + '」的券，可能已失效，下单前请核对。') : '⚠ 实时数据暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '），券可能已失效，下单前请核对。');
           } else {
@@ -946,15 +1015,7 @@
         });
         return;
       }
-      var list = pickList(d);
-      state.list = state.list.concat(list);
-      // 排序生效时追加也全量重排保序；无排序时维持新一页追加
-      var appendMode = !reset && !state.sort;
-      render(sortList(filterPlat(appendMode ? list : state.list)), appendMode);
-      var count = Number(d && d.count) || 0;
-      state.hasMore = state.page * PAGE_SIZE < count;
-      moreBtn.hidden = !(state.hasMore && list.length);
-      moreBtn.textContent = '加载更多';
+      applySearchResults(pickList(d), true);
     }, { cache: false });
   }
 
@@ -1012,9 +1073,36 @@
           return;
         }
         // 搜索态保留已累计的分页结果；尊重平台筛选
-        render(currentView(), false);
+        if (state.mode === 'search' && state.searchAll.length) {
+          state.searchShown = Math.min(PAGE_SIZE, state.searchAll.length);
+          render(searchView(), false);
+          updateSearchMore();
+        } else render(currentView(), false);
       });
     }
+
+    // 组合筛选：价格 / 折扣力度 / 品类（控件不存在时静默跳过）
+    function bindFilter(id, key, attr) {
+      var el = $(id);
+      if (!el) return;
+      state[key] = el.value || '';
+      el.addEventListener('change', function () {
+        state[key] = el.value || '';
+        if (state.mode === 'search' && state.searchAll.length) {
+          state.searchShown = Math.min(PAGE_SIZE, applyFilters(filterPlat(state.searchAll)).length);
+          render(searchView(), false);
+          updateSearchMore();
+        } else if (state.mode === 'rank') {
+          state.rankShown = Math.min(PAGE_SIZE, applyFilters(filterPlat(state.rankAll)).length);
+          render(rankView(), false);
+          updateRankMore();
+        } else if (state.list.length) render(currentView(), false);
+        syncUrl();
+      });
+    }
+    bindFilter('cpPrice', 'price');
+    bindFilter('cpDiscount', 'disc');
+    bindFilter('cpCategory', 'category');
 
     // 搜索/筛选状态写回 URL，支持分享、回退与搜索引擎收录
     function syncUrl() {
@@ -1024,6 +1112,9 @@
       if (state.period && state.period !== 'week') p.set('period', state.period);
       if (state.sort) p.set('sort', state.sort);
       if (state.platform) p.set('platform', state.platform);
+      if (state.price) p.set('price', state.price);
+      if (state.disc) p.set('disc', state.disc);
+      if (state.category) p.set('cat', state.category);
       var qs = p.toString();
       var url = global.location.pathname + (qs ? ('?' + qs) : '');
       global.history.replaceState(null, '', url);
@@ -1031,7 +1122,17 @@
     function applyUrlState() {
       var s = '';
       if (global.URLSearchParams) {
-        try { s = (new URLSearchParams(global.location.search).get('s') || '').trim(); } catch (e) { /* 忽略 */ }
+        try {
+          var q = new URLSearchParams(global.location.search);
+          s = (q.get('s') || '').trim();
+          var pairs = [ [ 'cpPrice', 'price', 'price' ], [ 'cpDiscount', 'disc', 'disc' ], [ 'cpCategory', 'category', 'cat' ] ];
+          pairs.forEach(function (x) {
+            var v = q.get(x[2]) || '';
+            var el = $(x[0]);
+            if (el) el.value = v;
+            state[x[1]] = v;
+          });
+        } catch (e) { /* 忽略 */ }
       }
       if (s) {
         if (searchInput) searchInput.value = s;
@@ -1068,6 +1169,8 @@
         updateRankMore();
         return;
       }
+      // 搜索：100 条已在本地，直接追加下一屏（相关性排序不被后端分页打乱）
+      if (state.mode === 'search') { loadSearch(false); return; }
       if (!state.hasMore) return;
       state.page += 1;
       loadSearch(false);
@@ -1079,10 +1182,7 @@
       try { preKw = (new URLSearchParams(global.location.search).get('s') || '').trim(); } catch (e) { /* 忽略 */ }
     }
     if (preKw) {
-      state.search = preKw;
-      if (searchInput) searchInput.value = preKw;
-      setActiveTab('');
-      loadSearch(true);
+      applyUrlState();
     } else {
       // 默认展示周榜：与 HTML 中默认高亮的「周榜」tab 保持一致（此前加载精选导致 UI 与数据不符）
       setActiveTab('week');

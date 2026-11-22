@@ -107,7 +107,7 @@
       if (trendSec && trendSec.parentNode) trendSec.parentNode.insertBefore(sec, trendSec.nextSibling);
       else (doc.getElementById('main') || doc.body).appendChild(sec);
     }
-    sec.hidden = false; // 有数据、空态都展示，不隐藏误导
+    sec.hidden = true; // 默认隐藏；只有存在真实可比价组时才展示
     var summary = doc.getElementById(SUMMARY_ID);
     var body = doc.getElementById(BODY_ID);
     if (!summary) {
@@ -133,14 +133,13 @@
       + '）；未接入平台不生成任何报价或点击数据，价格以商家活动页为准。'));
   }
 
+  function hideSection() {
+    var sec = doc.getElementById(SECTION_ID);
+    if (sec) sec.hidden = true;
+  }
   function renderEmpty(parts, reason) {
-    parts.summary.textContent = '暂无可比价数据';
     clear(parts.body);
-    parts.body.appendChild(el('p', 'cp-compare-empty',
-      '暂无可比价数据' + (reason ? '（' + reason + '）' : '') + '。'));
-    parts.body.appendChild(el('p', 'cp-compare-note',
-      '离线产物 data/cross-platform-offers.json 缺省时不做任何编造；'
-      + '如需启用，请跑 node scripts/build-cross-platform.js 从 data/coupon-snapshot.json 生成。'));
+    hideSection();
   }
 
   function renderOfferRows(offers, body, showLowest) {
@@ -186,19 +185,13 @@
 
   function renderGroup(g, parts, platformsSeen) {
     var offers = Array.isArray(g.offers) ? g.offers : [];
-    if (!offers.length) { renderEmpty(parts, '该同款组无有效报价'); return; }
-    clear(parts.body);
     var platCount = g.platformCount != null ? Number(g.platformCount) : new Set(offers.map(function (o) { return o.platform; })).size;
-    if (platCount <= 1) {
-      // 诚实口径：只有单一平台报价，不构造比价、不补第二行
-      parts.summary.textContent = '当前仅 1 个平台报价，暂不构成立足比价';
-      parts.body.appendChild(el('p', 'cp-compare-warn',
-        '当前仅 1 个平台报价，暂不构成立足比价；本站不会为缺失平台编造价格或差额。'));
-      renderOfferRows(offers, parts.body, false);
-    } else {
-      var min = renderOfferRows(offers, parts.body, true);
-      parts.summary.textContent = String(g.label || '同款商品') + ' · ' + platCount + ' 个平台报价，最低 ¥' + min;
-    }
+    if (!offers.length || platCount <= 1) { renderEmpty(parts, '无可比价组'); return; }
+    var sec = doc.getElementById(SECTION_ID);
+    if (sec) sec.hidden = false;
+    clear(parts.body);
+    var min = renderOfferRows(offers, parts.body, true);
+    parts.summary.textContent = String(g.label || '同款商品') + ' · ' + platCount + ' 个平台报价，最低 ¥' + min;
     noteLine(parts.body, platformsSeen);
   }
 
@@ -246,23 +239,18 @@
   function renderData(data, parts) {
     var items = data && Array.isArray(data.items) ? data.items : [];
     var platformsSeen = data && Array.isArray(data.platformsSeen) ? data.platformsSeen : [];
-    if (!items.length) { renderEmpty(parts, '产物中暂无同款组'); return; }
-    var matched = matchGroup(items, context());
+    var comparableAll = items.filter(function (g) { return g && g.comparable && Number(g.platformCount) >= 2 && Array.isArray(g.offers) && g.offers.length >= 2; });
+    if (!comparableAll.length) { renderEmpty(parts, '无可比价组'); return; }
+    var matched = matchGroup(comparableAll, context());
     if (matched) { renderGroup(matched, parts, platformsSeen); return; }
 
-    // 当前商品未命中同款组：如实说明，并列出产物中真实存在的其它可比价同款（若有）
-    var comparable = items.filter(function (g) { return g && g.comparable && Number(g.platformCount) >= 2; });
+    // 当前商品未命中同款组：只展示产物中真实存在的其它可比价同款
+    var sec = doc.getElementById(SECTION_ID);
+    if (sec) sec.hidden = false;
     clear(parts.body);
-    if (!comparable.length) {
-      parts.summary.textContent = '当前券快照暂无跨平台同款报价';
-      parts.body.appendChild(el('p', 'cp-compare-empty', '当前券快照暂无跨平台同款报价。'));
-      parts.body.appendChild(el('p', 'cp-compare-warn',
-        '快照中每个同款归并组都只有 1 个平台报价，暂不构成立足比价；不生成缺失平台价格。'));
-    } else {
-      parts.summary.textContent = '当前商品暂无同款跨平台报价 · 以下为其它可比价同款';
-      parts.body.appendChild(el('p', 'cp-compare-empty', '当前商品暂无同款跨平台报价。'));
-      renderGroupList(comparable.slice(0, 4), parts.body);
-    }
+    parts.summary.textContent = '当前商品暂无同款跨平台报价 · 以下为其它可比价同款';
+    parts.body.appendChild(el('p', 'cp-compare-empty', '当前商品暂无同款跨平台报价。'));
+    renderGroupList(comparableAll.slice(0, 4), parts.body);
     noteLine(parts.body, platformsSeen);
   }
 

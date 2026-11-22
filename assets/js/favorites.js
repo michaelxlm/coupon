@@ -167,8 +167,59 @@
     $('recentClear').hidden = !recentList.length;
   }
 
+  // 跨设备同步：把收藏编码进链接（无账号、无后端），扫码或在另一台设备打开即可合并
+  function applySyncFromUrl() {
+    if (!global.URLSearchParams || !global.CouponStore.importSyncCode) return;
+    var code = '';
+    try { code = (new URLSearchParams(global.location.search).get('sync') || '').trim(); } catch (e) { /* 忽略 */ }
+    if (!code) return;
+    var res = global.CouponStore.importSyncCode(code);
+    global.alert(res.ok ? ('同步完成：新增 ' + res.added + ' 条，现有 ' + res.total + ' 条。') : ('同步失败：' + res.msg));
+    if (global.history && global.history.replaceState) {
+      var p = new URLSearchParams(global.location.search);
+      p.delete('sync');
+      global.history.replaceState(null, '', global.location.pathname + (p.toString() ? ('?' + p.toString()) : ''));
+    }
+  }
+  function mountSyncUi() {
+    if (!global.CouponStore.exportSyncCode) return;
+    var anchor = $('favExport');
+    if (!anchor || !anchor.parentNode || $('favSync')) return;
+    var btn = doc.createElement('button');
+    btn.type = 'button'; btn.id = 'favSync'; btn.className = 'btn btn-ghost';
+    btn.textContent = '生成同步链接';
+    btn.style.marginLeft = '8px';
+    anchor.parentNode.appendChild(btn);
+    btn.addEventListener('click', function () {
+      var panel = $('favSyncPanel');
+      if (panel) { panel.hidden = !panel.hidden; return; }
+      panel = doc.createElement('div');
+      panel.id = 'favSyncPanel';
+      panel.className = 'cp-note';
+      panel.style.cssText = 'margin:12px 0;padding:12px;border:1px solid var(--line,#ddd);border-radius:8px;';
+      var tip = doc.createElement('p');
+      tip.textContent = '链接包含你的收藏数据，请勿公开分享。在另一台设备打开即可合并（最多同步 30 条）。';
+      var input = doc.createElement('input');
+      input.type = 'text'; input.readOnly = true;
+      input.style.cssText = 'width:100%;padding:8px;font-size:12px;';
+      input.value = global.location.origin + '/favorites.html?sync=' + encodeURIComponent(global.CouponStore.exportSyncCode());
+      panel.appendChild(tip); panel.appendChild(input);
+      var qr = doc.createElement('div');
+      qr.style.cssText = 'margin-top:10px;';
+      panel.appendChild(qr);
+      try {
+        if (global.QRCode && global.QRCode.toCanvas) global.QRCode.toCanvas(qr, input.value, { width: 168 });
+        else if (global.QRCode) new global.QRCode(qr, { text: input.value, width: 168 });
+      } catch (e) { /* 无二维码库时保留可复制链接 */ }
+      anchor.parentNode.appendChild(panel);
+      input.focus(); input.select();
+    });
+  }
+
   function init() {
     if (!$('favGrid') || !global.CouponStore) return;
+    applySyncFromUrl();
+    mountSyncUi();
     $('favClear').addEventListener('click', function () {
       if (!global.confirm('确定清空全部收藏吗？此操作不可恢复。')) return;
       global.CouponStore.clearFavs();

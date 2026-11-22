@@ -28,6 +28,7 @@ const GROUPS = [
     out: 'home-core.js',
     desc: '首屏核心（defer，顺序即依赖顺序）',
     files: [
+      'coupon-quality.js',
       'tracker.js',
       'conversion.js',
       'app.js',

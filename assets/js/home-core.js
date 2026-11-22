@@ -1,4 +1,183 @@
-/* home-core.js · WO-261 由 scripts/build-home-bundles.js 从源码拼接生成，勿手改。 组成：tracker.js + conversion.js + app.js + share.js + store.js + coupon-page.js（首屏核心（defer，顺序即依赖顺序）） */
+/* home-core.js · WO-261 由 scripts/build-home-bundles.js 从源码拼接生成，勿手改。 组成：coupon-quality.js + tracker.js + conversion.js + app.js + share.js + store.js + coupon-page.js（首屏核心（defer，顺序即依赖顺序）） */
+
+/* ==== coupon-quality.js ==== */
+/*!
+ * coupon-quality.js · 券质量与相关性统一口径（浏览器 / Node 双环境）
+ * ------------------------------------------------------------------
+ * 单一事实源：构建脚本（../../scripts/*.js）与前台页面（coupon-page.js /
+ * list-page.js / favorites.js）都从这里取清洗、去重、过期判定与搜索相关性打分。
+ * 硬口径：没有可点击 couponUrl 或券额为 0 的记录不是「券」，不得进入任何券池。
+ */
+(function (root, factory) {
+  var api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.CouponQuality = api;
+})(typeof window !== 'undefined' ? window : globalThis, function () {
+  'use strict';
+
+  var YEAR_MS = 365 * 24 * 3600 * 1000;
+
+  function validUrl(u) {
+    if (typeof u !== 'string') return false;
+    return /^https?:\/\/\S+$/i.test(u.trim());
+  }
+
+  function firstUrl(c) {
+    if (!c) return '';
+    var u = c.couponUrl || c.couponURL || '';
+    return validUrl(u) ? String(u).trim() : '';
+  }
+
+  function num(v) {
+    var n = Number(v);
+    return isFinite(n) && n > 0 ? n : 0;
+  }
+
+  /** 一张券是否真的可领：可点击券链 + 券额 > 0。clickURL 只是商品推广链，不算券。 */
+  function hasCoupon(c) {
+    if (!c) return false;
+    return !!firstUrl(c) && num(c.couponDiscount) > 0;
+  }
+
+  function endMs(c) {
+    if (!c) return 0;
+    var v = c.couponEndTime || c.endTime || c.couponEndDate || 0;
+    if (!v) return 0;
+    if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
+    var s = String(v).trim();
+    if (!s) return 0;
+    if (/^\d+$/.test(s)) { var n = Number(s); return n < 1e12 ? n * 1000 : n; }
+    var t = Date.parse(s.replace(/-/g, '/'));
+    return isFinite(t) ? t : 0;
+  }
+
+  /** ok | long | unknown | expired —— long 表示超长有效期，展示为「长期有效」而非具体日期 */
+  function expiryState(c, now) {
+    var ms = endMs(c);
+    if (!ms) return 'unknown';
+    var t = now || Date.now();
+    if (ms <= t) return 'expired';
+    if (ms > t + YEAR_MS) return 'long';
+    return 'ok';
+  }
+
+  function saveScore(c) {
+    if (!c) return 0;
+    var off = num(c.couponDiscount);
+    var quota = num(c.couponQuota);
+    return off + (quota ? Math.min(100, (off / quota) * 100) : off * 0.4);
+  }
+
+  function normalizeTitle(t) {
+    return String(t || '')
+      .toLowerCase()
+      .replace(/[\s\u00a0]+/g, '')
+      .replace(/[^\u4e00-\u9fa5a-z0-9]+/g, '')
+      .replace(/[a-z]$/, '')
+      .slice(0, 60);
+  }
+
+  function dedupeKey(c) {
+    if (!c) return '';
+    if (c.tao_id) return 't:' + String(c.tao_id);
+    if (c._id) return 'i:' + String(c._id);
+    if (c.item_url) return 'u:' + String(c.item_url).split('?')[0];
+    var t = normalizeTitle(c.title);
+    return t ? 'n:' + t + '|' + Math.round(num(c.price) * 10) : firstUrl(c);
+  }
+
+  /** 保留券额更高 / 更新的那条，避免同款多券刷屏 */
+  function dedupe(arr) {
+    var seen = Object.create(null);
+    var out = [];
+    (arr || []).forEach(function (c) {
+      var k = dedupeKey(c);
+      if (!k) return;
+      var prev = seen[k];
+      if (prev === undefined) { seen[k] = out.length; out.push(c); return; }
+      var old = out[prev];
+      if (saveScore(c) > saveScore(old)) out[prev] = c;
+    });
+    return out;
+  }
+
+  function sortByValue(arr) {
+    return (arr || []).slice().sort(function (a, b) {
+      var d = saveScore(b) - saveScore(a);
+      if (Math.abs(d) > 0.001) return d;
+      return (Number(b.createTime) || 0) - (Number(a.createTime) || 0);
+    });
+  }
+
+  /**
+   * 所有券池的唯一入口：过滤无券 / 已过期，跨页去重，按省钱力度排序。
+   * opts.keepOrder=true 时保留原顺序（榜单等已由后端排好序的场景）。
+   */
+  function cleanList(arr, opts) {
+    var o = opts || {};
+    var now = Date.now();
+    var list = (arr || []).filter(function (c) {
+      return hasCoupon(c) && expiryState(c, now) !== 'expired';
+    });
+    var out = dedupe(list);
+    return o.keepOrder ? out : sortByValue(out);
+  }
+
+  /** 搜索相关性：标题前缀 > 标题包含 > 简介包含；券额与新鲜度做小幅加权 */
+  function relevanceScore(c, kw) {
+    if (!c || !kw) return saveScore(c);
+    var q = String(kw).trim().toLowerCase();
+    if (!q) return saveScore(c);
+    var title = String(c.title || '').toLowerCase();
+    var extra = String(c.jianjie || c.keywords || c.category || '').toLowerCase();
+    var score = 0;
+    if (title.indexOf(q) === 0) score += 120;
+    else if (title.indexOf(q) > 0) {
+      score += 60;
+      if (title.indexOf(q) <= 4) score += 15;
+    } else if (extra.indexOf(q) >= 0) score += 12;
+    if (!title) score -= 40;
+    if (title.length < 6) score -= 10;
+    score += Math.min(30, num(c.couponDiscount));
+    var age = Date.now() - (Number(c.createTime) || Number(c.createdAt) || 0);
+    if (age > 0 && age < 7 * 24 * 3600 * 1000) score += 8;
+    return score;
+  }
+
+  function rankByRelevance(arr, kw) {
+    return (arr || []).slice().sort(function (a, b) {
+      var d = relevanceScore(b, kw) - relevanceScore(a, kw);
+      if (Math.abs(d) > 0.001) return d;
+      return saveScore(b) - saveScore(a);
+    });
+  }
+
+  function platformLabel(c) {
+    var p = String((c && c.platform) || '').toLowerCase();
+    if (p === 'taobao' || p === 'tb') return '淘宝';
+    if (p === 'jd' || p === 'jingdong') return '京东';
+    if (p === 'pdd') return '拼多多';
+    return p ? p.toUpperCase() : '全网';
+  }
+
+  return {
+    validUrl: validUrl,
+    firstUrl: firstUrl,
+    hasCoupon: hasCoupon,
+    endMs: endMs,
+    expiryState: expiryState,
+    saveScore: saveScore,
+    normalizeTitle: normalizeTitle,
+    dedupeKey: dedupeKey,
+    dedupe: dedupe,
+    sortByValue: sortByValue,
+    cleanList: cleanList,
+    relevanceScore: relevanceScore,
+    rankByRelevance: rankByRelevance,
+    platformLabel: platformLabel,
+    YEAR_MS: YEAR_MS
+  };
+});
 
 /* ==== tracker.js ==== */
 /* ==========================================================================
@@ -1466,6 +1645,85 @@
     return { ok: true, added: added, total: Math.min(cur.length, FAV_MAX) };
   }
 
+  /* ------------------------------ 收藏同步码（无账号、无网络请求） ------------------------------ */
+  var B64URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  function utf8Encode(str) {
+    var out = '', i, c;
+    for (i = 0; i < str.length; i++) {
+      c = str.charCodeAt(i);
+      if (c < 0x80) out += String.fromCharCode(c);
+      else if (c < 0x800) out += String.fromCharCode(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
+      else if (c >= 0xd800 && c <= 0xdbff && i + 1 < str.length) {
+        var c2 = str.charCodeAt(++i);
+        var cp = 0x10000 + ((c - 0xd800) << 10) + (c2 - 0xdc00);
+        out += String.fromCharCode(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3f), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
+      } else out += String.fromCharCode(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    }
+    return out;
+  }
+  function utf8Decode(bytes) {
+    var out = '', i = 0, c, c2, c3, c4, cp;
+    while (i < bytes.length) {
+      c = bytes.charCodeAt(i++);
+      if (c < 0x80) { out += String.fromCharCode(c); continue; }
+      if (c < 0xe0) { c2 = bytes.charCodeAt(i++); out += String.fromCharCode(((c & 0x1f) << 6) | (c2 & 0x3f)); continue; }
+      if (c < 0xf0) { c2 = bytes.charCodeAt(i++); c3 = bytes.charCodeAt(i++); out += String.fromCharCode(((c & 0x0f) << 12) | ((c2 & 0x3f) << 6) | (c3 & 0x3f)); continue; }
+      c2 = bytes.charCodeAt(i++); c3 = bytes.charCodeAt(i++); c4 = bytes.charCodeAt(i++);
+      cp = ((c & 0x07) << 18) | ((c2 & 0x3f) << 12) | ((c3 & 0x3f) << 6) | (c4 & 0x3f);
+      out += String.fromCharCode(0xd800 + ((cp - 0x10000) >> 10), 0xdc00 + ((cp - 0x10000) & 0x3ff));
+    }
+    return out;
+  }
+  function b64urlEncode(str) {
+    var bytes = utf8Encode(str), out = '', i, a, b, c;
+    for (i = 0; i < bytes.length; i += 3) {
+      a = bytes.charCodeAt(i); b = i + 1 < bytes.length ? bytes.charCodeAt(i + 1) : -1; c = i + 2 < bytes.length ? bytes.charCodeAt(i + 2) : -1;
+      out += B64URL.charAt(a >> 2) + B64URL.charAt(((a & 3) << 4) | (b < 0 ? 0 : b >> 4));
+      if (b < 0) break;
+      out += B64URL.charAt(((b & 15) << 2) | (c < 0 ? 0 : c >> 6));
+      if (c < 0) break;
+      out += B64URL.charAt(c & 63);
+    }
+    return out;
+  }
+  function b64urlDecode(s) {
+    var bytes = '', i, n, a, b, c;
+    s = String(s || '').replace(/[^A-Za-z0-9_-]/g, '');
+    for (i = 0; i < s.length; i += 4) {
+      a = B64URL.indexOf(s.charAt(i)); b = B64URL.indexOf(s.charAt(i + 1));
+      c = i + 2 < s.length ? B64URL.indexOf(s.charAt(i + 2)) : -1;
+      n = i + 3 < s.length ? B64URL.indexOf(s.charAt(i + 3)) : -1;
+      if (a < 0 || b < 0) break;
+      bytes += String.fromCharCode((a << 2) | (b >> 4));
+      if (c >= 0) bytes += String.fromCharCode(((b & 15) << 4) | (c >> 2));
+      if (n >= 0) bytes += String.fromCharCode(((c & 3) << 6) | n);
+    }
+    return utf8Decode(bytes);
+  }
+  // 同步码只含必要字段，最多 30 条；不包含账号或任何 PII，链接本身即凭证
+  function exportSyncCode() {
+    var list = favs().slice(0, 30).map(function (f) {
+      return { id: String(f.id || ''), t: f.t || '', u: f.url || '', p: Number(f.price) || 0, o: Number(f.off) || 0, q: Number(f.quota) || 0, i: f.img || '' };
+    });
+    return 'C1.' + b64urlEncode(JSON.stringify({ v: 1, f: list }));
+  }
+  function importSyncCode(code) {
+    if (typeof code !== 'string' || code.indexOf('C1.') !== 0) return { ok: false, msg: '同步码格式不正确' };
+    var obj;
+    try { obj = JSON.parse(b64urlDecode(code.slice(3))); } catch (e) { return { ok: false, msg: '同步码已损坏，请重新生成' }; }
+    if (!obj || !Array.isArray(obj.f)) return { ok: false, msg: '同步码中没有收藏数据' };
+    var cur = favs(), seen = {}, added = 0;
+    cur.forEach(function (f) { if (f && f.id != null) seen[String(f.id)] = 1; });
+    obj.f.forEach(function (f) {
+      if (!f || !f.id || seen[String(f.id)]) return;
+      cur.push({ id: String(f.id), t: f.t || '', img: f.i || '', url: f.u || '', price: Number(f.p) || 0, quota: Number(f.q) || 0, off: Number(f.o) || 0, at: Date.now() });
+      seen[String(f.id)] = 1;
+      added++;
+    });
+    lsSet(K_FAV, cur.slice(0, FAV_MAX));
+    return { ok: true, added: added, total: Math.min(cur.length, FAV_MAX) };
+  }
+
   /* ------------------------------ 最近看过 ------------------------------ */
   function recent() { return lsGet(K_RECENT); }
 
@@ -1773,6 +2031,7 @@
   global.CouponStore = {
     favs: favs, isFav: isFav, toggleFav: toggleFav, removeFav: removeFav, clearFavs: clearFavs,
     exportFavs: exportFavs, importFavs: importFavs,
+    exportSyncCode: exportSyncCode, importSyncCode: importSyncCode,
     recent: recent, pushRecent: pushRecent, removeRecent: removeRecent, clearRecent: clearRecent,
     searches: searches, pushSearch: pushSearch, clearSearches: clearSearches,
     recommendTerms: recommendTerms, seenIds: seenIds,
@@ -1813,8 +2072,16 @@
   var RANK_LIMIT = 100;
   var TIMEOUT_MS = 12000;   // 单请求超时，超时中断并给出可重试错误态
   var CACHE_TTL = 30000;    // 同参结果短时内存缓存（切 tab 回来不重复打后端）
+  var SEARCH_PAGE_SIZE = 100; // 搜索一次取满（后端上限 100），本地按相关性重排后分页
+  var Q = window.CouponQuality || {};
+  function cleanResult(arr, opts) { return (Q.cleanList || function (a) { return a || []; })(arr, opts); }
+  function dedupeResult(arr) { return (Q.dedupe || function (a) { return a || []; })(arr); }
 
-  var state = { mode: 'rank', period: 'week', search: '', page: 1, hasMore: false, loading: false, sort: '', platform: '', list: [], rankAll: [], rankShown: 0 };
+  var state = {
+    mode: 'rank', period: 'week', search: '', page: 1, hasMore: false, loading: false,
+    sort: '', platform: '', price: '', disc: '', category: '',
+    list: [], rankAll: [], rankShown: 0, searchAll: [], searchShown: 0
+  };
 
   var grid, statusEl, moreBtn, tabs, searchForm, searchInput, sortSelect;
   var recGrid, recSection;
@@ -1970,7 +2237,48 @@
     if (!state.platform) return list;
     return list.filter(function (c) { return (c.platform || 'jd') === state.platform; });
   }
-  function currentView() { return sortList(filterPlat(state.list)); }
+  function matchPrice(c) {
+    if (!state.price) return true;
+    var p = Number(c.price) || 0;
+    if (state.price === 'lt50') return p < 50;
+    if (state.price === 'p50_100') return p >= 50 && p < 100;
+    if (state.price === 'p100_300') return p >= 100 && p < 300;
+    if (state.price === 'gt300') return p >= 300;
+    return true;
+  }
+  function matchDiscount(c) {
+    if (!state.disc) return true;
+    var off = Number(c.couponDiscount) || 0;
+    var quota = Number(c.couponQuota) || 0;
+    var rate = quota > 0 ? (off / quota) * 100 : 0;
+    if (state.disc === 'ge50') return rate >= 50;
+    if (state.disc === 'd20_50') return rate >= 20 && rate < 50;
+    if (state.disc === 'lt20') return rate < 20 || quota <= 0;
+    return true;
+  }
+  var CAT_KW = {
+    digital: '手机', appliance: '家电', home: '收纳', beauty: '面霜', baby: '儿童', food: '零食',
+    apparel: '女装', pet: '猫粮', pc: '笔记本', audio: '耳机', kitchen: '电饭煲', furniture: '书桌',
+    outdoor: '跑步', shoes: '运动鞋', bags: '双肩包', auto: '车载', stationery: '打印',
+    medicine: '保健', game: '游戏', laundry: '洗衣液', 'gaming-chair': '电脑椅'
+  };
+  function matchCategory(c) {
+    if (!state.category) return true;
+    var kw = CAT_KW[state.category] || state.category;
+    var text = String(c.title || '') + ' ' + String(c.category || '') + ' ' + String(c.keywords || '');
+    return text.indexOf(kw) >= 0;
+  }
+  function applyFilters(list) {
+    return list.filter(matchPrice).filter(matchDiscount).filter(matchCategory);
+  }
+  function currentView() { return sortList(applyFilters(filterPlat(state.list))); }
+  function searchView() { return applyFilters(filterPlat(state.searchAll)).slice(0, state.searchShown); }
+  function updateSearchMore() {
+    if (!moreBtn || state.mode !== 'search') return;
+    var left = applyFilters(filterPlat(state.searchAll)).length - state.searchShown;
+    moreBtn.hidden = left <= 0;
+    moreBtn.textContent = '加载更多';
+  }
 
   // 猜你喜欢（M1）：基于本地 recent + searches 信号，对 /random 池做子串匹配重排
   function tokenizeTerm(term) {
@@ -2628,7 +2936,7 @@
       if (err) {
         loadSnapshot(function (snap) {
           if (snap && snap.featured && snap.featured.length) {
-            state.list = snap.featured;
+            state.list = cleanResult(snap.featured);
             render(currentView(), false);
             markStale(true);
             showStatus('⚠ 实时数据暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '），券可能已失效，下单前请核对。');
@@ -2638,13 +2946,13 @@
         });
         return;
       }
-      state.list = pickList(d);
+      state.list = dedupeResult(cleanResult(pickList(d)));
       render(currentView(), false);
     }, { cache: true });
   }
 
   // 榜单本地分页：一次取满 RANK_LIMIT 条存 rankAll，rankShown 控制已展示条数（筛选/排序作用于全量后截断）
-  function rankFiltered() { return sortList(filterPlat(state.rankAll)); }
+  function rankFiltered() { return sortList(applyFilters(filterPlat(state.rankAll))); }
   function rankView() { return rankFiltered().slice(0, state.rankShown); }
   function updateRankMore() {
     if (!moreBtn || state.mode !== 'rank') return;
@@ -2659,6 +2967,7 @@
   }
   // 榜单接口会返回同一商品的多个不同券（同 pict_url/title、不同 tao_id），按商品身份去重，避免首页前排全是同一件
   function dedupeCoupons(arr) {
+    if (Q.dedupe) return Q.dedupe(arr);
     var seen = Object.create(null);
     return (arr || []).filter(function (c) {
       var key = String((c.tao_id != null && c.tao_id !== '') ? c.tao_id : (c.pict_url || c.title || c.item_url || c.couponUrl || '')).trim();
@@ -2668,7 +2977,7 @@
     });
   }
   function setRankData(list) {
-    state.rankAll = dedupeCoupons(list);
+    state.rankAll = dedupeCoupons(cleanResult(list, { keepOrder: true }));
     state.rankShown = Math.min(PAGE_SIZE, state.rankAll.length);
     state.list = state.rankAll;
     render(rankView(), false);
@@ -2709,27 +3018,46 @@
     }, { cache: true });
   }
 
-  // 搜索 / 分页
+  // 搜索：一次取满 100 条 → 本地相关性重排 → 20 条/页本地分页（避免弱相关商品占据首屏）
+  function applySearchResults(list, reset) {
+    state.searchAll = Q.rankByRelevance
+      ? Q.rankByRelevance(dedupeResult(cleanResult(list)), state.search)
+      : dedupeResult(cleanResult(list));
+    state.searchShown = Math.min(PAGE_SIZE, state.searchAll.length);
+    state.list = state.searchAll;
+    render(searchView(), false);
+    updateSearchMore();
+  }
   function loadSearch(reset) {
     var token = reset ? ++viewToken : viewToken;
     state.mode = 'search';
-    if (reset) { state.page = 1; state.list = []; showSkeleton(8); setLoading(true, true); }
-    else setLoading(true);
-    var action = loadActions.search = function () { loadSearch(reset); };
-    var url = buildUrl('/paging', [ [ 'search', state.search ], [ 'page', state.page ], [ 'pageSize', PAGE_SIZE ] ]);
+    if (!reset && state.searchAll.length) {
+      var all = applyFilters(filterPlat(state.searchAll));
+      var prev = state.searchShown;
+      state.searchShown = Math.min(prev + PAGE_SIZE, all.length);
+      render(all.slice(prev, state.searchShown), true);
+      updateSearchMore();
+      return;
+    }
+    state.page = 1;
+    state.searchAll = [];
+    state.searchShown = 0;
+    state.list = [];
+    showSkeleton(8);
+    setLoading(true, true);
+    var action = loadActions.search = function () { loadSearch(true); };
+    var url = buildUrl('/paging', [ [ 'search', state.search ], [ 'page', 1 ], [ 'pageSize', SEARCH_PAGE_SIZE ] ]);
     markStale(false);
     request(url, function (err, d) {
-      if (reset && token !== viewToken) return;
+      if (token !== viewToken) return;
       setLoading(false);
       if (err) {
         var kw = state.search;
         loadSnapshot(function (snap) {
           var arr = (snap && snap.browse) || [];
-          if (kw) arr = arr.filter(function (c) { return (c.title || '').indexOf(kw) >= 0; });
+          if (kw) arr = arr.filter(function (c) { return String(c.title || '').indexOf(kw) >= 0; });
           if (arr.length) {
-            state.page = 1;
-            state.list = arr;
-            render(sortList(arr), false);
+            applySearchResults(arr, true);
             markStale(true);
             showStatus(kw ? ('⚠ 实时搜索暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '）展示匹配「' + kw + '」的券，可能已失效，下单前请核对。') : '⚠ 实时数据暂时不可用，已用构建快照兜底（' + snapStamp(snap) + '），券可能已失效，下单前请核对。');
           } else {
@@ -2738,15 +3066,7 @@
         });
         return;
       }
-      var list = pickList(d);
-      state.list = state.list.concat(list);
-      // 排序生效时追加也全量重排保序；无排序时维持新一页追加
-      var appendMode = !reset && !state.sort;
-      render(sortList(filterPlat(appendMode ? list : state.list)), appendMode);
-      var count = Number(d && d.count) || 0;
-      state.hasMore = state.page * PAGE_SIZE < count;
-      moreBtn.hidden = !(state.hasMore && list.length);
-      moreBtn.textContent = '加载更多';
+      applySearchResults(pickList(d), true);
     }, { cache: false });
   }
 
@@ -2804,9 +3124,36 @@
           return;
         }
         // 搜索态保留已累计的分页结果；尊重平台筛选
-        render(currentView(), false);
+        if (state.mode === 'search' && state.searchAll.length) {
+          state.searchShown = Math.min(PAGE_SIZE, state.searchAll.length);
+          render(searchView(), false);
+          updateSearchMore();
+        } else render(currentView(), false);
       });
     }
+
+    // 组合筛选：价格 / 折扣力度 / 品类（控件不存在时静默跳过）
+    function bindFilter(id, key, attr) {
+      var el = $(id);
+      if (!el) return;
+      state[key] = el.value || '';
+      el.addEventListener('change', function () {
+        state[key] = el.value || '';
+        if (state.mode === 'search' && state.searchAll.length) {
+          state.searchShown = Math.min(PAGE_SIZE, applyFilters(filterPlat(state.searchAll)).length);
+          render(searchView(), false);
+          updateSearchMore();
+        } else if (state.mode === 'rank') {
+          state.rankShown = Math.min(PAGE_SIZE, applyFilters(filterPlat(state.rankAll)).length);
+          render(rankView(), false);
+          updateRankMore();
+        } else if (state.list.length) render(currentView(), false);
+        syncUrl();
+      });
+    }
+    bindFilter('cpPrice', 'price');
+    bindFilter('cpDiscount', 'disc');
+    bindFilter('cpCategory', 'category');
 
     // 搜索/筛选状态写回 URL，支持分享、回退与搜索引擎收录
     function syncUrl() {
@@ -2816,6 +3163,9 @@
       if (state.period && state.period !== 'week') p.set('period', state.period);
       if (state.sort) p.set('sort', state.sort);
       if (state.platform) p.set('platform', state.platform);
+      if (state.price) p.set('price', state.price);
+      if (state.disc) p.set('disc', state.disc);
+      if (state.category) p.set('cat', state.category);
       var qs = p.toString();
       var url = global.location.pathname + (qs ? ('?' + qs) : '');
       global.history.replaceState(null, '', url);
@@ -2823,7 +3173,17 @@
     function applyUrlState() {
       var s = '';
       if (global.URLSearchParams) {
-        try { s = (new URLSearchParams(global.location.search).get('s') || '').trim(); } catch (e) { /* 忽略 */ }
+        try {
+          var q = new URLSearchParams(global.location.search);
+          s = (q.get('s') || '').trim();
+          var pairs = [ [ 'cpPrice', 'price', 'price' ], [ 'cpDiscount', 'disc', 'disc' ], [ 'cpCategory', 'category', 'cat' ] ];
+          pairs.forEach(function (x) {
+            var v = q.get(x[2]) || '';
+            var el = $(x[0]);
+            if (el) el.value = v;
+            state[x[1]] = v;
+          });
+        } catch (e) { /* 忽略 */ }
       }
       if (s) {
         if (searchInput) searchInput.value = s;
@@ -2860,6 +3220,8 @@
         updateRankMore();
         return;
       }
+      // 搜索：100 条已在本地，直接追加下一屏（相关性排序不被后端分页打乱）
+      if (state.mode === 'search') { loadSearch(false); return; }
       if (!state.hasMore) return;
       state.page += 1;
       loadSearch(false);
@@ -2871,10 +3233,7 @@
       try { preKw = (new URLSearchParams(global.location.search).get('s') || '').trim(); } catch (e) { /* 忽略 */ }
     }
     if (preKw) {
-      state.search = preKw;
-      if (searchInput) searchInput.value = preKw;
-      setActiveTab('');
-      loadSearch(true);
+      applyUrlState();
     } else {
       // 默认展示周榜：与 HTML 中默认高亮的「周榜」tab 保持一致（此前加载精选导致 UI 与数据不符）
       setActiveTab('week');

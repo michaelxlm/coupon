@@ -39,7 +39,6 @@ const COUPON_SITE = {
       { label: '领券攻略', url: '/guide.html' },
       { label: '凑单计算器', url: '/calculator.html' },
       { label: '大促日历', url: '/holidays.html' },
-      { label: '双 11 专题', url: '/double11.html' },
       { label: '我的收藏', url: '/favorites.html' },
       { label: '关于与免责', url: '/about.html' },
     ] },

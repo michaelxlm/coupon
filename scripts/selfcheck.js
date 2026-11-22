@@ -14,6 +14,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const Q = require('../assets/js/coupon-quality.js'); // 券质量统一口径：门禁与构建共用同一把尺子
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -288,6 +289,95 @@ function firstJsonLdValid(file) {
     .filter(n => new RegExp('<script[^>]+/assets/js/' + n + '(?:\\.[A-Za-z0-9_-]{8,12})?\\.js').test(html));
   if (scattered.length) err('首页仍有散装脚本引用（应与 bundle 二选一）：' + scattered.join(', '));
   else ok('首页无散装脚本回潮（8 个模块均由 bundle 承载）');
+}
+
+// 12) 券质量门禁：快照内不得混入无券/过期/重复记录
+{
+  const f = path.join(ROOT, 'data', 'coupon-snapshot.json');
+  let snap = null;
+  try { snap = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { err('券快照不可读：' + e.message); }
+  if (snap) {
+    const groups = [['featured', snap.featured], ['browse', snap.browse], ['drops', snap.drops]];
+    ['day', 'week', 'month'].forEach(p => groups.push(['rank.' + p, snap.rank && snap.rank[p]]));
+    Object.keys(snap.category || {}).forEach(k => groups.push(['category.' + k, snap.category[k]]));
+    let bad = 0, dup = 0, total = 0;
+    groups.forEach(function (g) {
+      const list = Array.isArray(g[1]) ? g[1] : [];
+      const keys = new Set();
+      list.forEach(function (c) {
+        total++;
+        if (!Q.hasCoupon(c) || Q.expiryState(c) === 'expired') bad++;
+        const k = Q.dedupeKey(c);
+        if (!k || keys.has(k)) dup++;
+        keys.add(k);
+      });
+    });
+    if (bad) err('券快照含 ' + bad + '/' + total + ' 条无券或已过期记录（应全部可领且在架）');
+    if (dup) err('券快照含 ' + dup + '/' + total + ' 条同款重复记录');
+    if (!bad && !dup) ok('券快照 ' + total + ' 条全部可领、在架且无重复');
+  }
+}
+
+// 13) 品类页门禁：21 个 slug 必须全部生成，且每页至少 3 张券卡或显式标注全网兜底
+{
+  let defs = [];
+  try { defs = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'categories.json'), 'utf8')).categories || []; }
+  catch (e) { err('categories.json 不可读：' + e.message); }
+  let missing = 0, empty = 0;
+  defs.forEach(function (c) {
+    const f = path.join(ROOT, 'cat', c.slug + '.html');
+    if (!fs.existsSync(f)) { missing++; return; }
+    const html = fs.readFileSync(f, 'utf8');
+    const cards = (html.match(/class="cp-card"/g) || []).length;
+    if (cards < 3 && html.indexOf('data-fallback="1"') === -1) empty++;
+  });
+  if (missing || empty) err('品类页异常：缺 ' + missing + ' 个、空页未标注兜底 ' + empty + ' 个');
+  else ok('品类页 ' + defs.length + ' 个全部生成且无空页');
+}
+
+// 14) 双11时效性门禁：非档期必须 noindex 且带归档提示条
+{
+  const month = new Date(Date.now() + 8 * 3600 * 1000).getUTCMonth() + 1;
+  if (month !== 10 && month !== 11) {
+    const html = fs.readFileSync(path.join(ROOT, 'double11.html'), 'utf8');
+    const hasNoindex = /<meta[^>]+name="robots"[^>]*content="[^"]*noindex/i.test(html);
+    if (!hasNoindex || html.indexOf('往期双11专题已归档') === -1) err('非双11档期，专题页未归档（缺 noindex 或提示条）');
+    else ok('双11专题已按档期归档（noindex + 提示条）');
+  } else ok('当前为双11档期，专题页正常收录');
+}
+
+// 15) 省钱攻略页门禁：commercial.json 每个 slug 必须有产物且带 JSON-LD
+{
+  let items = [];
+  try { items = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts', 'commercial.json'), 'utf8')); }
+  catch (e) { warn('commercial.json 不可读：' + e.message); }
+  if (!Array.isArray(items) || !items.length) warn('commercial.json 无条目，跳过 buy 页门禁');
+  else {
+    const missing = items.filter(function (it) {
+      const slug = typeof it === 'string' ? it : it.slug;
+      const f = path.join(ROOT, 'buy', slug + '.html');
+      return !fs.existsSync(f) || fs.readFileSync(f, 'utf8').indexOf('application/ld+json') === -1;
+    });
+    if (missing.length) err('buy 页缺失或 JSON-LD 异常：' + missing.length + ' 个');
+    else ok('buy 页 ' + items.length + ' 个全部生成且含 JSON-LD');
+  }
+}
+
+// 16) sitemap 门禁：核心入口与全部品类页必须在图中
+{
+  let map = '';
+  try { map = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8'); } catch (e) { err('sitemap.xml 不可读：' + e.message); }
+  if (map) {
+    const need = ['/category.html', '/guides.html'];
+    try {
+      JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'categories.json'), 'utf8')).categories.forEach(function (c) {
+        need.push('/cat/' + c.slug + '.html');
+      });
+    } catch (e) { /* 品类门禁已报 */ }
+    const missing = need.filter(function (u) { return map.indexOf(u) === -1; });
+    if (missing.length) err('sitemap 缺少入口 ' + missing.length + ' 个：' + missing.slice(0, 5).join(', '));
+    else ok('sitemap 覆盖核心入口与全部品类页');
+  }
 }
 
 console.log('[selfcheck] 完成：' + errors + ' 错误 / ' + warnings + ' 警告');

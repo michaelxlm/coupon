@@ -51,7 +51,8 @@
     var sum = doc.getElementById('pTrendSummary');
     if (!box) return;
     if (!points) {
-      if (sum) sum.textContent = '暂无历史走势快照（新收录的券快照需累计 2 天以上）';
+      box.innerHTML = '';
+      if (sum) sum.textContent = '该券暂无历史价快照，以商家页为准';
       return;
     }
     var W = 600, H = 160, pad = 26;
@@ -108,8 +109,8 @@
   function wireAlert() {
     var btn = doc.getElementById('pAlert');
     if (!btn || !item.id || !global.CouponStore) return;
-    // web-push 已下线：不再翻「已订阅」假承诺，点击直接发起公众号（服务号）网页授权订阅引导
-    btn.textContent = '订阅降价提醒';
+    // 浏览器推送已下线：点击直接发起服务号订阅引导，到期/大额券由服务号通知
+    btn.textContent = '服务号开启提醒';
     btn.classList.remove('is-on');
     btn.setAttribute('aria-pressed', 'false');
     btn.addEventListener('click', function () {

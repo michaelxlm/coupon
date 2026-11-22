@@ -87,7 +87,7 @@
     if (doc.getElementById('cap-style')) return;
     const css = [
       // 顶层容器：跟宿主 .card 类对齐（用 --radius-lg / --shadow-soft 等变量）
-      '.cap-block{margin:1.5rem 0;padding:1.5rem;border:1px solid var(--color-border,#e2e6eb);border-radius:var(--radius-lg,22px);background:var(--color-surface,#fff);box-shadow:var(--shadow-soft,0 6px 24px rgba(18,23,42,.08))}',
+      '.cap-block{box-sizing:border-box;width:100%;max-width:var(--maxw,var(--ss-maxw,1140px));margin:1.5rem auto;padding:1.5rem;border:1px solid var(--color-border,#e2e6eb);border-radius:var(--radius-lg,22px);background:var(--color-surface,#fff);box-shadow:var(--shadow-soft,0 6px 24px rgba(18,23,42,.08))}',
       '.cap-head{font-size:var(--font-display-size,1.15rem);font-weight:650;color:var(--color-text,#1a1d24);margin:0 0 .25rem;font-family:var(--font-display,inherit)}',
       '.cap-sub{font-size:.95rem;color:var(--color-muted-text,#5f6775);margin:0 0 1rem}',
       '.cap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem}',

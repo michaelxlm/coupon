@@ -497,7 +497,7 @@ function catPageShell(cat, list, isFallback) {
 <html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="keywords" content="${esc('全网' + cat.name + '优惠券,' + cat.name + '券,领券中心,满减券')}">
@@ -720,7 +720,7 @@ function detailPageShell(c, related) {
 <html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="index,follow">
@@ -850,7 +850,7 @@ function detailShellPage() {
 <html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="noindex,follow">
@@ -968,7 +968,7 @@ function dropsPageShell(list) {
 <html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="index,follow">
@@ -1183,7 +1183,7 @@ function guideIndexShell(articles) {
 <html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="index,follow">
@@ -1271,7 +1271,7 @@ function guidePageShell(a, others, detailIdMap) {
 <html lang="zh-CN" data-theme="light" data-theme-default="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}">
   <meta name="robots" content="index,follow">

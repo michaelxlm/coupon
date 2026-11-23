@@ -169,7 +169,7 @@ const SISTER_SITES = [
   { label: '实测手记 · 585.ink', url: 'https://585.ink/?src=hub' },
   { label: '年表拾遗 · 20101115.com', url: 'https://20101115.com/?src=hub' },
   { label: '小满券仓 · coupon.zangeng.com', url: 'https://coupon.zangeng.com/?src=hub' },
-  { label: '一成长笔记 · xuyiheng.com', url: 'https://xuyiheng.com/?src=hub' },
+  { label: '一珩成长笔记 · xuyiheng.com', url: 'https://xuyiheng.com/?src=hub' },
   { label: '东北电动车汇 · store.fangkelianmeng.com', url: 'https://store.fangkelianmeng.com/?src=hub' },
 ];
 

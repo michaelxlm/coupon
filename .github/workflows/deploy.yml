@@ -6,6 +6,11 @@ name: Deploy coupon.zangeng.com
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '.workbuddy/**'
+      - '.idea/**'
+      - '.gitignore'
+      - '.gitattributes'
   # 定时重建：优惠券时效短，每 4 小时重建让百度等爬虫抓到新鲜券
   # （UTC 每 4h 的 :20 ≈ 北京 08:20 / 12:20 / 16:20 / 20:20 / 00:20 / 04:20，构建快照最长约 4h 即刷新）
   schedule:
@@ -13,9 +18,75 @@ on:
   # 允许从管理端（GitHub API workflow_dispatch）手动触发部署，无需重新 push
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-coupon-zangeng-com
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  preflight:
+    if: github.event_name == 'schedule' && github.repository == 'michaelxlm/coupon'
     runs-on: [self-hosted, linux, x64, static-deploy]
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - name: Skip duplicate scheduled rebuild
+        id: check
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEDUPE_HOURS: '3'
+          DEDUPE_EVENTS: 'schedule,workflow_dispatch'
+        run: |
+          set -euo pipefail
+          NODE=/www/server/nodejs/v20.18.3/bin/node
+          [ -x "$NODE" ] || NODE=node
+          "$NODE" <<'NODE'
+          const fs = require('fs');
+          (async () => {
+            let run = true;
+            try {
+              const hours = Number(process.env.DEDUPE_HOURS || 3);
+              const events = (process.env.DEDUPE_EVENTS || '').split(',').filter(Boolean);
+              const api = process.env.GITHUB_API_URL || 'https://api.github.com';
+              const repo = process.env.GITHUB_REPOSITORY;
+              const res = await fetch(`${api}/repos/${repo}/actions/workflows/deploy.yml/runs?per_page=30`, {
+                headers: {
+                  Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+                  Accept: 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                },
+              });
+              if (!res.ok) throw new Error(`GitHub API HTTP ${res.status}`);
+              const data = await res.json();
+              const recent = (data.workflow_runs || []).find(r =>
+                String(r.id) !== process.env.GITHUB_RUN_ID &&
+                r.conclusion === 'success' &&
+                Date.parse(r.run_started_at || r.created_at) >= Date.now() - hours * 3600000 &&
+                (!events.length || events.includes(r.event))
+              );
+              if (recent) {
+                run = false;
+                console.log(`::notice::${hours} 小时内已有成功的定时/手动重建 #${recent.run_number}，跳过本次定时构建。`);
+              }
+            } catch (error) {
+              console.log(`::warning::定时去重查询失败，按正常构建继续: ${error.message}`);
+            }
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `run=${run}\n`);
+          })();
+          NODE
+  deploy:
+    needs: preflight
+    if: >-
+      github.repository == 'michaelxlm/coupon' &&
+      always() &&
+      (github.event_name != 'schedule' || needs.preflight.outputs.run == 'true')
+    runs-on: [self-hosted, linux, x64, static-deploy]
+    timeout-minutes: 150
     steps:
       - name: Configure SSH for GitHub checkout
         shell: bash
@@ -27,8 +98,10 @@ jobs:
           ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /root/.ssh/known_hosts 2>/dev/null
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
           # 强制清理工作树：前次构建会改写源码树(list-page.js 等)，若不复位会用陈旧源码被指纹化
           clean: true
+          fetch-depth: 1
       - name: "Install @xuyiheng/static-build-kit (WO-164 ④ private file: dep)"
         shell: bash
         env:
@@ -101,6 +174,7 @@ jobs:
       - name: Sync to /www/wwwroot/coupon.zangeng.com
         shell: bash
         run: |
+          set -o pipefail
           tar cf - --exclude=.git --exclude=.github --exclude=.user.ini --exclude=.workbuddy --exclude=deploy --exclude=node_modules --exclude=package-lock.json . | ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=accept-new root@60.205.214.88 "mkdir -p /www/wwwroot/coupon.zangeng.com ; cd /www/wwwroot/coupon.zangeng.com ; tar xmf -"
       - name: Prune stale /p/ shells on remote (sitemap diff)
         shell: bash

@@ -122,7 +122,17 @@ function resolveMode() {
  * ========================================================================== */
 function runManifest() {
   const ASSETS = path.join(ROOT, 'assets');
-  const SEARCH_DIRS = ['css', 'css/pages', 'js', 'js/pages'].map((d) => path.join(ASSETS, d));
+  const SEARCH_DIRS = ['css', 'js'].map((d) => path.join(ASSETS, d));
+
+  function collect(dir, out = []) {
+    if (!fs.existsSync(dir)) return out;
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) collect(full, out);
+      else out.push(full);
+    }
+    return out;
+  }
 
   function hashFile(file) {
     const buf = fs.readFileSync(file);
@@ -132,7 +142,8 @@ function runManifest() {
   const manifest = {};
   SEARCH_DIRS.forEach((dir) => {
     if (!fs.existsSync(dir)) return;
-    fs.readdirSync(dir).forEach((f) => {
+    collect(dir).forEach((file) => {
+      const f = path.basename(file);
       // WO-210：资产版本化统一。manifest 模式此前只哈希 .min.* 资源，导致 mp-slot.js（及合并后的
       // slot-loader.js）等非 .min SDK 资源未带 ?v= 版本令牌（mp-slot.js 缺口即源于此）。这里把合并
       // 加载器 slot-loader.js 与小程序码位组件 mp-slot.js 显式纳入版本化，其余 .min.* 行为不变。
@@ -142,7 +153,7 @@ function runManifest() {
       // 若某页仍直接引用 img-slot.js（而非合并的 slot-loader.js），它就会是裸引用、被长缓存钉死。
       // 四个 slot 模块（ad/coupon/img/mp）非 .min 形态统一纳入，名单与 site-sdk 的 SLOT_MODULES 对齐。
       if (!/\.min\.(css|js)$/.test(f) && !/^(ad-slots|coupon-slot|img-slot|slot-loader|mp-slot|tracker|combo-popularity)\.js$/.test(f)) return;
-      const abs = path.join(dir, f);
+      const abs = file;
       const rel = '/' + path.relative(ROOT, abs).replace(/\\/g, '/');
       manifest[rel] = hashFile(abs);
     });

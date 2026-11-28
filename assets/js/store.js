@@ -21,6 +21,9 @@
   var FAV_MAX = 100;
   var RECENT_MAX = 24;
   var SEARCH_MAX = 10;
+  var ALERT_MAX = 50;
+  var ALERT_IMPORT_MAX_BYTES = 512 * 1024;
+  var ALERT_STALE_MS = 180 * 24 * 3600 * 1000;
 
   function lsGet(key) {
     try {
@@ -31,7 +34,7 @@
   }
 
   function lsSet(key, arr) {
-    try { global.localStorage.setItem(key, JSON.stringify(arr)); } catch (e) { /* 无痕/满配额：静默降级 */ }
+    try { global.localStorage.setItem(key, JSON.stringify(arr)); return true; } catch (e) { return false; }
   }
 
   /* ------------------------------- 快照工具 ------------------------------- */
@@ -267,10 +270,97 @@
       });
       on = true;
     }
-    lsSet(K_ALERT, list.slice(0, 50));
+    lsSet(K_ALERT, list.slice(0, ALERT_MAX));
     syncAlert(on ? 'subscribe' : 'unsubscribe', item);
     return on;
   }
+  // 导出/导入只操作本机清单，不调用 syncAlert，也不代表公众号服务号订阅已迁移。
+  function exportAlerts() {
+    return JSON.stringify({
+      v: 1, type: 'price-alerts', site: MAIN_URL, exportedAt: new Date().toISOString(), alerts: alerts(),
+    });
+  }
+
+  function alertNumber(value) {
+    if (value == null || value === '') return 0;
+    var n = Number(value);
+    return isFinite(n) && n >= 0 ? n : null;
+  }
+
+  function alertText(value, max) {
+    return typeof value === 'string' ? value.slice(0, max) : '';
+  }
+
+  function normalizeImportedAlert(item, now) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+    var id = alertText(item.id, 200).trim();
+    if (!id) return null;
+    var price = alertNumber(item.price);
+    var quota = alertNumber(item.quota);
+    var off = alertNumber(item.off);
+    var baseline = item.baseline && typeof item.baseline === 'object' ? item.baseline : {};
+    var basePrice = alertNumber(baseline.price);
+    var baseQuota = alertNumber(baseline.quota);
+    var baseOff = alertNumber(baseline.couponDiscount);
+    if ([ price, quota, off, basePrice, baseQuota, baseOff ].indexOf(null) >= 0) return null;
+    var url = alertText(item.url, 2048);
+    var img = alertText(item.img, 2048);
+    if (url && !/^https?:\/\/\S+$/i.test(url)) return null;
+    if (img && !/^(?:https?:\/\/|\/)[^\s]+$/i.test(img)) return null;
+    var ts = Number(item.ts);
+    return {
+      id: id, did: alertText(item.did, 200), t: alertText(item.t, 300), img: img, url: url,
+      price: price, quota: quota, off: off,
+      baseline: { price: basePrice == null ? price : basePrice, quota: baseQuota == null ? quota : baseQuota, couponDiscount: baseOff == null ? off : baseOff },
+      ts: isFinite(ts) && ts > 0 ? ts : now,
+    };
+  }
+
+  function previewAlerts(text) {
+    if (typeof text !== 'string' || !text.trim()) return { ok: false, msg: '请选择备份文件' };
+    var bytes = global.Blob ? new global.Blob([ text ]).size : text.length;
+    if (bytes > ALERT_IMPORT_MAX_BYTES) return { ok: false, msg: '文件超过 512KB，请减少订阅记录后重试' };
+    var obj;
+    try { obj = JSON.parse(text); } catch (e) { return { ok: false, msg: '不是合法的 JSON 文件' }; }
+    var arr = Array.isArray(obj) ? obj : (obj && obj.v === 1 && obj.type === 'price-alerts' && Array.isArray(obj.alerts) ? obj.alerts : null);
+    if (!arr) return { ok: false, msg: '文件不是降价提醒备份（仅支持 v1 / price-alerts）' };
+    var now = Date.now(), valid = [], seen = Object.create(null), duplicates = 0, invalid = 0, expired = 0;
+    arr.forEach(function (raw) {
+      var item = normalizeImportedAlert(raw, now);
+      if (!item) { invalid++; return; }
+      var end = Number(raw.couponEndTime || raw.endTime || 0);
+      if ((end > 0 && (end < 1e12 ? end * 1000 : end) <= now) || now - item.ts > ALERT_STALE_MS) { expired++; return; }
+      if (seen[item.id]) { duplicates++; return; }
+      seen[item.id] = 1;
+      valid.push(item);
+    });
+    var existing = Object.create(null);
+    alerts().forEach(function (item) { if (item && item.id != null) existing[String(item.id)] = 1; });
+    var existingDuplicates = valid.filter(function (item) { return existing[item.id]; }).length;
+    return {
+      ok: valid.length > 0, alerts: valid, valid: valid.length, invalid: invalid, duplicates: duplicates,
+      existingDuplicates: existingDuplicates, expired: expired, overflow: Math.max(0, valid.length - ALERT_MAX),
+      msg: valid.length ? '' : '没有可导入的有效订阅记录',
+    };
+  }
+
+  function importAlerts(text, mode) {
+    if (mode !== 'merge' && mode !== 'replace') return { ok: false, msg: '请选择合并或替换模式' };
+    var preview = previewAlerts(text);
+    if (!preview.ok) return { ok: false, msg: preview.msg };
+    var current = alerts(), next = mode === 'replace' ? [] : current.slice();
+    var seen = Object.create(null);
+    next.forEach(function (item) { if (item && item.id != null) seen[String(item.id)] = 1; });
+    preview.alerts.forEach(function (item) {
+      if (seen[item.id]) return;
+      next.push(item);
+      seen[item.id] = 1;
+    });
+    next = next.slice(0, ALERT_MAX);
+    if (!lsSet(K_ALERT, next)) return { ok: false, msg: '浏览器禁止本地存储或空间不足，订阅清单未修改' };
+    return { ok: true, added: next.length - Math.min(current.length, ALERT_MAX), total: next.length, mode: mode };
+  }
+
   function syncAlert(action, item) {
     var dev = global.Tracker && global.Tracker.visitorId ? global.Tracker.visitorId() : '';
     if (!dev) return;
@@ -511,6 +601,7 @@
     searches: searches, pushSearch: pushSearch, clearSearches: clearSearches,
     recommendTerms: recommendTerms, seenIds: seenIds,
     alerts: alerts, isAlert: isAlert, toggleAlert: toggleAlert, attachAlert: attachAlert,
+    exportAlerts: exportAlerts, previewAlerts: previewAlerts, importAlerts: importAlerts, ALERT_MAX: ALERT_MAX,
     showRemindGuide: showRemindGuide, remindNow: remindNow,
     isWeixin: isWeixin, fetchOaConfig: function (type) { return fetchJson(oaConfigUrl(type || 'expiry')); },
     itemFromCard: itemFromCard, attachStar: attachStar, enhance: enhance,

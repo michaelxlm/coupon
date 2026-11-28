@@ -123,6 +123,38 @@
     return o.keepOrder ? out : sortByValue(out);
   }
 
+  // 原始快照用于审计；对客快照必须另行投影，不能把历史脏记录直接交给页面。
+  function projectCustomerSnapshot(snapshot, now) {
+    var src = snapshot && typeof snapshot === 'object' ? snapshot : {};
+    var at = now || Date.now();
+    var out = {}, rawTotal = 0, customerTotal = 0;
+    function projectList(list, keepOrder) {
+      var raw = Array.isArray(list) ? list : [];
+      rawTotal += raw.length;
+      var clean = raw.filter(function (c) { return hasCoupon(c) && expiryState(c, at) !== 'expired'; });
+      clean = dedupe(clean);
+      customerTotal += clean.length;
+      return keepOrder ? clean : sortByValue(clean);
+    }
+    out.updatedAt = src.updatedAt || new Date(at).toISOString();
+    out.featured = projectList(src.featured);
+    out.browse = projectList(src.browse);
+    out.drops = projectList(src.drops);
+    out.rank = {};
+    [ 'day', 'week', 'month' ].forEach(function (period) {
+      out.rank[period] = projectList(src.rank && src.rank[period], true);
+    });
+    out.category = {};
+    Object.keys(src.category || {}).forEach(function (key) { out.category[key] = projectList(src.category[key]); });
+    var usableIds = Object.create(null);
+    [ out.featured, out.browse, out.drops ].concat(Object.keys(out.rank).map(function (k) { return out.rank[k]; }))
+      .concat(Object.keys(out.category).map(function (k) { return out.category[k]; }))
+      .forEach(function (list) { list.forEach(function (c) { if (c && c._id) usableIds[String(c._id)] = 1; }); });
+    out.detailIds = (Array.isArray(src.detailIds) ? src.detailIds : []).map(String).filter(function (id) { return usableIds[id]; });
+    out.quality = { rawTotal: rawTotal, customerTotal: customerTotal, removed: rawTotal - customerTotal };
+    return out;
+  }
+
   /** 搜索相关性：标题前缀 > 标题包含 > 简介包含；券额与新鲜度做小幅加权 */
   function relevanceScore(c, kw) {
     if (!c || !kw) return saveScore(c);
@@ -172,6 +204,7 @@
     dedupe: dedupe,
     sortByValue: sortByValue,
     cleanList: cleanList,
+    projectCustomerSnapshot: projectCustomerSnapshot,
     relevanceScore: relevanceScore,
     rankByRelevance: rankByRelevance,
     platformLabel: platformLabel,
@@ -207,7 +240,7 @@
   'use strict';
 
   // SDK 版本：所有接入项目必须保持一致（由 scripts/check-tracker-consistency.js 守卫）
-  var SDK_VERSION = '2.5.0'; // 2.5.0 WO-336：JS 错误（同步 + Promise + 资源加载）上报 + 频率控制
+  var SDK_VERSION = '2.5.1'; // 2.5.1 WO-336：补捕获阶段资源加载错误（window.onerror 收不到）；2.5.0 JS 错误 + 限流
 
   var CONFIG = {
     // 上报端点（中台统一埋点端点）
@@ -586,11 +619,26 @@
     } catch (e) { /* 错误捕获与上报失败均不能影响页面 */ }
   }
 
+  function reportResourceError(source, message) {
+    var src = String(source || '').slice(0, 256);
+    // 资源指纹按 URL 区分：不同资源各自限 5 条 / 5 分钟，避免共用 message 相互误吞。
+    // 真实浏览器中资源错误不冒泡到 onerror，捕获阶段与兜底路径不会双触发，无需额外去重。
+    if (!shouldReportError(fingerprintError('resource', src))) return;
+    reportJsError({
+      type: 'resource',
+      message: String(message || 'Failed to load resource').slice(0, 512),
+      source: src,
+      lineno: 0,
+      colno: 0,
+    });
+  }
+
   function initJsError() {
     try {
       var previousOnError = global.onerror;
-      // 1. 同步 JS 错误 + 资源加载错误。资源 ErrorEvent 通常没有 error 对象，
-      //    据此避免把 app.js 内真实运行异常误判成资源加载失败。
+      // 1. 同步 JS 错误（+ 旧环境经 onerror 冒泡的资源错误兜底）。
+      //    资源 ErrorEvent 通常没有 error 对象，据此避免把 app.js 内真实运行异常误判成资源加载失败。
+      //    现代浏览器资源错误只在捕获阶段派发，见下方 1b。
       global.onerror = function (message, source, lineno, colno, error) {
         var delegated;
         if (typeof previousOnError === 'function') {
@@ -600,25 +648,43 @@
         try {
           var isResource = !error && typeof source === 'string'
             && /\.(?:js|css|png|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|eot)(?:[?#]|$)/i.test(source);
-          var type = isResource ? 'resource' : 'script';
-          var msg = typeof message === 'string' ? message : (error && error.message) ? error.message : String(message);
-          var fp = fingerprintError(type, msg);
-          if (shouldReportError(fp)) {
-            var props = {
-              type: type,
-              message: String(msg).slice(0, 512),
-              source: (source || '').toString().slice(0, 256),
-              lineno: lineno || 0,
-              colno: colno || 0,
-            };
-            // 带 stack（截断到 8KB 防膨胀）
-            if (error && error.stack) props.stack = String(error.stack).slice(0, 8192);
-            reportJsError(props);
+          if (isResource) {
+            reportResourceError(source, message);
+          } else {
+            var msg = typeof message === 'string' ? message : (error && error.message) ? error.message : String(message);
+            var fp = fingerprintError('script', msg);
+            if (shouldReportError(fp)) {
+              var props = {
+                type: 'script',
+                message: String(msg).slice(0, 512),
+                source: (source || '').toString().slice(0, 256),
+                lineno: lineno || 0,
+                colno: colno || 0,
+              };
+              // 带 stack（截断到 8KB 防膨胀）
+              if (error && error.stack) props.stack = String(error.stack).slice(0, 8192);
+              reportJsError(props);
+            }
           }
         } catch (e) { /* 错误消息 / 来源 / stack 读取失败也不能影响页面 */ }
         // 返回 undefined 保留浏览器默认控制台输出；仅旧 handler 明确返回 true 时抑制。
         return suppressDefault ? true : undefined;
       };
+
+      // 1b. 资源加载错误（img / script / link / video / audio …）：真实浏览器中此类错误
+      //     不冒泡到 window.onerror，只在捕获阶段可达；target 为具体元素、src/href 为资源地址。
+      //     仅处理带 src/href 的元素，避免与上面的 script 分类重复或误伤普通 ErrorEvent。
+      try {
+        global.addEventListener('error', function (e) {
+          try {
+            var target = e && e.target;
+            if (!target || target === global || target === global.document) return;
+            var src = target.src || target.href || target.currentSrc || '';
+            if (!src) return;
+            reportResourceError(src, 'Failed to load resource: ' + String(src));
+          } catch (err) { /* 资源错误信息读取失败不影响页面 */ }
+        }, true);
+      } catch (e) { /* 环境不支持捕获阶段监听时跳过，不阻断 onerror 路径 */ }
 
       // 2. Promise 未捕获拒绝
       global.addEventListener('unhandledrejection', function (e) {
@@ -1562,6 +1628,9 @@
   var FAV_MAX = 100;
   var RECENT_MAX = 24;
   var SEARCH_MAX = 10;
+  var ALERT_MAX = 50;
+  var ALERT_IMPORT_MAX_BYTES = 512 * 1024;
+  var ALERT_STALE_MS = 180 * 24 * 3600 * 1000;
 
   function lsGet(key) {
     try {
@@ -1572,7 +1641,7 @@
   }
 
   function lsSet(key, arr) {
-    try { global.localStorage.setItem(key, JSON.stringify(arr)); } catch (e) { /* 无痕/满配额：静默降级 */ }
+    try { global.localStorage.setItem(key, JSON.stringify(arr)); return true; } catch (e) { return false; }
   }
 
   /* ------------------------------- 快照工具 ------------------------------- */
@@ -1808,10 +1877,97 @@
       });
       on = true;
     }
-    lsSet(K_ALERT, list.slice(0, 50));
+    lsSet(K_ALERT, list.slice(0, ALERT_MAX));
     syncAlert(on ? 'subscribe' : 'unsubscribe', item);
     return on;
   }
+  // 导出/导入只操作本机清单，不调用 syncAlert，也不代表公众号服务号订阅已迁移。
+  function exportAlerts() {
+    return JSON.stringify({
+      v: 1, type: 'price-alerts', site: MAIN_URL, exportedAt: new Date().toISOString(), alerts: alerts(),
+    });
+  }
+
+  function alertNumber(value) {
+    if (value == null || value === '') return 0;
+    var n = Number(value);
+    return isFinite(n) && n >= 0 ? n : null;
+  }
+
+  function alertText(value, max) {
+    return typeof value === 'string' ? value.slice(0, max) : '';
+  }
+
+  function normalizeImportedAlert(item, now) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+    var id = alertText(item.id, 200).trim();
+    if (!id) return null;
+    var price = alertNumber(item.price);
+    var quota = alertNumber(item.quota);
+    var off = alertNumber(item.off);
+    var baseline = item.baseline && typeof item.baseline === 'object' ? item.baseline : {};
+    var basePrice = alertNumber(baseline.price);
+    var baseQuota = alertNumber(baseline.quota);
+    var baseOff = alertNumber(baseline.couponDiscount);
+    if ([ price, quota, off, basePrice, baseQuota, baseOff ].indexOf(null) >= 0) return null;
+    var url = alertText(item.url, 2048);
+    var img = alertText(item.img, 2048);
+    if (url && !/^https?:\/\/\S+$/i.test(url)) return null;
+    if (img && !/^(?:https?:\/\/|\/)[^\s]+$/i.test(img)) return null;
+    var ts = Number(item.ts);
+    return {
+      id: id, did: alertText(item.did, 200), t: alertText(item.t, 300), img: img, url: url,
+      price: price, quota: quota, off: off,
+      baseline: { price: basePrice == null ? price : basePrice, quota: baseQuota == null ? quota : baseQuota, couponDiscount: baseOff == null ? off : baseOff },
+      ts: isFinite(ts) && ts > 0 ? ts : now,
+    };
+  }
+
+  function previewAlerts(text) {
+    if (typeof text !== 'string' || !text.trim()) return { ok: false, msg: '请选择备份文件' };
+    var bytes = global.Blob ? new global.Blob([ text ]).size : text.length;
+    if (bytes > ALERT_IMPORT_MAX_BYTES) return { ok: false, msg: '文件超过 512KB，请减少订阅记录后重试' };
+    var obj;
+    try { obj = JSON.parse(text); } catch (e) { return { ok: false, msg: '不是合法的 JSON 文件' }; }
+    var arr = Array.isArray(obj) ? obj : (obj && obj.v === 1 && obj.type === 'price-alerts' && Array.isArray(obj.alerts) ? obj.alerts : null);
+    if (!arr) return { ok: false, msg: '文件不是降价提醒备份（仅支持 v1 / price-alerts）' };
+    var now = Date.now(), valid = [], seen = Object.create(null), duplicates = 0, invalid = 0, expired = 0;
+    arr.forEach(function (raw) {
+      var item = normalizeImportedAlert(raw, now);
+      if (!item) { invalid++; return; }
+      var end = Number(raw.couponEndTime || raw.endTime || 0);
+      if ((end > 0 && (end < 1e12 ? end * 1000 : end) <= now) || now - item.ts > ALERT_STALE_MS) { expired++; return; }
+      if (seen[item.id]) { duplicates++; return; }
+      seen[item.id] = 1;
+      valid.push(item);
+    });
+    var existing = Object.create(null);
+    alerts().forEach(function (item) { if (item && item.id != null) existing[String(item.id)] = 1; });
+    var existingDuplicates = valid.filter(function (item) { return existing[item.id]; }).length;
+    return {
+      ok: valid.length > 0, alerts: valid, valid: valid.length, invalid: invalid, duplicates: duplicates,
+      existingDuplicates: existingDuplicates, expired: expired, overflow: Math.max(0, valid.length - ALERT_MAX),
+      msg: valid.length ? '' : '没有可导入的有效订阅记录',
+    };
+  }
+
+  function importAlerts(text, mode) {
+    if (mode !== 'merge' && mode !== 'replace') return { ok: false, msg: '请选择合并或替换模式' };
+    var preview = previewAlerts(text);
+    if (!preview.ok) return { ok: false, msg: preview.msg };
+    var current = alerts(), next = mode === 'replace' ? [] : current.slice();
+    var seen = Object.create(null);
+    next.forEach(function (item) { if (item && item.id != null) seen[String(item.id)] = 1; });
+    preview.alerts.forEach(function (item) {
+      if (seen[item.id]) return;
+      next.push(item);
+      seen[item.id] = 1;
+    });
+    next = next.slice(0, ALERT_MAX);
+    if (!lsSet(K_ALERT, next)) return { ok: false, msg: '浏览器禁止本地存储或空间不足，订阅清单未修改' };
+    return { ok: true, added: next.length - Math.min(current.length, ALERT_MAX), total: next.length, mode: mode };
+  }
+
   function syncAlert(action, item) {
     var dev = global.Tracker && global.Tracker.visitorId ? global.Tracker.visitorId() : '';
     if (!dev) return;
@@ -2052,6 +2208,7 @@
     searches: searches, pushSearch: pushSearch, clearSearches: clearSearches,
     recommendTerms: recommendTerms, seenIds: seenIds,
     alerts: alerts, isAlert: isAlert, toggleAlert: toggleAlert, attachAlert: attachAlert,
+    exportAlerts: exportAlerts, previewAlerts: previewAlerts, importAlerts: importAlerts, ALERT_MAX: ALERT_MAX,
     showRemindGuide: showRemindGuide, remindNow: remindNow,
     isWeixin: isWeixin, fetchOaConfig: function (type) { return fetchJson(oaConfigUrl(type || 'expiry')); },
     itemFromCard: itemFromCard, attachStar: attachStar, enhance: enhance,

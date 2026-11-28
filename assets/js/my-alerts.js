@@ -129,6 +129,76 @@
     });
   }
 
+  /* ------------------------------ 本机订阅迁移 ------------------------------ */
+  var transferText = '', transferPreview = null;
+
+  function resetTransferPreview() {
+    transferText = '';
+    transferPreview = null;
+    var confirm = $('alertImportConfirm');
+    if (confirm) confirm.hidden = true;
+  }
+
+  function transferStatus(text) {
+    var status = $('alertTransferStatus');
+    if (status) status.textContent = text;
+  }
+
+  function initTransfer() {
+    var CS = global.CouponStore;
+    if (!CS || !CS.previewAlerts || !CS.importAlerts) return;
+    var file = $('alertImportFile'), previewBtn = $('alertPreview'), mode = $('alertImportMode');
+    var exportBtn = $('alertExport'), confirmBtn = $('alertImportConfirm');
+    if (exportBtn) exportBtn.addEventListener('click', function () {
+      try {
+        var blob = new Blob([ CS.exportAlerts() ], { type: 'application/json;charset=utf-8' });
+        var url = URL.createObjectURL(blob), link = doc.createElement('a');
+        link.href = url;
+        link.download = 'coupon-price-alerts-' + new Date().toISOString().slice(0, 10) + '.json';
+        doc.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        transferStatus('备份已生成，请妥善保存；文件包含订阅券的名称、图片和链接。');
+      } catch (e) { transferStatus('导出失败，请检查浏览器下载权限。'); }
+    });
+    if (file) file.addEventListener('change', function () {
+      resetTransferPreview();
+      transferStatus('');
+      if (!file.files || !file.files.length) { if (previewBtn) previewBtn.disabled = true; return; }
+      if (file.files[0].size > 512 * 1024) { transferStatus('文件超过 512KB，未读取。'); if (previewBtn) previewBtn.disabled = true; return; }
+      var reader = new FileReader();
+      reader.onload = function () {
+        transferText = String(reader.result || '');
+        if (previewBtn) previewBtn.disabled = false;
+        transferStatus('文件已读取，请点击「预览导入」；当前订阅清单尚未修改。');
+      };
+      reader.onerror = function () { transferStatus('文件读取失败，请重新选择。'); };
+      reader.readAsText(file.files[0]);
+    });
+    if (mode) mode.addEventListener('change', resetTransferPreview);
+    if (previewBtn) previewBtn.addEventListener('click', function () {
+      transferPreview = CS.previewAlerts(transferText);
+      if (!transferPreview.ok) { transferStatus(transferPreview.msg); if (confirmBtn) confirmBtn.hidden = true; return; }
+      var summary = '有效 ' + transferPreview.valid + ' 条；本机已有 ' + transferPreview.existingDuplicates +
+        ' 条；文件内重复 ' + transferPreview.duplicates + ' 条；损坏 ' + transferPreview.invalid +
+        ' 条；明确过期或超过 180 天 ' + transferPreview.expired + ' 条；超出 50 条上限 ' + transferPreview.overflow + ' 条。';
+      if (mode && mode.value === 'replace') summary += ' 替换模式会丢弃本机现有订阅。';
+      else summary += ' 合并模式保留本机现有订阅，同 id 不重复添加。';
+      transferStatus(summary);
+      if (confirmBtn) confirmBtn.hidden = false;
+    });
+    if (confirmBtn) confirmBtn.addEventListener('click', function () {
+      if (!transferPreview) return;
+      if (mode && mode.value === 'replace' && !global.confirm('替换后将丢弃本机现有订阅。确认继续？')) return;
+      var result = CS.importAlerts(transferText, mode ? mode.value : 'merge');
+      if (!result.ok) { transferStatus(result.msg); return; }
+      transferStatus('导入完成：共 ' + result.total + ' 条，新增 ' + result.added + ' 条。未调用订阅接口。');
+      resetTransferPreview();
+      render();
+    });
+  }
+
   // 非微信环境：引导卡内联展示服务号关注二维码（微信内走一键授权，不展示）
   function initFollowGuide() {
     var CS = global.CouponStore;
@@ -148,6 +218,7 @@
       btn.addEventListener('click', function () { global.CouponStore.showRemindGuide(); });
     }
     initFollowGuide();
+    initTransfer();
     loadDetailIds(render);
   }
 

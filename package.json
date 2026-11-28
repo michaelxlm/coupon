@@ -9,7 +9,7 @@
     "fingerprint": "node scripts/fingerprint.js",
     "selfcheck": "node scripts/selfcheck.js",
     "check:jsonld": "node scripts/check-jsonld.js",
-    "test": "node scripts/selfcheck.js && node scripts/check-jsonld.js"
+    "test": "node --test test/*.test.js && node scripts/selfcheck.js && node scripts/check-jsonld.js"
   },
   "engines": {
     "node": ">=18"

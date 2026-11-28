@@ -904,6 +904,16 @@ body[data-page="coupon"] .cp-list-section { padding-top: 10px; }
 .cp-top-more:hover { text-decoration: underline; }
 
 /* ------------------------- 降价提醒中心 /my-alerts.html（web-push 已下线 → 关注公众号引导） ------------------------- */
+.ma-transfer { border: 1px solid var(--border); border-radius: var(--radius, 12px); background: var(--surface); padding: 16px; }
+.ma-transfer h2 { margin: 0 0 8px; font-size: 1.125rem; }
+.ma-transfer p { margin: 6px 0 0; color: var(--text-muted); font-size: 0.875rem; line-height: 1.6; }
+.ma-transfer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.ma-transfer-actions select { max-width: 100%; min-height: 34px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); padding: 5px 8px; font: inherit; font-size: 0.8125rem; }
+.ma-file-label { cursor: pointer; }
+.ma-file-label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ma-transfer-status { min-height: 1.6em; }
+.ma-transfer-status:empty { min-height: 0; }
+.ma-transfer-actions [hidden] { display: none; }
 /* 原 W5 底部推送引导条（.pg-banner / initPushGuide）已随 web-push 下线移除 */
 .ma-guide { border: 1px solid var(--border); border-radius: var(--radius, 12px); background: var(--surface); padding: 16px; }
 .ma-guide-head { display: flex; align-items: flex-start; gap: 12px; }

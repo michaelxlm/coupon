@@ -1361,13 +1361,14 @@ function writeSitemap(slugs, detailIds, guideSlugs, topicSlugs, buySlugs) {
 
 // 运行时节点的兜底快照：写盘 data/coupon-snapshot.json（nginx 已放行），
 // 前端 coupon-page.js / list-page.js 在后端 fetch 失败时用它渲染最近一次成功取到的券。
-function writeSnapshot(obj) {
+function writeSnapshot(obj, filename) {
   try {
     const dir = path.join(ROOT, 'data');
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'coupon-snapshot.json'), JSON.stringify(obj));
-    console.log('[build] coupon-snapshot.json 已生成（updatedAt=' + obj.updatedAt + '）');
-  } catch (e) { console.warn('[build] 写 coupon-snapshot.json 失败（忽略）：', e.message); }
+    const name = filename || 'coupon-snapshot.json';
+    fs.writeFileSync(path.join(dir, name), JSON.stringify(obj));
+    console.log('[build] ' + name + ' 已生成（updatedAt=' + obj.updatedAt + '）');
+  } catch (e) { console.warn('[build] 写 ' + (filename || 'coupon-snapshot.json') + ' 失败（忽略）：', e.message); }
 }
 
 /* ---- 同源广告数据：绕过线上被封禁的 /data/ ----
@@ -1538,7 +1539,9 @@ async function run() {
       // my-alerts.js 详情链接白名单：只对已生成 /p/<id> 的券给「详情」入口，避免 404
       detailIds: snapshotDetailIds,
     };
-    writeSnapshot(snapObj);
+    // 原始快照留档供审计；页面只消费独立投影，避免历史无券/过期/重复记录泄漏。
+    writeSnapshot(snapObj, 'coupon-snapshot.raw.json');
+    writeSnapshot(Q.projectCustomerSnapshot(snapObj), 'coupon-snapshot.json');
     // 2.6b) WO-189 跨平台比价产物：紧随快照用同一次数据刷新离线比价表，
     //       前端 price-compare.js 读取，避免产物停留在上一次构建（本次实测 10-30 陈旧）。
     //       生成器零依赖、缺输入不伪造、恒 exit 0；这里再包一层 try 保证绝不阻断构建。

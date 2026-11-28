@@ -291,20 +291,21 @@ function firstJsonLdValid(file) {
   else ok('首页无散装脚本回潮（8 个模块均由 bundle 承载）');
 }
 
-// 12) 券质量门禁：快照内不得混入无券/过期/重复记录
+// 12) 券质量门禁：原始快照只做审计，对客投影必须 0 无券 / 0 过期 / 0 重复且与原始数据同源。
 {
-  const f = path.join(ROOT, 'data', 'coupon-snapshot.json');
-  let snap = null;
-  try { snap = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { err('券快照不可读：' + e.message); }
-  if (snap) {
-    const groups = [['featured', snap.featured], ['browse', snap.browse], ['drops', snap.drops]];
-    ['day', 'week', 'month'].forEach(p => groups.push(['rank.' + p, snap.rank && snap.rank[p]]));
-    Object.keys(snap.category || {}).forEach(k => groups.push(['category.' + k, snap.category[k]]));
+  const rawPath = path.join(ROOT, 'data', 'coupon-snapshot.raw.json');
+  const customerPath = path.join(ROOT, 'data', 'coupon-snapshot.json');
+  let raw = null, customer = null;
+  try { raw = JSON.parse(fs.readFileSync(rawPath, 'utf8')); } catch (e) { err('原始券快照不可读：' + e.message); }
+  try { customer = JSON.parse(fs.readFileSync(customerPath, 'utf8')); } catch (e) { err('对客券快照不可读：' + e.message); }
+  if (raw) {
+    const groups = [raw.featured, raw.browse, raw.drops];
+    ['day', 'week', 'month'].forEach(p => groups.push(raw.rank && raw.rank[p]));
+    Object.keys(raw.category || {}).forEach(k => groups.push(raw.category[k]));
     let bad = 0, dup = 0, total = 0;
-    groups.forEach(function (g) {
-      const list = Array.isArray(g[1]) ? g[1] : [];
+    groups.forEach(function (list) {
       const keys = new Set();
-      list.forEach(function (c) {
+      (Array.isArray(list) ? list : []).forEach(function (c) {
         total++;
         if (!Q.hasCoupon(c) || Q.expiryState(c) === 'expired') bad++;
         const k = Q.dedupeKey(c);
@@ -312,9 +313,28 @@ function firstJsonLdValid(file) {
         keys.add(k);
       });
     });
-    if (bad) err('券快照含 ' + bad + '/' + total + ' 条无券或已过期记录（应全部可领且在架）');
-    if (dup) err('券快照含 ' + dup + '/' + total + ' 条同款重复记录');
-    if (!bad && !dup) ok('券快照 ' + total + ' 条全部可领、在架且无重复');
+    if (bad || dup) warn('原始快照审计：' + total + ' 条中无券/过期 ' + bad + ' 条、重复 ' + dup + ' 条（仅留档，不直接对客）');
+    else ok('原始快照 ' + total + ' 条质量记录合规');
+  }
+  if (raw && customer) {
+    const expected = Q.projectCustomerSnapshot(raw);
+    if (JSON.stringify(customer) !== JSON.stringify(expected)) err('对客快照与原始快照投影不一致（应运行 project-coupon-snapshot.js --apply 或重新构建）');
+    else ok('对客投影与原始快照同源：保留 ' + customer.quality.customerTotal + '/' + customer.quality.rawTotal + ' 条，移除 ' + customer.quality.removed + ' 条');
+    const groups = [customer.featured, customer.browse, customer.drops];
+    ['day', 'week', 'month'].forEach(p => groups.push(customer.rank && customer.rank[p]));
+    Object.keys(customer.category || {}).forEach(k => groups.push(customer.category[k]));
+    let bad = 0, dup = 0;
+    groups.forEach(function (list) {
+      const keys = new Set();
+      (Array.isArray(list) ? list : []).forEach(function (c) {
+        if (!Q.hasCoupon(c) || Q.expiryState(c) === 'expired') bad++;
+        const k = Q.dedupeKey(c);
+        if (!k || keys.has(k)) dup++;
+        keys.add(k);
+      });
+    });
+    if (bad || dup) err('对客投影含 ' + bad + ' 条无券/过期、' + dup + ' 条重复');
+    else ok('对客投影 0 无券、0 过期、0 重复');
   }
 }
 

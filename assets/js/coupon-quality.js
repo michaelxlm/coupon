@@ -120,6 +120,38 @@
     return o.keepOrder ? out : sortByValue(out);
   }
 
+  // 原始快照用于审计；对客快照必须另行投影，不能把历史脏记录直接交给页面。
+  function projectCustomerSnapshot(snapshot, now) {
+    var src = snapshot && typeof snapshot === 'object' ? snapshot : {};
+    var at = now || Date.now();
+    var out = {}, rawTotal = 0, customerTotal = 0;
+    function projectList(list, keepOrder) {
+      var raw = Array.isArray(list) ? list : [];
+      rawTotal += raw.length;
+      var clean = raw.filter(function (c) { return hasCoupon(c) && expiryState(c, at) !== 'expired'; });
+      clean = dedupe(clean);
+      customerTotal += clean.length;
+      return keepOrder ? clean : sortByValue(clean);
+    }
+    out.updatedAt = src.updatedAt || new Date(at).toISOString();
+    out.featured = projectList(src.featured);
+    out.browse = projectList(src.browse);
+    out.drops = projectList(src.drops);
+    out.rank = {};
+    [ 'day', 'week', 'month' ].forEach(function (period) {
+      out.rank[period] = projectList(src.rank && src.rank[period], true);
+    });
+    out.category = {};
+    Object.keys(src.category || {}).forEach(function (key) { out.category[key] = projectList(src.category[key]); });
+    var usableIds = Object.create(null);
+    [ out.featured, out.browse, out.drops ].concat(Object.keys(out.rank).map(function (k) { return out.rank[k]; }))
+      .concat(Object.keys(out.category).map(function (k) { return out.category[k]; }))
+      .forEach(function (list) { list.forEach(function (c) { if (c && c._id) usableIds[String(c._id)] = 1; }); });
+    out.detailIds = (Array.isArray(src.detailIds) ? src.detailIds : []).map(String).filter(function (id) { return usableIds[id]; });
+    out.quality = { rawTotal: rawTotal, customerTotal: customerTotal, removed: rawTotal - customerTotal };
+    return out;
+  }
+
   /** 搜索相关性：标题前缀 > 标题包含 > 简介包含；券额与新鲜度做小幅加权 */
   function relevanceScore(c, kw) {
     if (!c || !kw) return saveScore(c);
@@ -169,6 +201,7 @@
     dedupe: dedupe,
     sortByValue: sortByValue,
     cleanList: cleanList,
+    projectCustomerSnapshot: projectCustomerSnapshot,
     relevanceScore: relevanceScore,
     rankByRelevance: rankByRelevance,
     platformLabel: platformLabel,
